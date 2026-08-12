@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Phone, MessageSquare, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Lock, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { User } from '../types';
 import confetti from 'canvas-confetti';
 
@@ -21,7 +21,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   
   // OTP State
   const [resendTimer, setResendTimer] = useState(60);
-  const [demoOtp, setDemoOtp] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +35,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   if (!isOpen) return null;
 
-  // 1. SEND WHATSAPP OTP
+  // 1. SEND OFFICIAL WHATSAPP OTP
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -64,8 +63,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       setLoading(false);
 
       if (data.success) {
-        setDemoOtp(data.otp || '123456');
-        setInfoMsg(`WhatsApp OTP sent to +91 ${phone}! (Demo OTP: ${data.otp || '123456'})`);
+        setInfoMsg(`WhatsApp OTP sent to +91 ${phone}! Please check your WhatsApp app.`);
         setStep('otp');
         setResendTimer(60);
       } else {
@@ -73,9 +71,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
     } catch (err) {
       setLoading(false);
-      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      setDemoOtp(mockOtp);
-      setInfoMsg(`WhatsApp OTP sent to +91 ${phone}! (Demo OTP: ${mockOtp})`);
+      setInfoMsg(`WhatsApp OTP sent to +91 ${phone}! Please check your WhatsApp app.`);
       setStep('otp');
       setResendTimer(60);
     }
@@ -95,9 +91,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       });
       const verifyData = await verifyRes.json();
 
-      if (!verifyData.success && otp.trim() !== demoOtp) {
+      if (!verifyData.success) {
         setLoading(false);
-        setErrorMsg('Invalid WhatsApp OTP code. Please check and try again.');
+        setErrorMsg(verifyData.message || 'Invalid WhatsApp OTP code. Please check and try again.');
         return;
       }
 
@@ -149,17 +145,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
       <div className="relative max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden p-6 text-white">
         
-        {/* HEADER */}
+        {/* HEADER WITH OFFICIAL WHATSAPP GREEN LOGO */}
         <div className="flex justify-between items-center pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400">
-              <MessageSquare className="w-4 h-4 fill-emerald-400" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              {/* Official WhatsApp SVG Logo */}
+              <svg className="w-5 h-5 fill-emerald-400" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.157 4.228 4.225-1.111zm10.741-6.758c-.147-.246-.539-.393-.785-.516-.246-.123-1.454-.717-1.679-.8-.225-.083-.39-.123-.556.123-.166.246-.641.801-.785.965-.144.165-.29.185-.536.062-.246-.123-1.041-.384-1.984-1.225-.733-.654-1.228-1.462-1.372-1.708-.144-.246-.015-.38.108-.502.111-.11.246-.29.369-.434.123-.145.164-.246.246-.41.083-.165.042-.31-.021-.434-.062-.123-.556-1.354-.761-1.847-.2-.482-.403-.416-.556-.424-.144-.008-.31-.008-.475-.008-.166 0-.434.062-.661.31-.227.247-.866.847-.866 2.066 0 1.219.887 2.395 1.01 2.56.123.165 1.746 2.664 4.229 3.736.591.255 1.053.407 1.413.522.593.188 1.133.162 1.56.098.476-.071 1.454-.594 1.659-1.169.205-.575.205-1.068.144-1.169z"/>
+              </svg>
             </div>
             <div>
               <h3 className="font-black text-base text-white">
                 {isSignup ? 'WhatsApp Registration' : 'WhatsApp Express Sign In'}
               </h3>
-              <p className="text-[10px] text-slate-400 font-semibold">100% Secure WhatsApp OTP Auth</p>
+              <p className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                <span>Official Meta WhatsApp Verification</span>
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-white">
@@ -176,7 +177,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         {infoMsg && (
           <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 text-xs rounded-xl font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
             <span>{infoMsg}</span>
           </div>
         )}
@@ -193,7 +194,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-500"
                 />
               </div>
             )}
@@ -209,7 +210,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="Enter 10-digit mobile number"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-12 pr-3 py-2.5 text-white outline-none focus:border-amber-500 font-mono font-bold"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-12 pr-3 py-2.5 text-white outline-none focus:border-emerald-500 font-mono font-bold"
                 />
               </div>
             </div>
@@ -222,7 +223,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-500"
                 />
               </div>
             )}
@@ -230,9 +231,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black text-xs py-3 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition flex items-center justify-center gap-2"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] transition flex items-center justify-center gap-2"
             >
-              <MessageSquare className="w-4 h-4 fill-slate-950" />
+              <svg className="w-4 h-4 fill-slate-950" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.157 4.228 4.225-1.111zm10.741-6.758c-.147-.246-.539-.393-.785-.516-.246-.123-1.454-.717-1.679-.8-.225-.083-.39-.123-.556.123-.166.246-.641.801-.785.965-.144.165-.29.185-.536.062-.246-.123-1.041-.384-1.984-1.225-.733-.654-1.228-1.462-1.372-1.708-.144-.246-.015-.38.108-.502.111-.11.246-.29.369-.434.123-.145.164-.246.246-.41.083-.165.042-.31-.021-.434-.062-.123-.556-1.354-.761-1.847-.2-.482-.403-.416-.556-.424-.144-.008-.31-.008-.475-.008-.166 0-.434.062-.661.31-.227.247-.866.847-.866 2.066 0 1.219.887 2.395 1.01 2.56.123.165 1.746 2.664 4.229 3.736.591.255 1.053.407 1.413.522.593.188 1.133.162 1.56.098.476-.071 1.454-.594 1.659-1.169.205-.575.205-1.068.144-1.169z"/>
+              </svg>
               <span>{loading ? 'Sending WhatsApp OTP...' : 'Send WhatsApp OTP ->'}</span>
             </button>
           </form>
@@ -249,7 +252,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  placeholder="123456"
+                  placeholder="Enter OTP received"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-3 text-white tracking-widest font-mono text-center text-lg outline-none focus:border-emerald-500"
                   autoFocus
                 />

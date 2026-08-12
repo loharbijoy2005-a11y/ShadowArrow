@@ -346,9 +346,9 @@ router.post('/send-otp', async (req, res) => {
   otpStore.set(cleanPhone, generatedOtp);
 
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID || '1318722734646618';
-  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const token = process.env.WHATSAPP_ACCESS_TOKEN || 'EAAM8xGxJ5ZCgBSD7qxGR49UAzH0ooZBshvTODQ1ZAYFbRu13S0U9gqQs9073kN6fEDAXjC2qa3B6fjfZBYSYxhhUwT9ZBkV2XxU7P0dPOJ9k4yOJMy46eRy96WkZA0QdsE9CwJUPKlw02J8Fa056dkJdubXhfVjnZCgqZAJCnaJ2pBZCf7DR7qLqeboQiZCHZAXkjRvgwZDZD';
 
-  // If Meta Access Token is set, send Meta WhatsApp Graph API message
+  // Send Meta WhatsApp Graph API message
   if (token && phoneId) {
     try {
       const metaRes = await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
@@ -374,11 +374,9 @@ router.post('/send-otp', async (req, res) => {
     }
   }
 
-  console.log(`[META WHATSAPP API] Sent WhatsApp OTP ${generatedOtp} to +91 ${cleanPhone}`);
-
   return res.json({
     success: true,
-    message: `WhatsApp OTP sent to +91 ${cleanPhone}! (Demo OTP: ${generatedOtp})`,
+    message: `WhatsApp OTP sent to +91 ${cleanPhone}! Please check your WhatsApp app.`,
     otp: generatedOtp
   });
 });

@@ -22,16 +22,20 @@ app.get('/health', (req, res) => {
 });
 
 // MongoDB Connection with fallback
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/shadow_arrow';
+const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/shadow_arrow';
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB successfully.');
-  })
-  .catch((err) => {
-    console.log('MongoDB Connection Notice: Local DB disconnected. Running on high-performance memory storage engine.');
-  });
+if (process.env.MONGODB_URI || process.env.MONGO_URI) {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log('Connected to MongoDB successfully.');
+    })
+    .catch((err) => {
+      console.log('MongoDB Connection Notice: Local/Atlas DB disconnected. Running on high-performance memory storage engine.');
+    });
+} else {
+  console.log('MongoDB Notice: MONGODB_URI not set. Running on high-performance memory storage engine.');
+}
 
 app.listen(PORT, () => {
   console.log(`⚡ SHADOW ARROW Express Server running at http://localhost:${PORT}`);

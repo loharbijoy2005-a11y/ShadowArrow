@@ -32,6 +32,19 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Render Anti-Sleep Keep-Alive Heartbeat (Pings /health every 10 minutes to prevent 15-minute sleep)
+const RENDER_APP_URL = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+if (RENDER_APP_URL) {
+  setInterval(async () => {
+    try {
+      await fetch(`${RENDER_APP_URL}/health`);
+      console.log(`💓 [RENDER KEEP-ALIVE] Heartbeat ping sent to ${RENDER_APP_URL}/health - Server kept 100% awake!`);
+    } catch (e) {
+      console.log(`[RENDER KEEP-ALIVE NOTICE]: ${e.message}`);
+    }
+  }, 10 * 60 * 1000); // Pings every 10 minutes
+}
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 

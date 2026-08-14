@@ -19,9 +19,21 @@ export const isFirebaseConfigured = Boolean(
   key && key.length > 20 && !key.includes('DemoKey')
 );
 
-// Initialize Firebase App instance safely
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase App instance safely with try-catch block
+let appInstance: any = null;
+let authInstance: any = null;
+let providerInstance: any = null;
 
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
+try {
+  if (isFirebaseConfigured) {
+    appInstance = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    authInstance = getAuth(appInstance);
+    providerInstance = new GoogleAuthProvider();
+    providerInstance.setCustomParameters({ prompt: 'select_account' });
+  }
+} catch (err) {
+  console.warn('Firebase top-level initialization skipped safely:', err);
+}
+
+export const auth = authInstance;
+export const googleProvider = providerInstance;

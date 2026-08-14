@@ -8,20 +8,32 @@ interface LightningDealsProps {
   onAddToCart: (product: Product) => void;
   onBuyNow: (product: Product) => void;
   onToggleWishlist: (product: Product) => void;
+  onOpenReview?: (product: Product) => void;
+  onOpenDetail?: (product: Product) => void;
 }
+
+const getRemainingSaleSeconds = () => {
+  // Absolute World-Clock UTC Epoch Timestamp calculation
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const cycleSeconds = 5 * 3600; // 5-Hour Absolute World-Clock Cycle
+  const remaining = cycleSeconds - (nowInSeconds % cycleSeconds);
+  return remaining;
+};
 
 export const LightningDeals: React.FC<LightningDealsProps> = ({
   products,
   wishlistIds,
   onAddToCart,
   onBuyNow,
-  onToggleWishlist
+  onToggleWishlist,
+  onOpenReview,
+  onOpenDetail
 }) => {
-  const [timeLeft, setTimeLeft] = useState(29 * 60 + 9); // 29m 09s
+  const [timeLeft, setTimeLeft] = useState(getRemainingSaleSeconds());
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev <= 0 ? 5 * 3600 : prev - 1));
+      setTimeLeft(getRemainingSaleSeconds());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -71,7 +83,10 @@ export const LightningDeals: React.FC<LightningDealsProps> = ({
                 className="group relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-amber-500 transition-all duration-300 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
               >
                 {/* MEDIA HEADER */}
-                <div className="relative h-52 bg-slate-950 overflow-hidden">
+                <div
+                  onClick={() => onOpenDetail && onOpenDetail(product)}
+                  className="relative h-52 bg-slate-950 overflow-hidden cursor-pointer"
+                >
                   <img
                     src={product.image}
                     alt={product.name}
@@ -86,7 +101,10 @@ export const LightningDeals: React.FC<LightningDealsProps> = ({
 
                   {/* WISHLIST TOGGLE BUTTON */}
                   <button
-                    onClick={() => onToggleWishlist(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleWishlist(product);
+                    }}
                     className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-red-400 transition"
                     title="Add to Wishlist"
                   >
@@ -99,14 +117,23 @@ export const LightningDeals: React.FC<LightningDealsProps> = ({
                   <div>
                     <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold mb-1">
                       <span className="uppercase tracking-wider text-amber-500 font-bold">{product.category}</span>
-                      <div className="flex items-center gap-1 text-amber-400">
+                      <button
+                        onClick={() => onOpenReview && onOpenReview(product)}
+                        className="flex items-center gap-1 text-amber-400 hover:scale-105 transition"
+                        title="Click to write a Verified Review"
+                      >
                         <Star className="w-3 h-3 fill-amber-400" />
-                        <span className="font-bold text-white">{product.rating}</span>
-                        <span className="text-slate-500">({product.reviewsCount})</span>
-                      </div>
+                        <span className="font-bold text-white">{product.reviewsCount > 0 ? product.rating : '5.0'}</span>
+                        <span className="text-emerald-400 font-bold text-[10px]">
+                          {product.reviewsCount > 0 ? `(${product.reviewsCount})` : '⭐ Fresh Stock'}
+                        </span>
+                      </button>
                     </div>
 
-                    <h3 className="font-black text-sm text-white line-clamp-1 group-hover:text-amber-400 transition">
+                    <h3
+                      onClick={() => onOpenDetail && onOpenDetail(product)}
+                      className="font-black text-sm text-white line-clamp-1 group-hover:text-amber-400 transition cursor-pointer"
+                    >
                       {product.name}
                     </h3>
                     <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{product.subtitle}</p>

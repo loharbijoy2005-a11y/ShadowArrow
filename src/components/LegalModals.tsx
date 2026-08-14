@@ -84,8 +84,10 @@ export const LegalModals: React.FC<LegalModalProps> = ({ modalType, onClose }) =
               <p className="text-[11px] text-slate-400">
                 For data deletion requests, privacy queries, or grievance redressal, please contact our designated Nodal Privacy Officer:
               </p>
-              <div className="mt-2 text-white font-mono font-bold">
-                Email: <a href="mailto:support.shadowarrow@gmail.com" className="text-amber-400 underline">support.shadowarrow@gmail.com</a>
+              <div className="mt-3 pt-2 border-t border-slate-900 flex justify-between items-center">
+                <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:underline flex items-center gap-1 text-xs">
+                  <span>Open Official Full Privacy Policy Page ↗</span>
+                </a>
               </div>
             </div>
           </div>
@@ -208,10 +210,10 @@ export const LegalModals: React.FC<LegalModalProps> = ({ modalType, onClose }) =
             <div>
               <h4 className="font-extrabold text-sm text-white border-b border-slate-800 pb-1 mb-2 flex items-center gap-2">
                 <Info className="w-4 h-4 text-amber-500" />
-                1. Corporate Mission & Brand Overview
+                1. Corporate Mission & Multi-Channel Marketplace Presence
               </h4>
               <p>
-                <strong>Shadow Arrow Prime Marketplace</strong> is India's premier online destination for esports mechanical gear, ultra-wide 2K curved displays, active noise-cancelling audio, and cyberpunk techwear apparel. Founded to empower gamers, programmers, and creators with state-of-the-art dark aesthetic products.
+                <strong>Shadow Arrow Prime Marketplace</strong> is India's premier brand for esports mechanical gear, ultra-wide 2K curved displays, active noise-cancelling audio, and cyberpunk techwear apparel. In addition to our direct standalone Prime Direct Portal (shadowarrow.in), <strong>Shadow Arrow is an official verified seller on Flipkart and Amazon India</strong>.
               </p>
             </div>
 

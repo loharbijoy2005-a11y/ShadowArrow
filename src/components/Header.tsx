@@ -10,7 +10,8 @@ import {
   Zap,
   CheckCircle2,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -25,6 +26,7 @@ interface HeaderProps {
   onOpenAi: () => void;
   onOpenAuth: () => void;
   onOpenOrders: () => void;
+  onOpenProfile?: () => void;
   onLogout: () => void;
   onPincodeChange: (pincode: string) => void;
   onSearch: (query: string, category: string) => void;
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAi,
   onOpenAuth,
   onOpenOrders,
+  onOpenProfile,
   onLogout,
   onPincodeChange,
   onSearch
@@ -53,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(query, category);
+    onSearch(query.trim(), category);
   };
 
   const handlePincodeSubmit = (e: React.FormEvent) => {
@@ -69,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-2xl">
       {/* TOP ANNOUNCEMENT MARQUEE BANNER */}
-      <div className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 text-white text-xs font-semibold py-1.5 px-4 overflow-hidden relative shadow-md">
+      <div className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 text-white text-xs font-semibold py-1.5 px-4 overflow-hidden relative shadow-md flex items-center justify-between">
         <div className="animate-marquee whitespace-nowrap flex items-center gap-12">
           <span className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-yellow-300 animate-bounce" />
@@ -119,102 +122,106 @@ export const Header: React.FC<HeaderProps> = ({
                   maxLength={6}
                   autoFocus
                 />
-                <button type="submit" className="text-[10px] bg-amber-500 text-black px-2 py-0.5 rounded font-bold">
+                <button type="submit" className="text-amber-400 font-bold hover:underline text-[10px]">
                   Save
                 </button>
               </form>
             ) : (
-              <div className="cursor-pointer" onClick={() => setIsEditingPincode(true)}>
-                <div className="text-[9px] text-slate-400 font-semibold uppercase">
-                  {pincode ? `Delivering to ${pincode}` : 'Select Delivery Pincode'}
+              <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsEditingPincode(true)}>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">Deliver to</span>
+                  <span className="font-bold text-white">{pincode} • ({deliveryDate})</span>
                 </div>
-                <div className="font-bold text-white text-xs flex items-center gap-1">
-                  <span>Est: <strong className="text-emerald-400">{deliveryDate}</strong></span>
-                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </div>
             )}
           </div>
 
-          {/* GLOBAL SEARCH BAR WITH CATEGORY FILTER */}
-          <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-2xl items-center bg-slate-900 border border-slate-800 rounded-xl overflow-hidden focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500 transition shadow-inner">
+          {/* SEARCH BAR */}
+          <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-lg items-center bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden focus-within:border-amber-500 transition shadow-inner">
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="bg-slate-900 text-slate-300 text-xs font-bold px-3 py-3 border-r border-slate-800 outline-none cursor-pointer hover:text-white"
+              className="bg-slate-950 text-slate-400 text-xs font-semibold px-3 py-2.5 border-r border-slate-800 outline-none cursor-pointer"
             >
               <option value="all">All Departments</option>
-              <option value="gaming">Gaming & Gear</option>
-              <option value="electronics">Electronics & Gadgets</option>
-              <option value="fashion">Fashion & Apparel</option>
-              <option value="home">Home & Essentials</option>
+              <option value="gaming">Esports & Gaming</option>
+              <option value="fashion">Cyberpunk Techwear</option>
+              <option value="electronics">Electronics & Display</option>
             </select>
-
-            <div className="flex-1 flex items-center px-3">
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search Shadow Mechanical Keyboards, Curved Monitors, Techwear..."
-                className="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
-              />
-            </div>
-
-            <button type="submit" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-5 py-3 text-xs flex items-center gap-1.5 transition">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search mechanical keyboards, 2K monitors, techwear..."
+              className="flex-1 bg-transparent px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none"
+            />
+            <button type="submit" className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2.5 text-xs font-black transition flex items-center justify-center">
               <Search className="w-4 h-4" />
-              <span>Search</span>
             </button>
           </form>
 
-          {/* NAV ACTIONS */}
+          {/* ACTION BUTTONS */}
           <div className="flex items-center gap-2 sm:gap-3">
 
-            {/* FUTURISTIC SHADOW AI ASSISTANT BUTTON */}
+            {/* SHADOW AI BOT TRIGGER BUTTON */}
             <button
               onClick={onOpenAi}
-              className="relative group flex items-center gap-2 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 border-2 border-purple-500/80 hover:border-purple-400 text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] transition transform hover:scale-105 overflow-hidden"
+              className="relative bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.4)] transition transform hover:scale-105"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition"></div>
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-              </span>
-              <Bot className="w-4 h-4 text-purple-300 animate-pulse" />
-              <span className="hidden sm:inline font-extrabold tracking-wide">Shadow AI</span>
+              <Bot className="w-4 h-4 animate-spin-slow" />
+              <span className="hidden sm:inline">Shadow AI</span>
             </button>
 
-            {/* USER PROFILE / LOGIN / DROPDOWN */}
+            {/* USER PROFILE DROPDOWN / SIGN IN */}
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-2 sm:px-3 sm:py-2 bg-slate-900 text-slate-200 hover:text-white border border-slate-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                  className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs font-bold text-white hover:border-amber-500 transition"
                 >
-                  <UserIcon className="w-4 h-4 text-amber-500" />
-                  <span className="hidden md:inline">{user.name.split(' ')[0]}</span>
+                  <div className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="max-w-[80px] truncate hidden sm:inline">{user.name}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 text-left text-xs">
+                  <div className="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 text-xs">
                     <div className="px-4 py-2 border-b border-slate-800">
-                      <div className="font-bold text-white text-sm">{user.name}</div>
-                      <div className="text-slate-400 text-[11px] font-mono">{user.phone || user.email}</div>
+                      <div className="font-bold text-white text-sm truncate">{user.name}</div>
+                      <div className="text-slate-400 text-[11px] font-mono truncate">
+                        {user.phone ? `+91 ${user.phone}` : (user.email && !user.email.includes('@shadowarrow.com') ? user.email : 'Mobile Account')}
+                      </div>
                     </div>
+                    {onOpenProfile && (
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onOpenProfile();
+                        }}
+                        className="w-full px-4 py-2 hover:bg-slate-800 text-slate-300 flex items-center gap-2 text-left"
+                      >
+                        <UserIcon className="w-4 h-4 text-amber-400" /> Edit Profile & Address
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setIsUserMenuOpen(false);
                         onOpenOrders();
                       }}
-                      className="w-full px-4 py-2 hover:bg-slate-800 text-slate-300 flex items-center gap-2"
+                      className="w-full px-4 py-2 hover:bg-slate-800 text-slate-300 flex items-center gap-2 text-left"
                     >
                       <PackageCheck className="w-4 h-4 text-emerald-400" /> My Orders
                     </button>
+
                     <button
                       onClick={() => {
                         setIsUserMenuOpen(false);
                         onLogout();
                       }}
-                      className="w-full px-4 py-2 hover:bg-slate-800 text-red-400 flex items-center gap-2 border-t border-slate-800"
+                      className="w-full px-4 py-2 hover:bg-slate-800 text-red-400 flex items-center gap-2 text-left border-t border-slate-800"
                     >
                       <LogOut className="w-4 h-4" /> Sign Out
                     </button>
@@ -230,6 +237,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="hidden md:inline">Sign In</span>
               </button>
             )}
+
+
 
             {/* RETURNS & ORDERS TAB */}
             <button

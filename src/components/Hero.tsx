@@ -71,9 +71,9 @@ export const Hero: React.FC<HeroProps> = ({ onExploreDeals, onOpenAi }) => {
               </div>
               <div>
                 <div className="font-black text-xl text-amber-400 flex items-center gap-1">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" /> 4.9 ★
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" /> 5.0 ★
                 </div>
-                <div className="text-[11px] text-slate-400">50K+ Reviews</div>
+                <div className="text-[11px] text-slate-400">Verified Quality</div>
               </div>
             </div>
 

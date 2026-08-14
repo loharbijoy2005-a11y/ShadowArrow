@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, RefreshCw, Headset, ShieldCheck } from 'lucide-react';
+import { Truck, RefreshCw, Headset, ShieldCheck, Lock } from 'lucide-react';
 
 interface FooterProps {
   onOpenLegal: (type: 'about' | 'privacy' | 'terms' | 'returns') => void;
@@ -123,9 +123,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegal }) => {
         </div>
 
         <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-4">
-          <div>© 2026 SHADOW ARROW - Prime Marketplace. Inspired by shadowarrow.in & top Indian e-commerce leaders.</div>
+          <div>2026 SHADOW ARROW — Registered E-Commerce. <span className="text-slate-400 font-mono">GSTIN: <strong className="text-amber-400 font-bold">19BVKPL6301H1ZH</strong></span></div>
           <div className="flex items-center gap-4">
-            <button onClick={() => onOpenLegal('privacy')} className="hover:text-slate-400">Privacy Policy</button>
+            <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400">Privacy Policy</a>
             <button onClick={() => onOpenLegal('terms')} className="hover:text-slate-400">Terms of Service</button>
           </div>
         </div>

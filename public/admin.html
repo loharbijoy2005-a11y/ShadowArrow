@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shadow Arrow — Standalone Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- AUTHENTICATION CONTAINER -->
+  <div id="auth-portal" class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-amber-500/50 rounded-3xl p-8 shadow-2xl text-center space-y-6">
+      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-lg">
+        <svg class="w-8 h-8 text-amber-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-black tracking-tight text-white">SHADOW ARROW ADMIN</h2>
+        <p class="text-xs text-slate-400 mt-1">Standalone Backend Admin Portal — MongoDB Atlas Live</p>
+      </div>
+
+      <div id="auth-error" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-2xl font-bold"></div>
+
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <input
+            type="password"
+            id="admin-passcode"
+            placeholder="Enter Admin Secret Passcode..."
+            required
+            class="w-full bg-slate-950 border border-slate-700 text-sm px-4 py-3.5 rounded-2xl text-white outline-none focus:border-amber-500 font-mono text-center tracking-widest"
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3.5 rounded-2xl text-sm shadow-xl transition"
+        >
+          Unlock Admin Control Panel
+        </button>
+      </form>
+
+      <p class="text-[11px] text-slate-500">Passcode: <code class="text-amber-400 font-bold">8627</code> or <code class="text-amber-400 font-bold">shadowadmin8627</code></p>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN DASHBOARD (HIDDEN INITIALLY) -->
+  <div id="dashboard-portal" class="hidden min-h-screen flex flex-col">
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900/90 border-b border-slate-800 p-4 sticky top-0 z-40 backdrop-blur-md">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg">
+            SA
+          </div>
+          <div>
+            <h1 class="font-black text-lg text-white">SHADOW ARROW ADMIN PORTAL</h1>
+            <p class="text-[10px] text-slate-400">Database: <span class="text-amber-400 font-mono">shadow_arrow.orders</span> (MongoDB Atlas)</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="btn-refresh" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition">
+            🔄 Refresh Orders
+          </button>
+          <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition">
+            🔒 Lock Portal
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1">
+      <div id="toast-msg" class="hidden p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs font-semibold"></div>
+
+      <!-- ANALYTICS CARDS -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-slate-400 text-[11px] block">Total Revenue</span>
+          <span id="stat-revenue" class="text-2xl font-black text-amber-400 font-mono mt-1 block">₹0</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-slate-400 text-[11px] block">Total Orders</span>
+          <span id="stat-orders" class="text-2xl font-black text-white font-mono mt-1 block">0</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-slate-400 text-[11px] block">Prepaid (Razorpay)</span>
+          <span id="stat-prepaid" class="text-2xl font-black text-emerald-400 font-mono mt-1 block">0</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-slate-400 text-[11px] block">Cash on Delivery</span>
+          <span id="stat-cod" class="text-2xl font-black text-cyan-400 font-mono mt-1 block">0</span>
+        </div>
+      </div>
+
+      <!-- ORDERS LIST CONTAINER -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+          <h3 class="font-extrabold text-white text-base">Customer Orders Live Feed</h3>
+          <span class="text-xs text-slate-400">Click Auto-Book to push to Shiprocket</span>
+        </div>
+
+        <div id="orders-list" class="space-y-4">
+          <div class="text-center py-12 text-slate-500 text-xs font-bold">Loading orders...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const ADMIN_TOKEN = 'ADMIN_TOKEN_SECURE_8627';
+
+    const authPortal = document.getElementById('auth-portal');
+    const dashboardPortal = document.getElementById('dashboard-portal');
+    const authError = document.getElementById('auth-error');
+    const adminForm = document.getElementById('admin-login-form');
+    const adminPasscode = document.getElementById('admin-passcode');
+    const toastMsg = document.getElementById('toast-msg');
+    const ordersList = document.getElementById('orders-list');
+
+    function checkAuth() {
+      if (sessionStorage.getItem('shadow_admin_token') === ADMIN_TOKEN) {
+        authPortal.classList.add('hidden');
+        dashboardPortal.classList.remove('hidden');
+        loadOrders();
+      } else {
+        authPortal.classList.remove('hidden');
+        dashboardPortal.classList.add('hidden');
+      }
+    }
+
+    adminForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authError.classList.add('hidden');
+      const pass = adminPasscode.value.trim();
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passcode: pass })
+        });
+        const data = await res.json();
+        if (data.success) {
+          sessionStorage.setItem('shadow_admin_token', ADMIN_TOKEN);
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          checkAuth();
+        } else {
+          authError.innerText = '⚠️ ' + (data.message || 'Access Denied! Incorrect Passcode.');
+          authError.classList.remove('hidden');
+        }
+      } catch (err) {
+        if (pass === '8627' || pass === 'shadowadmin8627') {
+          sessionStorage.setItem('shadow_admin_token', ADMIN_TOKEN);
+          checkAuth();
+        } else {
+          authError.innerText = '⚠️ Incorrect secret passcode.';
+          authError.classList.remove('hidden');
+        }
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      sessionStorage.removeItem('shadow_admin_token');
+      checkAuth();
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click', () => {
+      loadOrders();
+    });
+
+    async function loadOrders() {
+      ordersList.innerHTML = '<div class="text-center py-10 text-slate-400">Refreshing live MongoDB database...</div>';
+      try {
+        const res = await fetch('/api/admin/orders', {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          renderOrders(data.orders);
+        } else {
+          ordersList.innerHTML = '<div class="text-center py-10 text-rose-400">Failed to fetch orders.</div>';
+        }
+      } catch (err) {
+        ordersList.innerHTML = '<div class="text-center py-10 text-rose-400">Server Connection Error.</div>';
+      }
+    }
+
+    function renderOrders(orders) {
+      const rev = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const prepaid = orders.filter(o => o.paymentMethod?.toLowerCase().includes('online') || o.paymentMethod?.toLowerCase().includes('razorpay')).length;
+      const cod = orders.filter(o => o.paymentMethod?.toLowerCase().includes('cod')).length;
+
+      document.getElementById('stat-revenue').innerText = '₹' + rev.toLocaleString('en-IN');
+      document.getElementById('stat-orders').innerText = orders.length;
+      document.getElementById('stat-prepaid').innerText = prepaid;
+      document.getElementById('stat-cod').innerText = cod;
+
+      if (orders.length === 0) {
+        ordersList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold">No orders found in MongoDB Atlas.</div>';
+        return;
+      }
+
+      ordersList.innerHTML = orders.map(o => `
+        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+            <div>
+              <span class="font-mono font-black text-amber-400 text-sm">${o.orderId}</span>
+              <span class="bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">${o.paymentMethod}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-black text-sm text-white font-mono">₹${(o.total || 0).toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-300">
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+              <div class="font-bold text-white">${o.name}</div>
+              <div class="text-[11px] text-slate-400 font-mono">Phone: +91 ${o.phone}</div>
+              <div class="text-[11px] text-slate-400">${o.address?.street || ''}, ${o.address?.city || ''} - ${o.address?.pincode || ''}</div>
+            </div>
+
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+              <div class="font-bold text-amber-400 text-[11px]">Payment Info</div>
+              <div class="text-[11px]">Method: <strong>${o.paymentMethod}</strong></div>
+              <div class="text-[11px]">Txn ID: <strong class="font-mono text-emerald-400">${o.razorpayPaymentId || 'Verified'}</strong></div>
+            </div>
+
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+              <div class="font-bold text-slate-400 text-[11px]">Logistics Details</div>
+              <div class="text-[11px]">Status: <strong class="text-emerald-400">${o.status}</strong></div>
+              <div class="text-[11px]">AWB: <strong class="text-amber-400 font-mono">${o.awbCode || 'Not Booked Yet'}</strong></div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+            <span class="text-xs text-slate-400">Current Status: <strong class="text-emerald-400">${o.status}</strong></span>
+            <div class="flex gap-2">
+              <button onclick="bookShiprocket('${o.orderId}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow">
+                🚀 Shiprocket Auto-Book
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function bookShiprocket(orderId) {
+      try {
+        const res = await fetch('/api/shiprocket/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify({ orderId })
+        });
+        const data = await res.json();
+        alert(data.message || 'Order Booked!');
+        loadOrders();
+      } catch (e) {
+        alert('Booking error: ' + e.message);
+      }
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>

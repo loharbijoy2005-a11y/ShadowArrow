@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, ShoppingBag, Trash2, Plus, Minus, Truck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, Truck, CheckCircle2, ArrowRight, MapPin } from 'lucide-react';
 import { CartItem } from '../types';
+import { calculateDeliveryInfo, WAREHOUSE_PINCODE } from '../utils/delivery';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -30,8 +31,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const targetFree = 999;
-  const freePct = Math.min(100, Math.round((subtotal / targetFree) * 100));
+
+  // Dynamic delivery calculation relative to Warehouse 722157
+  const deliveryInfo = calculateDeliveryInfo(pincode, subtotal);
+
+  const targetFree = pincode?.startsWith('722157') ? 0 : 999;
+  const freePct = targetFree === 0 ? 100 : Math.min(100, Math.round((subtotal / targetFree) * 100));
 
   const handleApplyCoupon = () => {
     const clean = couponCode.trim().toUpperCase();
@@ -49,7 +54,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
   };
 
-  const deliveryFee = subtotal >= targetFree || subtotal === 0 ? 0 : 69;
+  const deliveryFee = deliveryInfo.deliveryFee;
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0;
   const finalTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
@@ -76,12 +81,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <div className="p-4 bg-slate-950/80 border-b border-slate-800 space-y-3">
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                {subtotal >= targetFree ? (
+                {deliveryInfo.isFreeDelivery ? (
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Prime Free Delivery Unlocked!
                   </span>
                 ) : (
-                  <span className="text-slate-300">Add ₹{(targetFree - subtotal).toLocaleString('en-IN')} for Free Shipping</span>
+                  <span className="text-slate-300">Add ₹{(999 - subtotal).toLocaleString('en-IN')} for Free Shipping</span>
                 )}
                 <span className="text-amber-500 font-bold">{freePct}%</span>
               </div>
@@ -93,13 +98,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
             </div>
 
-            {/* LOCATION BASED DELIVERY ESTIMATOR */}
-            <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between text-slate-300">
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-amber-500" />
-                <span>Pincode: <strong className="text-white">{pincode || 'Not Set'}</strong></span>
+            {/* LOCATION BASED DELIVERY ESTIMATOR WITH WAREHOUSE 722157 BADGE */}
+            <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs space-y-1">
+              <div className="flex items-center justify-between text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-amber-500" />
+                  <span>Pincode: <strong className="text-white">{pincode || 'Not Set'}</strong></span>
+                </div>
+                <span className="text-emerald-400 font-bold">{deliveryInfo.estimatedDays}</span>
               </div>
-              <span className="text-emerald-400 font-bold">{deliveryDate}</span>
+              <div className="flex items-center gap-1.5 text-[10px] text-sky-400 border-t border-slate-800/60 pt-1">
+                <MapPin className="w-3 h-3 text-sky-400" />
+                <span>Origin Warehouse: <strong className="font-mono text-white">{WAREHOUSE_PINCODE}</strong></span>
+              </div>
             </div>
           </div>
 

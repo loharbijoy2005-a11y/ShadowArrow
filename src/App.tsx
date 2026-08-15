@@ -12,6 +12,8 @@ import { LegalModals } from './components/LegalModals';
 import { InvoiceModal } from './components/InvoiceModal';
 import { ReviewModal } from './components/ReviewModal';
 import { ProductDetailModal } from './components/ProductDetailModal';
+import { WelcomeModal } from './components/WelcomeModal';
+import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { Footer } from './components/Footer';
 import { FileText, Star } from 'lucide-react';
 
@@ -21,6 +23,7 @@ import { calculateDeliveryInfo } from './utils/delivery';
 import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove } from './utils/security';
 
 export const App: React.FC = () => {
+  const [allCatalogProducts, setAllCatalogProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
 
   // Standalone LocalStorage State Initializers via safeLocalStorageGet
@@ -54,9 +57,11 @@ export const App: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
+  const [recentOrderSuccess, setRecentOrderSuccess] = useState<Order | null>(null);
   const [selectedUserInvoice, setSelectedUserInvoice] = useState<Order | null>(null);
   const [reviewProduct, setReviewProduct] = useState<Product | null>(null);
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
@@ -149,6 +154,7 @@ export const App: React.FC = () => {
             isPrime: p.isPrime ?? true,
             stockCount: p.stockCount || 5
           }));
+          setAllCatalogProducts(mapped);
           setProducts(mapped);
         }
       })
@@ -252,7 +258,7 @@ export const App: React.FC = () => {
   const handleSearch = (query: string, category: string) => {
     const q = query.toLowerCase().trim();
     setProducts(
-      INITIAL_PRODUCTS.filter((p) => {
+      allCatalogProducts.filter((p) => {
         const matchesCat = category === 'all' || p.category === category;
         const matchesQ =
           !q || p.name.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q);
@@ -266,7 +272,7 @@ export const App: React.FC = () => {
   const handleOrderPlaced = (newOrder: Order) => {
     setOrders((prev) => [newOrder, ...prev]);
     setCartItems([]);
-    showToast(`Order ${newOrder.orderId} placed successfully!`, 'success');
+    setRecentOrderSuccess(newOrder);
   };
 
   return (
@@ -308,7 +314,7 @@ export const App: React.FC = () => {
 
         <CategoryGrid
           onSelectCategory={(cat) => {
-            setProducts(INITIAL_PRODUCTS.filter((p) => p.category === cat));
+            setProducts(allCatalogProducts.filter((p) => p.category === cat));
             document.getElementById('lightning-deals-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
@@ -353,7 +359,7 @@ export const App: React.FC = () => {
         onClose={() => setIsAuthOpen(false)}
         onSuccess={(loggedInUser) => {
           setUser(loggedInUser);
-          showToast(`Welcome back, ${loggedInUser.name}! Orders & profile synced.`, 'success');
+          setIsWelcomeOpen(true);
         }}
       />
 
@@ -530,6 +536,22 @@ export const App: React.FC = () => {
         onBuyNow={handleBuyNow}
         onToggleWishlist={handleToggleWishlist}
         onOpenReview={(prod) => setReviewProduct(prod)}
+      />
+
+      <WelcomeModal
+        isOpen={isWelcomeOpen}
+        user={user}
+        onClose={() => setIsWelcomeOpen(false)}
+      />
+
+      <OrderSuccessModal
+        isOpen={!!recentOrderSuccess}
+        order={recentOrderSuccess}
+        onClose={() => setRecentOrderSuccess(null)}
+        onViewInvoice={(ord) => {
+          setRecentOrderSuccess(null);
+          setSelectedUserInvoice(ord);
+        }}
       />
     </div>
   );

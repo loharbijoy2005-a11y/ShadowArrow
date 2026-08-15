@@ -79,8 +79,8 @@ app.get('*', (req, res, next) => {
 });
 
 
-// MongoDB Connection with auto-formatting & error reporting
-let MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/shadow_arrow';
+// MongoDB Connection with auto-formatting & Atlas database targeting
+let MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://loharbijoy2005_db_user:LoharBijoy@cluster0.54bsyva.mongodb.net/shadow_arrow?retryWrites=true&w=majority';
 
 if (MONGO_URI.includes('.mongodb.net/') && !MONGO_URI.includes('.mongodb.net/shadow_arrow')) {
   if (MONGO_URI.includes('.mongodb.net/?')) {
@@ -90,12 +90,144 @@ if (MONGO_URI.includes('.mongodb.net/') && !MONGO_URI.includes('.mongodb.net/sha
   }
 }
 
-console.log('Attempting MongoDB connection to Atlas cluster...');
+console.log('Attempting MongoDB connection to Atlas cluster (Database: shadow_arrow)...');
 
 mongoose
-  .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
-  .then(() => {
+  .connect(MONGO_URI, {
+    dbName: 'shadow_arrow',
+    serverSelectionTimeoutMS: 8000
+  })
+  .then(async () => {
     console.log('✅ CONNECTED TO MONGODB ATLAS SUCCESSFULLY! Database: shadow_arrow');
+
+    // Auto-seed initial catalog products to MongoDB Atlas if collection is empty
+    try {
+      const { Product } = await import('./models/Product.js');
+      const count = await Product.countDocuments();
+      if (count === 0) {
+        console.log('📦 Auto-seeding initial catalog products directly into MongoDB Atlas shadow_arrow.products...');
+        const SEED_PRODUCTS = [
+          {
+            productId: 'prod-1',
+            name: 'Shadow Stealth Pro Mechanical Gaming Keyboard',
+            subtitle: 'Hot-swappable RGB Switches, Aircraft Aluminum Frame',
+            category: 'gaming',
+            price: 2399,
+            originalPrice: 3999,
+            discountPercent: 40,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/keyboard.png',
+            description: 'Esports grade mechanical gaming keyboard featuring hot-swappable tactile brown switches and double-shot PBT keycaps.',
+            isPrime: true,
+            isLightningDeal: true,
+            isBestseller: true,
+            stockCount: 15,
+            hsnCode: '84716060',
+            gstRate: 18
+          },
+          {
+            productId: 'prod-2',
+            name: 'RGB Wireless Gaming Mouse & Pad Combo',
+            subtitle: '26,000 DPI Sensor, 58g Lightweight, Micro-woven Desk Mat',
+            category: 'gaming',
+            price: 1499,
+            originalPrice: 2499,
+            discountPercent: 40,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/mouse.png',
+            description: 'Pixel-perfect precision optical mouse with 0.1ms latency and RGB extended mouse pad.',
+            isPrime: true,
+            isLightningDeal: true,
+            isBestseller: true,
+            stockCount: 20,
+            hsnCode: '84716070',
+            gstRate: 18
+          },
+          {
+            productId: 'prod-3',
+            name: 'Cyberpunk Shadow Streetwear Bomber Jacket',
+            subtitle: 'Water-resistant Tactical Shell, Neon Orange Accents',
+            category: 'fashion',
+            price: 1999,
+            originalPrice: 3999,
+            discountPercent: 50,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/jacket.png',
+            description: 'Futuristic urban techwear jacket built with 100% water-resistant ballistic nylon.',
+            isPrime: true,
+            isLightningDeal: true,
+            isBestseller: true,
+            stockCount: 10,
+            hsnCode: '62019300',
+            gstRate: 12
+          },
+          {
+            productId: 'prod-4',
+            name: 'Ultra-Wide 2K Curved Gaming Monitor (34")',
+            subtitle: '165Hz Refresh, 1ms Response, HDR400, AMD FreeSync',
+            category: 'electronics',
+            price: 24999,
+            originalPrice: 34999,
+            discountPercent: 28,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/monitor.png',
+            description: '34-inch 1500R curved ultra-wide QHD panel for gaming and workstation setup.',
+            isPrime: true,
+            isLightningDeal: true,
+            isBestseller: true,
+            stockCount: 8,
+            hsnCode: '85285200',
+            gstRate: 18
+          },
+          {
+            productId: 'prod-5',
+            name: 'Shadow Active Noise-Cancelling Headphones',
+            subtitle: 'Hybrid ANC, 40mm Titanium Drivers, 60H Battery',
+            category: 'electronics',
+            price: 3499,
+            originalPrice: 5999,
+            discountPercent: 41,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/headphones.png',
+            description: 'Over-ear headphones with -38dB active noise cancellation and memory foam ear cushions.',
+            isPrime: true,
+            isLightningDeal: false,
+            isBestseller: true,
+            stockCount: 12,
+            hsnCode: '85183000',
+            gstRate: 18
+          },
+          {
+            productId: 'prod-6',
+            name: 'Shadow Smartwatch Ultra Series (Titanium)',
+            subtitle: '1.96" AMOLED Display, Bluetooth Calling, IP68',
+            category: 'electronics',
+            price: 2999,
+            originalPrice: 4999,
+            discountPercent: 40,
+            rating: 5.0,
+            reviewsCount: 0,
+            image: '/assets/smartwatch.png',
+            description: 'Rugged titanium smartwatch with continuous heart rate, SpO2, and workout tracking.',
+            isPrime: true,
+            isLightningDeal: false,
+            isBestseller: true,
+            stockCount: 14,
+            hsnCode: '85176290',
+            gstRate: 18
+          }
+        ];
+        await Product.insertMany(SEED_PRODUCTS);
+        console.log('✅ Seed products successfully written to MongoDB Atlas shadow_arrow.products!');
+      }
+    } catch (seedErr) {
+      console.error('Seed products notice:', seedErr.message);
+    }
   })
   .catch((err) => {
     console.error('❌ MongoDB Atlas Connection Error:', err.message);

@@ -359,23 +359,79 @@
         <input type="hidden" id="logistics-order-id" value="" />
 
         <div>
-          <label class="block text-slate-400 mb-1 font-bold">Courier Name (e.g. BlueDart, Delhivery, DTDC)</label>
-          <input type="text" id="logistics-courier" placeholder="BlueDart Express" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500" />
+          <label class="block text-slate-400 mb-1 font-bold">Select Logistics / Courier Provider</label>
+          <select id="logistics-courier-select" onchange="onLogisticsCourierChange()" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-bold text-xs">
+            <optgroup label="🚀 Shiprocket & Aggregators">
+              <option value="Shiprocket Express">Shiprocket Express</option>
+              <option value="Shiprocket Air">Shiprocket Air</option>
+              <option value="Shiprocket Surface">Shiprocket Surface</option>
+              <option value="NimbusPost Express">NimbusPost Express</option>
+              <option value="Pickrr Logistics">Pickrr Logistics</option>
+              <option value="Shyplite Express">Shyplite Express</option>
+              <option value="iThink Logistics">iThink Logistics</option>
+            </optgroup>
+
+            <optgroup label="📦 Top Domestic Indian Couriers (A-Z)">
+              <option value="Amazon Shipping">Amazon Shipping</option>
+              <option value="Aramex India">Aramex India</option>
+              <option value="Blue Dart Express">Blue Dart Express</option>
+              <option value="Delhivery Surface">Delhivery Surface</option>
+              <option value="Delhivery Express">Delhivery Express</option>
+              <option value="DTDC Express">DTDC Express</option>
+              <option value="Ecom Express">Ecom Express</option>
+              <option value="Ekart Logistics (Flipkart)">Ekart Logistics (Flipkart)</option>
+              <option value="Franch Express">Franch Express</option>
+              <option value="Gati-KWE Logistics">Gati-KWE Logistics</option>
+              <option value="India Post (Speed Post)">India Post (Speed Post)</option>
+              <option value="Madhur Couriers">Madhur Couriers</option>
+              <option value="Professional Couriers (TPC)">Professional Couriers (TPC)</option>
+              <option value="Shadowfax Technologies">Shadowfax Technologies</option>
+              <option value="Shree Maruti Courier">Shree Maruti Courier</option>
+              <option value="Smartr Logistics">Smartr Logistics</option>
+              <option value="ST Courier">ST Courier</option>
+              <option value="Tirupati Courier">Tirupati Courier</option>
+              <option value="Trackon Couriers">Trackon Couriers</option>
+              <option value="XpressBees Logistics">XpressBees Logistics</option>
+            </optgroup>
+
+            <optgroup label="✈️ Global & International Logistics">
+              <option value="DHL Express">DHL Express</option>
+              <option value="FedEx Express">FedEx Express</option>
+              <option value="UPS Express">UPS Express</option>
+              <option value="DPD Express">DPD Express</option>
+            </optgroup>
+
+            <optgroup label="⚡ Hyperlocal & Local Delivery">
+              <option value="Porter Goods">Porter Goods</option>
+              <option value="Dunzo Business">Dunzo Business</option>
+              <option value="Borzo (WeFast)">Borzo (WeFast)</option>
+              <option value="Uber Connect">Uber Connect</option>
+            </optgroup>
+
+            <optgroup label="✏️ Custom Provider">
+              <option value="CUSTOM_COURIER">➕ Add Custom / Other Logistics Provider...</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div id="container-custom-courier" class="hidden">
+          <label class="block text-slate-400 mb-1 font-bold">Custom Courier / Logistics Name</label>
+          <input type="text" id="logistics-custom-name" placeholder="Enter custom logistics company name..." class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500" />
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1 font-bold">AWB Tracking Code</label>
-          <input type="text" id="logistics-awb" placeholder="BD829471928" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-mono" />
+          <label class="block text-slate-400 mb-1 font-bold">AWB Tracking Code / Consignment Number</label>
+          <input type="text" id="logistics-awb" placeholder="Enter AWB Code (e.g. BD829471928, DL10293847)" oninput="autoGenerateTrackingUrl()" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-mono" />
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1 font-bold">Custom Live Tracking URL (Optional)</label>
+          <label class="block text-slate-400 mb-1 font-bold">Live Tracking URL (Auto-Generated / Editable)</label>
           <input type="text" id="logistics-url" placeholder="https://bluedart.com/track/..." class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-mono" />
         </div>
 
         <div class="pt-3 border-t border-slate-800 flex justify-end gap-3">
           <button type="button" onclick="closeLogisticsModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 font-black text-white shadow-lg">Update Logistics</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 font-black text-white shadow-lg">Save & Update Logistics</button>
         </div>
       </form>
     </div>
@@ -930,10 +986,81 @@
 
     function openLogisticsModal(orderId, courier, awb, url) {
       document.getElementById('logistics-order-id').value = orderId;
-      document.getElementById('logistics-courier').value = courier || 'BlueDart Express';
       document.getElementById('logistics-awb').value = awb || '';
       document.getElementById('logistics-url').value = url || '';
+
+      const courierSelect = document.getElementById('logistics-courier-select');
+      const customContainer = document.getElementById('container-custom-courier');
+      const customInput = document.getElementById('logistics-custom-name');
+
+      const cleanCourier = (courier || 'Blue Dart Express').trim();
+      let matched = false;
+
+      for (let opt of courierSelect.options) {
+        if (opt.value.toLowerCase() === cleanCourier.toLowerCase()) {
+          courierSelect.value = opt.value;
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched) {
+        courierSelect.value = 'CUSTOM_COURIER';
+        customContainer.classList.remove('hidden');
+        customInput.value = cleanCourier;
+      } else {
+        customContainer.classList.add('hidden');
+        customInput.value = '';
+      }
+
       document.getElementById('modal-logistics').classList.remove('hidden');
+    }
+
+    function onLogisticsCourierChange() {
+      const selectVal = document.getElementById('logistics-courier-select').value;
+      const customContainer = document.getElementById('container-custom-courier');
+      if (selectVal === 'CUSTOM_COURIER') {
+        customContainer.classList.remove('hidden');
+        document.getElementById('logistics-custom-name').focus();
+      } else {
+        customContainer.classList.add('hidden');
+      }
+      autoGenerateTrackingUrl();
+    }
+
+    function autoGenerateTrackingUrl() {
+      const selectVal = document.getElementById('logistics-courier-select').value;
+      const customName = document.getElementById('logistics-custom-name').value.trim();
+      const courierName = selectVal === 'CUSTOM_COURIER' ? customName : selectVal;
+      const awb = document.getElementById('logistics-awb').value.trim();
+      const urlInput = document.getElementById('logistics-url');
+
+      if (!awb) return;
+
+      const lower = courierName.toLowerCase();
+      if (lower.includes('delhivery')) {
+        urlInput.value = `https://www.delhivery.com/track/package/${awb}`;
+      } else if (lower.includes('blue') || lower.includes('dart')) {
+        urlInput.value = `https://www.bluedart.com/tracking?awb=${awb}`;
+      } else if (lower.includes('ekart')) {
+        urlInput.value = `https://ekartlogistics.com/shipmenttrack/${awb}`;
+      } else if (lower.includes('amazon')) {
+        urlInput.value = `https://track.amazon.in/tracking/${awb}`;
+      } else if (lower.includes('dtdc')) {
+        urlInput.value = `https://www.dtdc.in/tracking/shipment-tracking.asp?strAWB=${awb}`;
+      } else if (lower.includes('shadowfax')) {
+        urlInput.value = `https://www.shadowfax.in/track-order?awb=${awb}`;
+      } else if (lower.includes('xpressbees')) {
+        urlInput.value = `https://www.xpressbees.com/track?awb=${awb}`;
+      } else if (lower.includes('ecom')) {
+        urlInput.value = `https://ecomexpress.in/tracking/?awb=${awb}`;
+      } else if (lower.includes('dhl')) {
+        urlInput.value = `https://www.dhl.com/in-en/home/tracking.html?tracking-id=${awb}`;
+      } else if (lower.includes('fedex')) {
+        urlInput.value = `https://www.fedex.com/fedextrack/?trknbr=${awb}`;
+      } else if (lower.includes('shiprocket')) {
+        urlInput.value = `https://shiprocket.co/tracking/${awb}`;
+      }
     }
 
     function closeLogisticsModal() {
@@ -943,9 +1070,11 @@
     async function handleSaveLogistics(e) {
       e.preventDefault();
       const orderId = document.getElementById('logistics-order-id').value;
-      const courierName = document.getElementById('logistics-courier').value;
-      const awbCode = document.getElementById('logistics-awb').value;
-      const trackingUrl = document.getElementById('logistics-url').value;
+      const selectVal = document.getElementById('logistics-courier-select').value;
+      const customName = document.getElementById('logistics-custom-name').value.trim();
+      const courierName = selectVal === 'CUSTOM_COURIER' ? (customName || 'Custom Logistics') : selectVal;
+      const awbCode = document.getElementById('logistics-awb').value.trim();
+      const trackingUrl = document.getElementById('logistics-url').value.trim();
 
       try {
         const res = await fetch('/api/admin/orders/status', {
@@ -955,7 +1084,7 @@
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`Logistics updated for ${orderId}!`);
+          showToast(`Logistics updated for ${orderId}! (${courierName})`);
           closeLogisticsModal();
           loadOrders();
         } else {

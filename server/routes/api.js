@@ -567,7 +567,8 @@ router.post('/orders', async (req, res) => {
     const total = subtotal + deliveryFee;
 
     const orderId = 'ORD-SA-' + Math.floor(100000 + Math.random() * 900000);
-    const rzpId = razorpayPaymentId || (paymentMethod.includes('Online') ? 'Paid Online (Confirmed)' : 'COD_VERI    const cleanEmail = (req.body.email || '').trim().toLowerCase();
+    const rzpId = razorpayPaymentId || (paymentMethod.includes('Online') ? 'Paid Online (Confirmed)' : 'COD_VERIFIED');
+    const cleanEmail = (req.body.email || '').trim().toLowerCase();
 
     const orderData = {
       orderId,
@@ -591,21 +592,24 @@ router.post('/orders', async (req, res) => {
 
       // Update or Auto-Create Customer Account in MongoDB Atlas
       const fullAddrStr = `${address.street}, ${address.city} - ${address.pincode}`;
-      const userSearchConditions = [{ phone: cleanPhone }];
+      const userSearchConditions = [];
+      if (cleanPhone) userSearchConditions.push({ phone: cleanPhone });
       if (cleanEmail) userSearchConditions.push({ email: cleanEmail });
 
-      await User.findOneAndUpdate(
-        { $or: userSearchConditions },
-        { 
-          $set: {
-            phone: cleanPhone,
-            name: name,
-            fullAddress: fullAddrStr,
-            ...(cleanEmail ? { email: cleanEmail } : {})
-          }
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+      if (userSearchConditions.length > 0) {
+        await User.findOneAndUpdate(
+          { $or: userSearchConditions },
+          { 
+            $set: {
+              ...(cleanPhone ? { phone: cleanPhone } : {}),
+              name: name,
+              fullAddress: fullAddrStr,
+              ...(cleanEmail ? { email: cleanEmail } : {})
+            }
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+      }
     } catch (e) {
       console.log('MongoDB Order/User save error, falling back:', e.message);
       memoryOrders.unshift(orderData);

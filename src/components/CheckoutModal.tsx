@@ -33,8 +33,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [stateName, setStateName] = useState('West Bengal');
-  const [district, setDistrict] = useState('Bankura');
+  const [stateName, setStateName] = useState('');
+  const [district, setDistrict] = useState('');
   const [village, setVillage] = useState('');
   const [pin, setPin] = useState('');
 
@@ -45,18 +45,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setName(user?.name || '');
-      setPhone(user?.phone || '');
+      const rawPhone = (user?.phone || '').replace(/\D/g, '').slice(-10);
+      setPhone(rawPhone);
       setVillage(user?.fullAddress || '');
-      const initialPin = pincode || '722157';
+      
+      const userPin = user?.fullAddress ? (user.fullAddress.match(/\b\d{6}\b/)?.[0] || '') : '';
+      const initialPin = userPin || (pincode && pincode !== '722157' ? pincode : '');
       setPin(initialPin);
 
-      const detected = lookupPincode(initialPin);
-      if (detected) {
-        setStateName(detected.state);
-        setDistrict(detected.district);
+      if (initialPin && initialPin.length === 6) {
+        const detected = lookupPincode(initialPin);
+        if (detected) {
+          setStateName(detected.state);
+          setDistrict(detected.district);
+        } else {
+          setStateName('');
+          setDistrict('');
+        }
       } else {
-        setStateName('West Bengal');
-        setDistrict('Bankura');
+        setStateName('');
+        setDistrict('');
       }
 
       setErrorMessage('');
@@ -65,7 +73,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   }, [isOpen, user, pincode]);
 
   const handlePincodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
     setPin(val);
     if (val.length === 6) {
       const found = lookupPincode(val);
@@ -97,10 +105,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     const cleanName = sanitizeInput(name);
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
     const cleanVillage = sanitizeInput(village);
     const cleanPin = sanitizeInput(pin);
 
-    if (!cleanName || !phone || !cleanVillage || !cleanPin) {
+    if (cleanPhone.length < 10) {
+      setErrorMessage('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    if (!cleanName || !cleanPhone || !cleanVillage || !cleanPin) {
       setErrorMessage('Please fill in your Village/Street address and Pincode.');
       return;
     }
@@ -178,6 +192,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const completeOrderPlacement = async (paymentId: string) => {
     const cleanName = sanitizeInput(name);
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const cleanEmail = user?.email || '';
     const cleanVillage = sanitizeInput(village);
     const cleanDistrict = sanitizeInput(district);
     const cleanState = sanitizeInput(stateName);
@@ -187,7 +203,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const payload = {
       name: cleanName,
-      phone,
+      phone: cleanPhone,
+      email: cleanEmail,
       address: { street: fullStreetStr, city: cleanDistrict, state: cleanState, pincode: cleanPin },
       items: cartItems.map((i) => ({
         productId: i.product.id,
@@ -201,7 +218,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const newOrder: Order = {
       orderId: 'ORD-SA-' + Math.floor(100000 + Math.random() * 900000),
-      phone,
+      phone: cleanPhone,
+      email: cleanEmail,
       name: cleanName,
       address: { street: fullStreetStr, city: cleanDistrict, state: cleanState, pincode: cleanPin },
       items: cartItems,

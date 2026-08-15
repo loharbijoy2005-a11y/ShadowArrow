@@ -97,9 +97,10 @@ export const App: React.FC = () => {
   // Fetch customer orders from MongoDB whenever user logs in or changes
   useEffect(() => {
     if (user) {
-      const queryId = user.phone || user.email;
+      const queryPhone = user.phone || '';
+      const queryEmail = user.email || '';
       const token = localStorage.getItem('shadow_token') || '';
-      fetch(`/api/orders?phone=${encodeURIComponent(queryId)}`, {
+      fetch(`/api/orders?phone=${encodeURIComponent(queryPhone)}&email=${encodeURIComponent(queryEmail)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
         .then((res) => (res.ok ? res.text() : null))
@@ -270,7 +271,11 @@ export const App: React.FC = () => {
 
   // Order completed
   const handleOrderPlaced = (newOrder: Order) => {
-    setOrders((prev) => [newOrder, ...prev]);
+    setOrders((prev) => {
+      const updated = [newOrder, ...prev];
+      safeLocalStorageSet('shadow_orders', updated);
+      return updated;
+    });
     setCartItems([]);
     setRecentOrderSuccess(newOrder);
   };

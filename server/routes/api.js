@@ -377,20 +377,33 @@ router.post('/login', rateLimiter(30), async (req, res) => {
 // 3b. POST /api/google-login (Syncs Google Auth / Firebase user into MongoDB)
 router.post('/google-login', async (req, res) => {
   try {
-    const { name, email, googleId, phone } = req.body;
+    let { name, email, googleId, phone } = req.body;
 
     if (!email) {
       return res.status(400).json({ success: false, message: 'Google Email is required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // Derive a clean, user-friendly display name if missing or generic 'Google Member'
+    if (!name || name === 'Google Member') {
+      const parts = cleanEmail.split('@')[0].split(/[._-]/).filter(Boolean);
+      name = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ') || 'Google Member';
+    }
+
     let userFound = null;
 
     try {
       userFound = await User.findOne({ email: cleanEmail });
-      if (!userFound) {
+      if (userFound) {
+        // If existing user has generic 'Google Member' or no name, update with real name!
+        if (!userFound.name || userFound.name === 'Google Member') {
+          userFound.name = name;
+          await userFound.save();
+        }
+      } else {
         const newUserObj = {
-          name: name || 'Google Member',
+          name: name,
           email: cleanEmail,
           phone: phone || '',
           password: '',
@@ -399,14 +412,17 @@ router.post('/google-login', async (req, res) => {
         };
         const u = new User(newUserObj);
         await u.save();
-        userFound = newUserObj;
+        userFound = u;
       }
     } catch (e) {
       if (memoryUsers.has(cleanEmail)) {
         userFound = memoryUsers.get(cleanEmail);
+        if (!userFound.name || userFound.name === 'Google Member') {
+          userFound.name = name;
+        }
       } else {
         const newUserObj = {
-          name: name || 'Google Member',
+          name: name,
           email: cleanEmail,
           phone: phone || '',
           password: '',
@@ -551,11 +567,12 @@ router.post('/orders', async (req, res) => {
     const total = subtotal + deliveryFee;
 
     const orderId = 'ORD-SA-' + Math.floor(100000 + Math.random() * 900000);
-    const rzpId = razorpayPaymentId || (paymentMethod.includes('Online') ? 'Paid Online (Confirmed)' : 'COD_VERIFIED');
+    const rzpId = razorpayPaymentId || (paymentMethod.includes('Online') ? 'Paid Online (Confirmed)' : 'COD_VERI    const cleanEmail = (req.body.email || '').trim().toLowerCase();
 
     const orderData = {
       orderId,
       phone: cleanPhone,
+      email: cleanEmail,
       name,
       address,
       items,
@@ -574,17 +591,17 @@ router.post('/orders', async (req, res) => {
 
       // Update or Auto-Create Customer Account in MongoDB Atlas
       const fullAddrStr = `${address.street}, ${address.city} - ${address.pincode}`;
+      const userSearchConditions = [{ phone: cleanPhone }];
+      if (cleanEmail) userSearchConditions.push({ email: cleanEmail });
+
       await User.findOneAndUpdate(
-        { phone: cleanPhone },
+        { $or: userSearchConditions },
         { 
           $set: {
             phone: cleanPhone,
             name: name,
-            fullAddress: fullAddrStr
-          },
-          $setOnInsert: {
-            email: req.body.email || '',
-            createdAt: new Date()
+            fullAddress: fullAddrStr,
+            ...(cleanEmail ? { email: cleanEmail } : {})
           }
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -663,29 +680,49 @@ router.post(['/orders/update-status', '/shiprocket/webhook'], async (req, res) =
   }
 });
 
-// 5c. GET /api/orders (Fetches all MongoDB orders for a given user phone number)
+// 5c. GET /api/orders (Fetches all MongoDB orders for a given user phone or email)
 router.get('/orders', async (req, res) => {
   try {
     let phone = req.query.phone;
+    let email = req.query.email;
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, JWT_SECRET);
         if (decoded.phone) phone = decoded.phone;
+        if (decoded.email) email = decoded.email;
       } catch (e) {}
     }
 
-    if (!phone) {
-      return res.status(400).json({ success: false, message: 'Phone number parameter required.' });
+    if (!phone && !email) {
+      return res.status(400).json({ success: false, message: 'Phone number or email required.' });
     }
 
-    const cleanPhone = phone.trim();
+    const cleanPhone = phone ? phone.trim() : '';
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const phoneDigits = cleanPhone.replace(/\D/g, '').slice(-10);
+
+    const queryOr = [];
+    if (cleanPhone) {
+      queryOr.push({ phone: cleanPhone });
+    }
+    if (phoneDigits && phoneDigits.length >= 7) {
+      queryOr.push({ phone: { $regex: phoneDigits } });
+    }
+    if (cleanEmail) {
+      queryOr.push({ email: cleanEmail });
+    }
+
     let dbOrders = [];
     try {
-      dbOrders = await Order.find({ phone: cleanPhone }).sort({ createdAt: -1 });
+      dbOrders = await Order.find(queryOr.length > 0 ? { $or: queryOr } : {}).sort({ createdAt: -1 });
     } catch (e) {
-      dbOrders = memoryOrders.filter((o) => o.phone === cleanPhone);
+      dbOrders = memoryOrders.filter((o) => {
+        const matchesPhone = cleanPhone && (o.phone === cleanPhone || (phoneDigits && o.phone.includes(phoneDigits)));
+        const matchesEmail = cleanEmail && o.email && o.email.toLowerCase() === cleanEmail;
+        return matchesPhone || matchesEmail;
+      });
     }
 
     return res.json({ success: true, orders: dbOrders });

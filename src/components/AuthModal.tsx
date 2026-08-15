@@ -83,7 +83,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setInfoMsg('');
     setLoading(true);
 
-    let gName = 'Google Member';
+    let gName = '';
     let gEmail = `google.user${Math.floor(100 + Math.random() * 900)}@gmail.com`;
     let gId = 'google_' + Date.now();
     let authenticated = false;
@@ -92,9 +92,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       try {
         const result = await signInWithPopup(auth, googleProvider);
         const gUser = result.user;
-        gName = gUser.displayName || 'Google Member';
         gEmail = gUser.email || gEmail;
         gId = gUser.uid;
+        
+        if (gUser.displayName) {
+          gName = gUser.displayName;
+        } else if (gEmail) {
+          const prefix = gEmail.split('@')[0].replace(/[._-]/g, ' ');
+          gName = prefix.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
         authenticated = true;
       } catch (err: any) {
         setLoading(false);
@@ -107,9 +113,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
     }
 
-    if (!authenticated) {
-      gName = 'Google Member';
-      gEmail = `google.member${Math.floor(1000 + Math.random() * 9000)}@gmail.com`;
+    if (!authenticated || !gName) {
+      const prefix = gEmail.split('@')[0].replace(/[._-]/g, ' ');
+      gName = prefix.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ') || 'Google Member';
     }
 
     let loggedUser: User = { name: gName, email: gEmail, phone: '' };
@@ -185,7 +191,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 type="tel"
                 required
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 placeholder="Enter 10-digit mobile number"
                 maxLength={10}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-16 pr-3 py-3 text-white outline-none focus:border-amber-500 font-mono text-sm tracking-widest"

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shadow Arrow — Standalone Admin Portal</title>
+  <title>Shadow Arrow — Master Admin Control Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
@@ -14,75 +14,102 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-amber-500 selection:text-slate-950">
 
-  <!-- AUTHENTICATION CONTAINER -->
+  <!-- AUTHENTICATION PORTAL -->
   <div id="auth-portal" class="min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-slate-900 border border-amber-500/50 rounded-3xl p-8 shadow-2xl text-center space-y-6">
-      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-lg">
-        <svg class="w-8 h-8 text-amber-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-lg">
+        <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
         </svg>
       </div>
 
       <div>
-        <h2 class="text-2xl font-black tracking-tight text-white">SHADOW ARROW ADMIN</h2>
-        <p class="text-xs text-slate-400 mt-1">Standalone Backend Admin Portal — MongoDB Atlas Live</p>
+        <h2 class="text-2xl font-black tracking-tight text-white">SHADOW ARROW MASTER ADMIN</h2>
+        <p class="text-xs text-slate-400 mt-1">Standalone Express Backend Dashboard — Live MongoDB Atlas</p>
       </div>
 
       <div id="auth-error" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-2xl font-bold"></div>
 
       <form id="admin-login-form" class="space-y-4">
         <div>
+          <label class="block text-slate-400 text-xs text-left mb-1 font-bold">Enter Admin Secret Passcode</label>
           <input
             type="password"
             id="admin-passcode"
-            placeholder="Enter Admin Secret Passcode..."
+            placeholder="Enter Passcode..."
             required
             class="w-full bg-slate-950 border border-slate-700 text-sm px-4 py-3.5 rounded-2xl text-white outline-none focus:border-amber-500 font-mono text-center tracking-widest"
           />
         </div>
         <button
           type="submit"
-          class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3.5 rounded-2xl text-sm shadow-xl transition"
+          class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3.5 rounded-2xl text-sm shadow-xl transition transform active:scale-95"
         >
-          Unlock Admin Control Panel
+          Unlock Admin Control Center
         </button>
       </form>
 
-      <p class="text-[11px] text-slate-500">Passcode: <code class="text-amber-400 font-bold">8627</code> or <code class="text-amber-400 font-bold">shadowadmin8627</code></p>
+      <p class="text-[11px] text-slate-500">Restricted Authorized Administrator Verification Required</p>
     </div>
   </div>
 
-  <!-- MAIN ADMIN DASHBOARD (HIDDEN INITIALLY) -->
+  <!-- MAIN ADMIN DASHBOARD PORTAL -->
   <div id="dashboard-portal" class="hidden min-h-screen flex flex-col">
-    <!-- TOP HEADER -->
-    <header class="bg-slate-900/90 border-b border-slate-800 p-4 sticky top-0 z-40 backdrop-blur-md">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
+    
+    <!-- TOP STICKY HEADER -->
+    <header class="bg-slate-900/95 border-b border-slate-800 p-4 sticky top-0 z-40 backdrop-blur-md">
+      <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-[0_0_15px_rgba(245,158,11,0.4)]">
             SA
           </div>
           <div>
-            <h1 class="font-black text-lg text-white">SHADOW ARROW ADMIN PORTAL</h1>
-            <p class="text-[10px] text-slate-400">Database: <span class="text-amber-400 font-mono">shadow_arrow.orders</span> (MongoDB Atlas)</p>
+            <h1 class="font-black text-lg text-white tracking-tight">SHADOW ARROW MASTER CONTROL CENTER</h1>
+            <p class="text-[10px] text-slate-400">Database: <span class="text-amber-400 font-mono font-bold">shadow_arrow</span> (MongoDB Atlas Live)</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button id="btn-refresh" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition">
-            🔄 Refresh Orders
+        <!-- MAIN SECTION TABS -->
+        <div class="flex flex-wrap items-center bg-slate-950 p-1.5 rounded-2xl border border-slate-800 text-xs font-bold gap-1 shadow-inner">
+          <button id="tab-btn-all" onclick="switchTab('all')" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black">
+            📊 View All (Master View)
+          </button>
+          <button id="tab-btn-products" onclick="switchTab('products')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
+            🛍️ Products & Stock (<span id="badge-products-count">0</span>)
+          </button>
+          <button id="tab-btn-orders" onclick="switchTab('orders')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
+            📦 Orders (<span id="badge-orders-count">0</span>)
+          </button>
+          <button id="tab-btn-users" onclick="switchTab('users')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
+            👥 Customers (<span id="badge-users-count">0</span>)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openAddProductModal()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-lg transition flex items-center gap-1.5 transform hover:scale-105">
+            <span class="text-sm">+</span>
+            <span>Add Product</span>
+          </button>
+          <button id="btn-refresh" onclick="refreshData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition">
+            🔄 Refresh
           </button>
           <button id="btn-logout" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition">
-            🔒 Lock Portal
+            🔒 Lock
           </button>
         </div>
       </div>
     </header>
 
-    <!-- MAIN BODY -->
-    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1">
-      <div id="toast-msg" class="hidden p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs font-semibold"></div>
+    <!-- MAIN BODY CONTENT -->
+    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-8 flex-1">
+      
+      <!-- TOAST NOTIFICATION -->
+      <div id="toast-msg" class="hidden p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs font-bold shadow-lg flex justify-between items-center animate-bounce">
+        <span id="toast-text">Operation successful!</span>
+        <button onclick="document.getElementById('toast-msg').classList.add('hidden')" class="text-emerald-400 hover:text-white font-black text-sm">✕</button>
+      </div>
 
-      <!-- ANALYTICS CARDS -->
+      <!-- MASTER METRICS SUMMARY CARDS -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
           <span class="text-slate-400 text-[11px] block">Total Revenue</span>
@@ -93,31 +120,248 @@
           <span id="stat-orders" class="text-2xl font-black text-white font-mono mt-1 block">0</span>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-slate-400 text-[11px] block">Prepaid (Razorpay)</span>
-          <span id="stat-prepaid" class="text-2xl font-black text-emerald-400 font-mono mt-1 block">0</span>
+          <span class="text-slate-400 text-[11px] block">Registered Customers</span>
+          <span id="stat-users-count" class="text-2xl font-black text-emerald-400 font-mono mt-1 block">0</span>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-slate-400 text-[11px] block">Cash on Delivery</span>
-          <span id="stat-cod" class="text-2xl font-black text-cyan-400 font-mono mt-1 block">0</span>
+          <span class="text-slate-400 text-[11px] block">Low Stock Items</span>
+          <span id="stat-low-stock" class="text-2xl font-black text-rose-400 font-mono mt-1 block">0</span>
         </div>
       </div>
 
-      <!-- ORDERS LIST CONTAINER -->
-      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-        <div class="flex justify-between items-center pb-4 border-b border-slate-800">
-          <h3 class="font-extrabold text-white text-base">Customer Orders Live Feed</h3>
-          <span class="text-xs text-slate-400">Click Auto-Book to push to Shiprocket</span>
-        </div>
+      <!-- SECTION 1: PRODUCTS & STOCK MANAGEMENT -->
+      <section id="view-products" class="space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
+          <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                <span>🛍️ Product Catalog & Stock Control</span>
+                <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-bold">MongoDB Atlas Live</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Edit Prices, Adjust Stock Count (+10, -1), set HSN code & GST Slabs (5%, 12%, 18%, 28%)</p>
+            </div>
+            <button onclick="openAddProductModal()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5 transform hover:scale-105">
+              <span class="text-base font-black">+</span>
+              <span>Add New Product to Catalog</span>
+            </button>
+          </div>
 
-        <div id="orders-list" class="space-y-4">
-          <div class="text-center py-12 text-slate-500 text-xs font-bold">Loading orders...</div>
+          <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="text-center py-12 text-slate-500 text-xs font-bold col-span-full">Loading catalog products...</div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- SECTION 2: ORDERS & LOGISTICS MANAGEMENT -->
+      <section id="view-orders" class="space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+          <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                <span>📦 Customer Orders & Tracking Control</span>
+                <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">Real-time Feed</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Update status directly in MongoDB, Edit Courier Details (BlueDart, Delhivery), or Auto-Book Shiprocket</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                id="search-orders"
+                oninput="filterOrders()"
+                placeholder="Search Order ID, Phone, Name..."
+                class="bg-slate-950 border border-slate-800 text-xs px-3.5 py-2 rounded-xl text-white outline-none focus:border-amber-500 font-mono w-64"
+              />
+            </div>
+          </div>
+
+          <div id="orders-list" class="space-y-4">
+            <div class="text-center py-12 text-slate-500 text-xs font-bold">Loading orders...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: USER MANAGEMENT & CUSTOMER INSIGHTS -->
+      <section id="view-users" class="space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+          <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                <span>👥 Registered Customer Accounts & Analytics</span>
+                <span class="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-0.5 rounded-full font-bold">Customer LTV</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">View signup dates, auth provider (Mobile OTP vs Email vs Google), saved addresses, total orders, and total spent</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                id="search-users"
+                oninput="filterUsers()"
+                placeholder="Search Name, Phone, Email..."
+                class="bg-slate-950 border border-slate-800 text-xs px-3.5 py-2 rounded-xl text-white outline-none focus:border-amber-500 font-mono w-64"
+              />
+            </div>
+          </div>
+
+          <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="text-center py-12 text-slate-500 text-xs font-bold col-span-full">Loading registered customers...</div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
+  <!-- ADD / EDIT PRODUCT MODAL -->
+  <div id="modal-product" class="hidden fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeAddProductModal()"></div>
+
+    <div class="relative max-w-2xl w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 sm:p-8 text-white space-y-6 shadow-2xl my-8 z-[101]">
+      <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+        <h3 id="modal-product-title" class="font-black text-lg text-white">Add New Product to Catalog</h3>
+        <button onclick="closeAddProductModal()" class="text-slate-400 hover:text-white font-bold text-xl px-2">✕</button>
+      </div>
+
+      <form id="form-product" onsubmit="handleSaveProduct(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="prod-edit-id" value="" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Product Name *</label>
+            <input type="text" id="prod-name" required placeholder="e.g. Shadow Mechanical Keyboard" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-semibold" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Category *</label>
+            <select id="prod-category" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-semibold">
+              <option value="gaming">Gaming</option>
+              <option value="electronics">Electronics</option>
+              <option value="fashion">Fashion</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-amber-400 mb-1 font-bold">GST Tax Slab % *</label>
+            <select id="prod-gst" required class="w-full bg-slate-950 border border-amber-500/40 px-3.5 py-2.5 rounded-xl text-amber-400 font-bold font-mono outline-none">
+              <option value="18" selected>18% GST (Electronics/Audio)</option>
+              <option value="5">5% GST (Apparels/Fashion)</option>
+              <option value="12">12% GST (Accessories)</option>
+              <option value="28">28% GST (Displays/Luxury)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">HSN Code *</label>
+            <input type="text" id="prod-hsn" required placeholder="8471" value="8471" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Warranty Period *</label>
+            <input type="text" id="prod-warranty" required placeholder="1 Year Official Warranty" value="1 Year Official Warranty" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Subtitle / Tagline</label>
+          <input type="text" id="prod-subtitle" placeholder="e.g. Active Noise Cancellation, 40H Battery" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Selling Price (₹) *</label>
+            <input type="number" id="prod-price" required min="1" placeholder="1999" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-mono font-bold text-amber-400" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Original Price (₹)</label>
+            <input type="number" id="prod-original-price" min="1" placeholder="3999" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-mono" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-bold">Initial Stock Count *</label>
+            <input type="number" id="prod-stock" required min="0" value="10" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-mono font-bold" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Main Image URL / Path *</label>
+          <input type="text" id="prod-image" required placeholder="/assets/headphones.png or https://..." class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500 font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Product Description *</label>
+          <textarea id="prod-desc" required rows="3" placeholder="Esports grade mechanical gaming keyboard featuring hot-swappable tactile switches..." class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Highlights (Comma Separated)</label>
+          <input type="text" id="prod-highlights" placeholder="100% Water Resistant, RGB Lighting, 1 Year Warranty" class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-amber-500" />
+        </div>
+
+        <div class="flex items-center gap-6 pt-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="prod-prime" checked class="rounded border-slate-700 text-amber-500 focus:ring-amber-500" />
+            <span>Prime Eligible</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="prod-lightning" checked class="rounded border-slate-700 text-amber-500 focus:ring-amber-500" />
+            <span>Lightning Deal</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="prod-bestseller" class="rounded border-slate-700 text-amber-500 focus:ring-amber-500" />
+            <span>Bestseller Badge</span>
+          </label>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
+          <button type="button" onclick="closeAddProductModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold">Cancel</button>
+          <button type="submit" id="btn-save-product" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black shadow-lg">Save Product to MongoDB</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MANUAL LOGISTICS OVERRIDE MODAL -->
+  <div id="modal-logistics" class="hidden fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeLogisticsModal()"></div>
+
+    <div class="relative max-w-md w-full bg-slate-900 border border-indigo-500/40 rounded-3xl p-6 text-white space-y-6 shadow-2xl z-[101]">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <h3 class="font-black text-base text-white">✏️ Manual Logistics Override</h3>
+        <button onclick="closeLogisticsModal()" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+      </div>
+
+      <form id="form-logistics" onsubmit="handleSaveLogistics(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="logistics-order-id" value="" />
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Courier Name (e.g. BlueDart, Delhivery, DTDC)</label>
+          <input type="text" id="logistics-courier" placeholder="BlueDart Express" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500" />
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">AWB Tracking Code</label>
+          <input type="text" id="logistics-awb" placeholder="BD829471928" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-bold">Custom Live Tracking URL (Optional)</label>
+          <input type="text" id="logistics-url" placeholder="https://bluedart.com/track/..." class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-mono" />
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-3">
+          <button type="button" onclick="closeLogisticsModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 font-black text-white shadow-lg">Update Logistics</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    const ADMIN_TOKEN = 'ADMIN_TOKEN_SECURE_8627';
+    const ADMIN_TOKEN = 'ADMIN_TOKEN_SECURE_2026';
+
+    let allOrders = [];
+    let allProducts = [];
+    let allUsers = [];
 
     const authPortal = document.getElementById('auth-portal');
     const dashboardPortal = document.getElementById('dashboard-portal');
@@ -125,13 +369,16 @@
     const adminForm = document.getElementById('admin-login-form');
     const adminPasscode = document.getElementById('admin-passcode');
     const toastMsg = document.getElementById('toast-msg');
+    const toastText = document.getElementById('toast-text');
     const ordersList = document.getElementById('orders-list');
+    const productsList = document.getElementById('products-list');
+    const usersList = document.getElementById('users-list');
 
     function checkAuth() {
       if (sessionStorage.getItem('shadow_admin_token') === ADMIN_TOKEN) {
         authPortal.classList.add('hidden');
         dashboardPortal.classList.remove('hidden');
-        loadOrders();
+        refreshData();
       } else {
         authPortal.classList.remove('hidden');
         dashboardPortal.classList.add('hidden');
@@ -159,7 +406,8 @@
           authError.classList.remove('hidden');
         }
       } catch (err) {
-        if (pass === '8627' || pass === 'shadowadmin8627') {
+        const upper = pass.toUpperCase();
+        if (upper === 'SHADOWARROW2026' || upper === '8627' || upper === 'SHADOWADMIN2026') {
           sessionStorage.setItem('shadow_admin_token', ADMIN_TOKEN);
           checkAuth();
         } else {
@@ -174,36 +422,346 @@
       checkAuth();
     });
 
-    document.getElementById('btn-refresh').addEventListener('click', () => {
-      loadOrders();
-    });
+    function showToast(msg) {
+      toastText.innerText = msg;
+      toastMsg.classList.remove('hidden');
+      setTimeout(() => { toastMsg.classList.add('hidden'); }, 4000);
+    }
 
+    function switchTab(tab) {
+      const btnAll = document.getElementById('tab-btn-all');
+      const btnOrders = document.getElementById('tab-btn-orders');
+      const btnProducts = document.getElementById('tab-btn-products');
+      const btnUsers = document.getElementById('tab-btn-users');
+
+      const viewOrders = document.getElementById('view-orders');
+      const viewProducts = document.getElementById('view-products');
+      const viewUsers = document.getElementById('view-users');
+
+      // Reset Styles
+      [btnAll, btnOrders, btnProducts, btnUsers].forEach(b => {
+        b.className = 'px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition';
+      });
+
+      if (tab === 'all') {
+        btnAll.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        viewProducts.classList.remove('hidden');
+        viewOrders.classList.remove('hidden');
+        viewUsers.classList.remove('hidden');
+      } else if (tab === 'orders') {
+        btnOrders.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        viewOrders.classList.remove('hidden');
+        viewProducts.classList.add('hidden');
+        viewUsers.classList.add('hidden');
+      } else if (tab === 'products') {
+        btnProducts.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        viewProducts.classList.remove('hidden');
+        viewOrders.classList.add('hidden');
+        viewUsers.classList.add('hidden');
+      } else if (tab === 'users') {
+        btnUsers.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        viewUsers.classList.remove('hidden');
+        viewOrders.classList.add('hidden');
+        viewProducts.classList.add('hidden');
+      }
+    }
+
+    async function refreshData() {
+      loadOrders();
+      loadProducts();
+      loadUsers();
+    }
+
+    // ================= PRODUCTS LOGIC WITH DIRECT INLINE EDITING =================
+    async function loadProducts() {
+      productsList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold col-span-full">Refreshing MongoDB products...</div>';
+      try {
+        const res = await fetch('/api/admin/products', {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.products)) {
+          allProducts = data.products;
+          renderProducts(allProducts);
+        } else {
+          productsList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Failed to fetch products.</div>';
+        }
+      } catch (err) {
+        productsList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Server Connection Error.</div>';
+      }
+    }
+
+    function renderProducts(products) {
+      document.getElementById('badge-products-count').innerText = products.length;
+      document.getElementById('stat-products-count').innerText = products.length;
+
+      const lowStockCount = products.filter(p => (p.stockCount || 0) <= 3).length;
+      document.getElementById('stat-low-stock').innerText = lowStockCount;
+
+      if (products.length === 0) {
+        productsList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold col-span-full">No products in MongoDB catalog.</div>';
+        return;
+      }
+
+      productsList.innerHTML = products.map(p => {
+        const stock = p.stockCount !== undefined ? p.stockCount : 10;
+        let stockBadge = '<span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">In Stock (' + stock + ')</span>';
+        if (stock === 0) {
+          stockBadge = '<span class="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded-full">OUT OF STOCK</span>';
+        } else if (stock <= 3) {
+          stockBadge = '<span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">LOW STOCK (' + stock + ')</span>';
+        }
+
+        const gst = p.gstRate || 18;
+        const hsn = p.hsnCode || '8471';
+
+        return `
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 flex flex-col justify-between shadow-lg">
+            <div class="space-y-3">
+              <div class="flex gap-3 items-center">
+                <img src="${p.image}" alt="${p.name}" class="w-14 h-14 object-cover rounded-xl border border-slate-800 bg-slate-900 flex-shrink-0" onerror="this.src='/assets/keyboard.png'" />
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-extrabold text-white text-xs truncate">${p.name}</h4>
+                  <p class="text-[10px] text-slate-400 truncate">${p.subtitle || p.category}</p>
+                  <div class="mt-1 flex items-center gap-2">
+                    ${stockBadge}
+                    <span class="text-[10px] bg-slate-900 border border-slate-700 text-amber-400 font-mono px-1.5 py-0.5 rounded font-bold">${gst}% GST (${hsn})</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INLINE QUICK EDIT PRICE & STOCK -->
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400 font-bold block mb-0.5">Price (₹)</label>
+                    <input type="number" id="inline-price-${p.productId}" value="${p.price}" class="w-full bg-slate-950 border border-slate-700 px-2 py-1 rounded text-amber-400 font-mono font-bold text-xs outline-none" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400 font-bold block mb-0.5">Stock Count</label>
+                    <input type="number" id="inline-stock-${p.productId}" value="${stock}" class="w-full bg-slate-950 border border-slate-700 px-2 py-1 rounded text-white font-mono font-bold text-xs outline-none" />
+                  </div>
+                </div>
+
+                <button onclick="quickSaveProduct('${p.productId}')" class="w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 font-black text-[11px] py-1 rounded-lg transition flex items-center justify-center gap-1">
+                  ⚡ Quick Save Price & Stock
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 space-y-2">
+              <div class="flex items-center justify-between gap-1 text-xs">
+                <span class="text-slate-400 text-[11px] font-bold">Stock Adj:</span>
+                <div class="flex gap-1">
+                  <button onclick="updateStock('${p.productId}', null, 10)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">+10</button>
+                  <button onclick="updateStock('${p.productId}', null, -1)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">-1</button>
+                  <button onclick="updateStock('${p.productId}', 0)" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[10px] font-bold px-2 py-1 rounded-lg">Out of Stock</button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center pt-1">
+                <button onclick="deleteProduct('${p.productId}')" class="text-rose-400 hover:text-rose-300 text-[11px] font-bold">
+                  🗑️ Delete
+                </button>
+                <button onclick="openEditProductModal('${p.productId}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-xl shadow">
+                  ✏️ Edit Full Details
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function quickSaveProduct(productId) {
+      const price = Number(document.getElementById(`inline-price-${productId}`).value);
+      const stockCount = Number(document.getElementById(`inline-stock-${productId}`).value);
+
+      try {
+        const res = await fetch(`/api/admin/products/${productId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify({ price, stockCount })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Price & Stock updated for product!`);
+          loadProducts();
+        } else {
+          alert('Failed: ' + data.message);
+        }
+      } catch (e) {
+        alert('Quick save error: ' + e.message);
+      }
+    }
+
+    async function updateStock(productId, exactStock, delta) {
+      try {
+        const payload = { productId };
+        if (exactStock !== null && exactStock !== undefined) payload.stockCount = exactStock;
+        if (delta !== null && delta !== undefined) payload.delta = delta;
+
+        const res = await fetch('/api/admin/products/stock', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Stock updated! New Stock: ${data.stockCount}`);
+          loadProducts();
+        } else {
+          alert('Stock update failed: ' + data.message);
+        }
+      } catch (e) {
+        alert('Stock update error: ' + e.message);
+      }
+    }
+
+    async function deleteProduct(productId) {
+      if (!confirm(`Are you sure you want to delete product ${productId} from MongoDB Atlas?`)) return;
+      try {
+        const res = await fetch(`/api/admin/products/${productId}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Product deleted successfully!`);
+          loadProducts();
+        } else {
+          alert('Delete failed: ' + data.message);
+        }
+      } catch (e) {
+        alert('Delete error: ' + e.message);
+      }
+    }
+
+    function openAddProductModal() {
+      document.getElementById('prod-edit-id').value = '';
+      document.getElementById('modal-product-title').innerText = 'Add New Product to Catalog';
+      document.getElementById('form-product').reset();
+      document.getElementById('modal-product').classList.remove('hidden');
+    }
+
+    function openEditProductModal(productId) {
+      const p = allProducts.find(item => item.productId === productId);
+      if (!p) return;
+
+      document.getElementById('prod-edit-id').value = p.productId;
+      document.getElementById('modal-product-title').innerText = 'Edit Product: ' + p.name;
+      document.getElementById('prod-name').value = p.name || '';
+      document.getElementById('prod-category').value = p.category || 'electronics';
+      document.getElementById('prod-gst').value = p.gstRate || 18;
+      document.getElementById('prod-hsn').value = p.hsnCode || '8471';
+      document.getElementById('prod-warranty').value = p.warranty || '1 Year Official Warranty';
+      document.getElementById('prod-subtitle').value = p.subtitle || '';
+      document.getElementById('prod-price').value = p.price || '';
+      document.getElementById('prod-original-price').value = p.originalPrice || '';
+      document.getElementById('prod-stock').value = p.stockCount !== undefined ? p.stockCount : 10;
+      document.getElementById('prod-image').value = p.image || '';
+      document.getElementById('prod-desc').value = p.description || '';
+      document.getElementById('prod-highlights').value = Array.isArray(p.highlights) ? p.highlights.join(', ') : '';
+      document.getElementById('prod-prime').checked = Boolean(p.isPrime);
+      document.getElementById('prod-lightning').checked = Boolean(p.isLightningDeal);
+      document.getElementById('prod-bestseller').checked = Boolean(p.isBestseller);
+
+      document.getElementById('modal-product').classList.remove('hidden');
+    }
+
+    function closeAddProductModal() {
+      document.getElementById('modal-product').classList.add('hidden');
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const editId = document.getElementById('prod-edit-id').value;
+
+      const payload = {
+        name: document.getElementById('prod-name').value,
+        category: document.getElementById('prod-category').value,
+        gstRate: Number(document.getElementById('prod-gst').value),
+        hsnCode: document.getElementById('prod-hsn').value,
+        warranty: document.getElementById('prod-warranty').value,
+        subtitle: document.getElementById('prod-subtitle').value,
+        price: Number(document.getElementById('prod-price').value),
+        originalPrice: Number(document.getElementById('prod-original-price').value) || Math.round(Number(document.getElementById('prod-price').value) * 1.4),
+        stockCount: Number(document.getElementById('prod-stock').value),
+        image: document.getElementById('prod-image').value,
+        description: document.getElementById('prod-desc').value,
+        highlights: document.getElementById('prod-highlights').value ? document.getElementById('prod-highlights').value.split(',').map(s => s.trim()) : [],
+        isPrime: document.getElementById('prod-prime').checked,
+        isLightningDeal: document.getElementById('prod-lightning').checked,
+        isBestseller: document.getElementById('prod-bestseller').checked
+      };
+
+      try {
+        let url = '/api/admin/products';
+        let method = 'POST';
+
+        if (editId) {
+          url = `/api/admin/products/${editId}`;
+          method = 'PUT';
+        }
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(data.message || 'Product saved successfully!');
+          confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+          closeAddProductModal();
+          loadProducts();
+        } else {
+          alert('Save failed: ' + data.message);
+        }
+      } catch (err) {
+        alert('Save error: ' + err.message);
+      }
+    }
+
+    // ================= ORDERS LOGIC =================
     async function loadOrders() {
-      ordersList.innerHTML = '<div class="text-center py-10 text-slate-400">Refreshing live MongoDB database...</div>';
+      ordersList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold">Refreshing MongoDB orders...</div>';
       try {
         const res = await fetch('/api/admin/orders', {
           headers: { 'x-admin-token': ADMIN_TOKEN }
         });
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
-          renderOrders(data.orders);
+          allOrders = data.orders;
+          renderOrders(allOrders);
         } else {
-          ordersList.innerHTML = '<div class="text-center py-10 text-rose-400">Failed to fetch orders.</div>';
+          ordersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold">Failed to fetch orders.</div>';
         }
       } catch (err) {
-        ordersList.innerHTML = '<div class="text-center py-10 text-rose-400">Server Connection Error.</div>';
+        ordersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold">Server Connection Error.</div>';
       }
     }
 
-    function renderOrders(orders) {
-      const rev = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-      const prepaid = orders.filter(o => o.paymentMethod?.toLowerCase().includes('online') || o.paymentMethod?.toLowerCase().includes('razorpay')).length;
-      const cod = orders.filter(o => o.paymentMethod?.toLowerCase().includes('cod')).length;
+    function filterOrders() {
+      const query = document.getElementById('search-orders').value.toLowerCase().trim();
+      if (!query) {
+        renderOrders(allOrders);
+        return;
+      }
+      const filtered = allOrders.filter(o => 
+        (o.orderId || '').toLowerCase().includes(query) ||
+        (o.name || '').toLowerCase().includes(query) ||
+        (o.phone || '').includes(query)
+      );
+      renderOrders(filtered);
+    }
 
+    function renderOrders(orders) {
+      document.getElementById('badge-orders-count').innerText = orders.length;
+      const rev = orders.reduce((sum, o) => sum + (o.total || 0), 0);
       document.getElementById('stat-revenue').innerText = '₹' + rev.toLocaleString('en-IN');
       document.getElementById('stat-orders').innerText = orders.length;
-      document.getElementById('stat-prepaid').innerText = prepaid;
-      document.getElementById('stat-cod').innerText = cod;
 
       if (orders.length === 0) {
         ordersList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold">No orders found in MongoDB Atlas.</div>';
@@ -211,11 +769,12 @@
       }
 
       ordersList.innerHTML = orders.map(o => `
-        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-3">
-          <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-slate-800">
             <div>
               <span class="font-mono font-black text-amber-400 text-sm">${o.orderId}</span>
               <span class="bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">${o.paymentMethod}</span>
+              <span class="text-slate-500 text-[10px] font-mono ml-2">${new Date(o.createdAt || Date.now()).toLocaleString('en-IN')}</span>
             </div>
             <div class="text-right">
               <span class="font-black text-sm text-white font-mono">₹${(o.total || 0).toLocaleString('en-IN')}</span>
@@ -230,28 +789,64 @@
             </div>
 
             <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-              <div class="font-bold text-amber-400 text-[11px]">Payment Info</div>
-              <div class="text-[11px]">Method: <strong>${o.paymentMethod}</strong></div>
-              <div class="text-[11px]">Txn ID: <strong class="font-mono text-emerald-400">${o.razorpayPaymentId || 'Verified'}</strong></div>
+              <div class="font-bold text-amber-400 text-[11px]">Items Ordered</div>
+              <div class="text-[11px] space-y-0.5 mt-1">
+                ${(o.items || []).map(i => `<div>• ${i.name || 'Item'} x ${i.quantity || 1} (₹${i.price || 0})</div>`).join('')}
+              </div>
             </div>
 
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-              <div class="font-bold text-slate-400 text-[11px]">Logistics Details</div>
-              <div class="text-[11px]">Status: <strong class="text-emerald-400">${o.status}</strong></div>
-              <div class="text-[11px]">AWB: <strong class="text-amber-400 font-mono">${o.awbCode || 'Not Booked Yet'}</strong></div>
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-400 text-[11px]">Logistics Details</span>
+                <button onclick="openLogisticsModal('${o.orderId}', '${o.courierName || ''}', '${o.awbCode || ''}', '${o.trackingUrl || ''}')" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold">✏️ Edit Courier</button>
+              </div>
+              <div class="text-[11px]">Courier: <strong>${o.courierName || 'Prime Express'}</strong></div>
+              <div class="text-[11px]">AWB: <strong class="text-amber-400 font-mono">${o.awbCode || 'Not Assigned'}</strong></div>
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
-            <span class="text-xs text-slate-400">Current Status: <strong class="text-emerald-400">${o.status}</strong></span>
+          <div class="pt-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-3 text-xs">
+            <div class="flex items-center gap-2">
+              <label class="text-slate-400 font-bold">Update Status:</label>
+              <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="bg-slate-900 border border-amber-500/40 text-amber-400 font-bold px-3 py-1.5 rounded-xl outline-none text-xs">
+                <option value="${o.status}" selected>📌 Current: ${o.status}</option>
+                <option value="Order Confirmed & Processing">Order Confirmed & Processing</option>
+                <option value="Packed & Ready for Dispatch">Packed & Ready for Dispatch</option>
+                <option value="Shipped via Prime Express Air">Shipped via Prime Express Air</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered Successfully">Delivered Successfully</option>
+                <option value="Cancelled / Refunded">Cancelled / Refunded</option>
+              </select>
+            </div>
+
             <div class="flex gap-2">
-              <button onclick="bookShiprocket('${o.orderId}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow">
+              <button onclick="bookShiprocket('${o.orderId}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow">
                 🚀 Shiprocket Auto-Book
               </button>
             </div>
           </div>
         </div>
       `).join('');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        const res = await fetch('/api/admin/orders/status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify({ orderId, status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Order ${orderId} updated to "${newStatus}"!`);
+          confetti({ particleCount: 50, spread: 40, origin: { y: 0.6 } });
+          loadOrders();
+        } else {
+          alert('Failed to update status: ' + data.message);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
     }
 
     async function bookShiprocket(orderId) {
@@ -267,6 +862,120 @@
       } catch (e) {
         alert('Booking error: ' + e.message);
       }
+    }
+
+    function openLogisticsModal(orderId, courier, awb, url) {
+      document.getElementById('logistics-order-id').value = orderId;
+      document.getElementById('logistics-courier').value = courier || 'BlueDart Express';
+      document.getElementById('logistics-awb').value = awb || '';
+      document.getElementById('logistics-url').value = url || '';
+      document.getElementById('modal-logistics').classList.remove('hidden');
+    }
+
+    function closeLogisticsModal() {
+      document.getElementById('modal-logistics').classList.add('hidden');
+    }
+
+    async function handleSaveLogistics(e) {
+      e.preventDefault();
+      const orderId = document.getElementById('logistics-order-id').value;
+      const courierName = document.getElementById('logistics-courier').value;
+      const awbCode = document.getElementById('logistics-awb').value;
+      const trackingUrl = document.getElementById('logistics-url').value;
+
+      try {
+        const res = await fetch('/api/admin/orders/status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+          body: JSON.stringify({ orderId, status: `Shipped via ${courierName}`, courierName, awbCode, trackingUrl })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Logistics updated for ${orderId}!`);
+          closeLogisticsModal();
+          loadOrders();
+        } else {
+          alert('Failed: ' + data.message);
+        }
+      } catch (err) {
+        alert('Logistics update error: ' + err.message);
+      }
+    }
+
+    // ================= USERS & ANALYTICS LOGIC =================
+    async function loadUsers() {
+      usersList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold col-span-full">Refreshing registered customer accounts...</div>';
+      try {
+        const res = await fetch('/api/admin/users', {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.users)) {
+          allUsers = data.users;
+          renderUsers(allUsers);
+        } else {
+          usersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Failed to fetch customer users.</div>';
+        }
+      } catch (err) {
+        usersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Server Connection Error.</div>';
+      }
+    }
+
+    function filterUsers() {
+      const query = document.getElementById('search-users').value.toLowerCase().trim();
+      if (!query) {
+        renderUsers(allUsers);
+        return;
+      }
+      const filtered = allUsers.filter(u => 
+        (u.name || '').toLowerCase().includes(query) ||
+        (u.phone || '').includes(query) ||
+        (u.email || '').toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
+    function renderUsers(users) {
+      document.getElementById('badge-users-count').innerText = users.length;
+      document.getElementById('stat-users-count').innerText = users.length;
+
+      if (users.length === 0) {
+        usersList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold col-span-full">No customer accounts found in MongoDB.</div>';
+        return;
+      }
+
+      usersList.innerHTML = users.map(u => `
+        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between text-xs">
+          <div class="space-y-2">
+            <div class="flex justify-between items-start gap-2 border-b border-slate-800 pb-2">
+              <div>
+                <h4 class="font-extrabold text-white text-sm">${u.name}</h4>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">Joined: ${new Date(u.createdAt).toLocaleDateString('en-IN')}</p>
+              </div>
+              <span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                ${u.authSource}
+              </span>
+            </div>
+
+            <div class="space-y-1">
+              <div class="text-slate-300">📱 Phone: <strong class="font-mono text-white">${u.phone}</strong></div>
+              <div class="text-slate-300">📧 Email: <strong class="font-mono text-slate-200">${u.email}</strong></div>
+              <div class="text-slate-400 text-[11px]">📍 Saved Address: <span class="text-slate-300">${u.fullAddress}</span></div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl">
+            <div>
+              <span class="text-[10px] text-slate-400 block">Orders Placed</span>
+              <span class="font-black text-amber-400 font-mono text-sm">${u.ordersCount} Orders</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block">Lifetime Value (LTV)</span>
+              <span class="font-black text-emerald-400 font-mono text-sm">₹${(u.totalSpent || 0).toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
     }
 
     checkAuth();

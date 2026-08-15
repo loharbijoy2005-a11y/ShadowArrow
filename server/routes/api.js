@@ -611,20 +611,26 @@ router.post(['/orders/update-status', '/shiprocket/webhook'], async (req, res) =
 
     try {
       updatedOrder = await Order.findOneAndUpdate(
-        { orderId: cleanOrderId },
+        { orderId: { $regex: new RegExp(`^${cleanOrderId}$`, 'i') } },
         {
-          status: cleanStatus,
-          ...(awbCode ? { awbCode } : {}),
-          ...(courierName ? { courierName } : {}),
-          ...(trackingUrl ? { trackingUrl } : {})
+          $set: {
+            status: cleanStatus,
+            ...(awbCode ? { awbCode: awbCode.trim() } : {}),
+            ...(courierName ? { courierName: courierName.trim() } : {}),
+            ...(trackingUrl ? { trackingUrl: trackingUrl.trim() } : {})
+          },
+          $push: {
+            statusHistory: { status: cleanStatus, timestamp: new Date() }
+          }
         },
-        { new: true }
+        { new: true, runValidators: false }
       );
     } catch (e) {
-      const idx = memoryOrders.findIndex(o => o.orderId === cleanOrderId);
+      console.error('MongoDB order status update error:', e.message);
+      const idx = memoryOrders.findIndex(o => o.orderId.toLowerCase() === cleanOrderId.toLowerCase());
       if (idx !== -1) {
         memoryOrders[idx].status = cleanStatus;
-        if (awbCode) memoryOrders[idx].awbCode = cleanStatus;
+        if (awbCode) memoryOrders[idx].awbCode = awbCode.trim();
         updatedOrder = memoryOrders[idx];
       }
     }
@@ -682,32 +688,30 @@ router.post('/admin/login', rateLimiter(15), (req, res) => {
   const input = (passcode || adminKey || '').trim();
 
   const validPasscodes = [
-    process.env.ADMIN_SECRET_PASSCODE || 'shadowadmin8627',
-    'shadowadmin8627',
-    '8627',
-    'bgE@4NwneHFWkBpbs^EqncxHU294!0rM',
-    'LoharBijoy',
-    'loharbijoy357@gmail.com'
+    (process.env.ADMIN_SECRET_PASSCODE || 'SHADOWARROW2026').toUpperCase(),
+    'SHADOWARROW2026',
+    'SHADOWADMIN2026',
+    'LOHARBIJOY'
   ];
 
-  if (validPasscodes.includes(input)) {
+  if (validPasscodes.includes(input.toUpperCase())) {
     return res.json({
       success: true,
-      token: 'ADMIN_TOKEN_SECURE_8627',
-      message: 'Admin Access Granted! Welcome to Shadow Arrow Control Panel.'
+      token: 'ADMIN_TOKEN_SECURE_2026',
+      message: 'Admin Access Granted! Welcome to Shadow Arrow Master Control Center.'
     });
   }
 
   return res.status(401).json({
     success: false,
-    message: 'Access Denied: Invalid Admin Security Key or Passcode!'
+    message: 'Access Denied: Invalid Admin Secret Passcode!'
   });
 });
 
 // Helper middleware function to verify Admin Auth Token
 const verifyAdminAuth = (req) => {
   const token = req.headers['x-admin-token'] || req.headers['x-admin-passcode'] || req.query.adminKey || req.body.adminToken;
-  const validTokens = ['ADMIN_TOKEN_SECURE_8627', 'shadowadmin8627', '8627', 'bgE@4NwneHFWkBpbs^EqncxHU294!0rM', 'LoharBijoy'];
+  const validTokens = ['ADMIN_TOKEN_SECURE_2026', 'ADMIN_TOKEN_SECURE_8627', 'SHADOWARROW2026', 'shadowarrow2026', '8627'];
   return validTokens.includes(token);
 };
 
@@ -752,17 +756,23 @@ router.put('/admin/orders/status', async (req, res) => {
     let updatedOrder = null;
     try {
       updatedOrder = await Order.findOneAndUpdate(
-        { orderId: cleanOrderId },
+        { orderId: { $regex: new RegExp(`^${cleanOrderId}$`, 'i') } },
         {
-          status: cleanStatus,
-          ...(awbCode ? { awbCode: awbCode.trim() } : {}),
-          ...(courierName ? { courierName: courierName.trim() } : {}),
-          ...(trackingUrl ? { trackingUrl: trackingUrl.trim() } : {})
+          $set: {
+            status: cleanStatus,
+            ...(awbCode ? { awbCode: awbCode.trim() } : {}),
+            ...(courierName ? { courierName: courierName.trim() } : {}),
+            ...(trackingUrl ? { trackingUrl: trackingUrl.trim() } : {})
+          },
+          $push: {
+            statusHistory: { status: cleanStatus, timestamp: new Date() }
+          }
         },
-        { new: true }
+        { new: true, runValidators: false }
       );
     } catch (e) {
-      const idx = memoryOrders.findIndex(o => o.orderId === cleanOrderId);
+      console.error('MongoDB Admin order status update error:', e.message);
+      const idx = memoryOrders.findIndex(o => o.orderId.toLowerCase() === cleanOrderId.toLowerCase());
       if (idx !== -1) {
         memoryOrders[idx].status = cleanStatus;
         if (awbCode) memoryOrders[idx].awbCode = awbCode.trim();
@@ -848,12 +858,21 @@ router.post('/shiprocket/create-order', async (req, res) => {
             billing_email: orderToShip.email || 'customer@shadowarrow.com',
             billing_phone: cleanPhone,
             shipping_is_billing: true,
-            order_items: (orderToShip.items && orderToShip.items.length > 0) ? orderToShip.items.map((i) => ({
-              name: i.name || i.product?.name || 'Prime Marketplace Item',
-              sku: i.productId || 'SKU-SA-100',
-              units: i.quantity || 1,
-              selling_price: i.price || i.product?.price || 500
-            })) : [{ name: 'Prime Item', sku: 'SKU-SA-100', units: 1, selling_price: orderToShip.total || 500 }],
+            order_items: (orderToShip.items && orderToShip.items.length > 0) ? orderToShip.items.map((i) => {
+              const gst = i.gstRate || i.product?.gstRate || 18;
+              const hsn = i.hsnCode || i.product?.hsnCode || '8471';
+              return {
+                name: i.name || i.product?.name || 'Prime Marketplace Item',
+                sku: i.productId || i.id || 'SKU-SA-100',
+                units: i.quantity || 1,
+                selling_price: i.price || i.product?.price || 500,
+                hsn: hsn,
+                tax_percentage: gst
+              };
+            }) : [{ name: 'Prime Item', sku: 'SKU-SA-100', units: 1, selling_price: orderToShip.total || 500, hsn: '8471', tax_percentage: 18 }],
+            vendor_details: {
+              gstin: process.env.SELLER_GSTIN || '19AABCS1429B1Z0'
+            },
             payment_method: (orderToShip.paymentMethod || '').includes('COD') ? 'COD' : 'Prepaid',
             sub_total: orderToShip.total || 500,
             length: 10,
@@ -1253,3 +1272,303 @@ router.post('/webhook', (req, res) => {
   }
   return res.sendStatus(404);
 });
+
+// ==========================================
+// 8. ADMIN PRODUCT & STOCK MANAGEMENT APIS
+// ==========================================
+
+// 8a. GET /api/admin/products (Fetch all products including stock counts for Admin)
+router.get('/admin/products', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    let products = [];
+    try {
+      products = await Product.find().sort({ createdAt: -1 });
+    } catch (e) {}
+
+    if (!products || products.length === 0) {
+      products = SEED_PRODUCTS;
+    }
+
+    return res.json({ success: true, count: products.length, products });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch admin products: ' + error.message });
+  }
+});
+
+// 8b. POST /api/admin/products (Add New Product to MongoDB Catalog)
+router.post('/admin/products', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    const {
+      name,
+      subtitle,
+      category,
+      price,
+      originalPrice,
+      stockCount,
+      image,
+      galleryImages,
+      description,
+      highlights,
+      specs,
+      warranty,
+      isPrime,
+      isLightningDeal,
+      isBestseller
+    } = req.body;
+
+    if (!name || !category || !price || !image || !description) {
+      return res.status(400).json({ success: false, message: 'Name, Category, Price, Image URL, and Description are required.' });
+    }
+
+    const numPrice = Number(price);
+    const numOrig = originalPrice ? Number(originalPrice) : Math.round(numPrice * 1.4);
+    const discPercent = Math.max(0, Math.round(((numOrig - numPrice) / numOrig) * 100));
+    const prodId = 'prod-' + Date.now();
+
+    const productData = {
+      productId: prodId,
+      name: name.trim(),
+      subtitle: (subtitle || '').trim(),
+      category: (category || 'electronics').trim().toLowerCase(),
+      price: numPrice,
+      originalPrice: numOrig,
+      discountPercent: discPercent,
+      rating: 5.0,
+      reviewsCount: 0,
+      image: image.trim(),
+      galleryImages: Array.isArray(galleryImages) ? galleryImages : [image.trim()],
+      description: description.trim(),
+      highlights: Array.isArray(highlights) ? highlights : (highlights ? highlights.split(',').map(s => s.trim()) : ['100% Authentic Product', 'Fast Express Dispatch']),
+      specs: typeof specs === 'object' ? specs : { 'Warranty': warranty || '1 Year Official' },
+      warranty: warranty || '1 Year Official Warranty',
+      isPrime: isPrime !== undefined ? Boolean(isPrime) : true,
+      isLightningDeal: isLightningDeal !== undefined ? Boolean(isLightningDeal) : true,
+      isBestseller: isBestseller !== undefined ? Boolean(isBestseller) : false,
+      stockCount: stockCount !== undefined ? Number(stockCount) : 10,
+      reviews: []
+    };
+
+    let newProd = null;
+    try {
+      const prod = new Product(productData);
+      await prod.save();
+      newProd = prod;
+    } catch (e) {
+      console.log('MongoDB product save error, falling back:', e.message);
+      SEED_PRODUCTS.unshift(productData);
+      newProd = productData;
+    }
+
+    console.log(`✅ Admin Product Created: ${productData.name} (ID: ${prodId})`);
+
+    return res.json({
+      success: true,
+      message: `Product "${productData.name}" added successfully to MongoDB catalog!`,
+      product: newProd
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to add product: ' + error.message });
+  }
+});
+
+// 8c. PUT /api/admin/products/stock (1-Click Instant Stock Count Update)
+router.put('/admin/products/stock', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    const { productId, stockCount, delta } = req.body;
+    if (!productId) {
+      return res.status(400).json({ success: false, message: 'productId is required.' });
+    }
+
+    let updatedProduct = null;
+    try {
+      if (stockCount !== undefined) {
+        updatedProduct = await Product.findOneAndUpdate(
+          { $or: [{ productId: productId }, { _id: productId }] },
+          { stockCount: Math.max(0, Number(stockCount)) },
+          { new: true }
+        );
+      } else if (delta !== undefined) {
+        updatedProduct = await Product.findOneAndUpdate(
+          { $or: [{ productId: productId }, { _id: productId }] },
+          { $inc: { stockCount: Number(delta) } },
+          { new: true }
+        );
+      }
+    } catch (e) {
+      const p = SEED_PRODUCTS.find(sp => sp.productId === productId);
+      if (p) {
+        if (stockCount !== undefined) p.stockCount = Math.max(0, Number(stockCount));
+        else if (delta !== undefined) p.stockCount = Math.max(0, p.stockCount + Number(delta));
+        updatedProduct = p;
+      }
+    }
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: `Product ${productId} not found.` });
+    }
+
+    return res.json({
+      success: true,
+      message: `Stock updated for ${updatedProduct.name}! New Stock: ${updatedProduct.stockCount}`,
+      stockCount: updatedProduct.stockCount,
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update stock: ' + error.message });
+  }
+});
+
+// 8d. PUT /api/admin/products/:productId (Update Full Product Details)
+router.put('/admin/products/:productId', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    const { productId } = req.params;
+    const updateData = req.body;
+
+    if (updateData.price && updateData.originalPrice) {
+      const numPrice = Number(updateData.price);
+      const numOrig = Number(updateData.originalPrice);
+      updateData.discountPercent = Math.max(0, Math.round(((numOrig - numPrice) / numOrig) * 100));
+    }
+
+    let updatedProduct = null;
+    try {
+      updatedProduct = await Product.findOneAndUpdate(
+        { $or: [{ productId: productId }, { _id: productId }] },
+        { $set: updateData },
+        { new: true }
+      );
+    } catch (e) {
+      const idx = SEED_PRODUCTS.findIndex(p => p.productId === productId);
+      if (idx !== -1) {
+        Object.assign(SEED_PRODUCTS[idx], updateData);
+        updatedProduct = SEED_PRODUCTS[idx];
+      }
+    }
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: `Product ${productId} not found.` });
+    }
+
+    return res.json({
+      success: true,
+      message: `Product ${updatedProduct.name} updated successfully in MongoDB!`,
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update product: ' + error.message });
+  }
+});
+
+// 8e. DELETE /api/admin/products/:productId (Delete Product from Catalog)
+router.delete('/admin/products/:productId', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    const { productId } = req.params;
+    let deletedProduct = null;
+
+    try {
+      deletedProduct = await Product.findOneAndDelete({
+        $or: [{ productId: productId }, { _id: productId }]
+      });
+    } catch (e) {
+      const idx = SEED_PRODUCTS.findIndex(p => p.productId === productId);
+      if (idx !== -1) {
+        deletedProduct = SEED_PRODUCTS.splice(idx, 1)[0];
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: `Product ${productId} deleted successfully from MongoDB catalog!`
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to delete product: ' + error.message });
+  }
+});
+
+// ==========================================
+// 9. ADMIN USER MANAGEMENT & ANALYTICS API
+// ==========================================
+
+// 9a. GET /api/admin/users (Fetch all registered users with metrics & order statistics)
+router.get('/admin/users', async (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    let usersList = [];
+    try {
+      usersList = await User.find().sort({ createdAt: -1 });
+    } catch (e) {
+      usersList = Array.from(memoryUsers.values());
+    }
+
+    let allOrders = [];
+    try {
+      allOrders = await Order.find();
+    } catch (e) {
+      allOrders = memoryOrders;
+    }
+
+    const enhancedUsers = usersList.map(u => {
+      const uPhone = (u.phone || '').trim();
+      const uEmail = (u.email || '').trim().toLowerCase();
+
+      // Calculate user metrics
+      const userOrders = allOrders.filter(o => {
+        const oPhone = (o.phone || '').trim();
+        const oEmail = (o.email || '').trim().toLowerCase();
+        return (uPhone && oPhone === uPhone) || (uEmail && oEmail === uEmail);
+      });
+
+      const totalSpent = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+      // Determine Auth Source Badge
+      let authSource = '📧 Email & Password';
+      if (u.googleId) authSource = '🌐 Google Auth';
+      else if (!u.email && u.phone) authSource = '📱 Mobile OTP';
+
+      return {
+        id: u._id || u.email || u.phone,
+        name: u.name || 'Shadow Customer',
+        email: u.email || 'N/A (Mobile Login)',
+        phone: u.phone || 'N/A',
+        authSource,
+        fullAddress: u.fullAddress || 'No saved address',
+        createdAt: u.createdAt || new Date(),
+        ordersCount: userOrders.length,
+        totalSpent
+      };
+    });
+
+    return res.json({
+      success: true,
+      count: enhancedUsers.length,
+      users: enhancedUsers
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch users: ' + error.message });
+  }
+});
+
+

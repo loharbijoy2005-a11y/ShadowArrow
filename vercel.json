@@ -5,10 +5,11 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "https://shadowarrow-backend.onrender.com/api/$1" },
     { "source": "/webhook/(.*)", "destination": "https://shadowarrow-backend.onrender.com/webhook/$1" },
+    { "source": "/admin", "destination": "https://shadowarrow-backend.onrender.com/admin" },
+    { "source": "/admin-portal", "destination": "https://shadowarrow-backend.onrender.com/admin" },
+    { "source": "/admin.html", "destination": "https://shadowarrow-backend.onrender.com/admin" },
     { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
     { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin-panel", "destination": "/index.html" },
     { "source": "/((?!assets/|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

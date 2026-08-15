@@ -25,11 +25,13 @@ const productSchema = new mongoose.Schema({
   highlights: { type: [String], default: [] },
   specs: { type: Map, of: String, default: {} },
   warranty: { type: String, default: '1 Year Official Warranty' },
+  gstRate: { type: Number, default: 18 },
+  hsnCode: { type: String, default: '8471' },
   isPrime: { type: Boolean, default: true },
   isLightningDeal: { type: Boolean, default: true },
   isBestseller: { type: Boolean, default: false },
   stockCount: { type: Number, default: 10 },
   reviews: { type: [reviewSchema], default: [] }
-});
+}, { strict: false, timestamps: true });
 
 export const Product = mongoose.models.Product || mongoose.model('Product', productSchema);

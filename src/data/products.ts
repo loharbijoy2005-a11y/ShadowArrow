@@ -36,6 +36,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Weight': '875g'
     },
     warranty: '1 Year Brand Replacement Guarantee',
+    gstRate: 18,
+    hsnCode: '8471',
     isPrime: true,
     isLightningDeal: true,
     isBestseller: true,
@@ -74,6 +76,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Connection': '2.4GHz Low-Latency / Bluetooth 5.2'
     },
     warranty: '1 Year Official Warranty',
+    gstRate: 18,
+    hsnCode: '8471',
     isPrime: true,
     isLightningDeal: true,
     isBestseller: true,
@@ -110,6 +114,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Care': 'Machine Washable (Cold, Line Dry)'
     },
     warranty: '6 Months Stitching Guarantee',
+    gstRate: 5,
+    hsnCode: '6201',
     isPrime: true,
     isLightningDeal: true,
     isBestseller: true,
@@ -148,6 +154,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Color Gamut': '125% sRGB / 95% DCI-P3'
     },
     warranty: '3 Years Replacement Warranty',
+    gstRate: 18,
+    hsnCode: '8528',
     isPrime: true,
     isLightningDeal: true,
     isBestseller: true,
@@ -185,6 +193,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Weight': '245g'
     },
     warranty: '1 Year Replacement Warranty',
+    gstRate: 18,
+    hsnCode: '8518',
     isPrime: true,
     isLightningDeal: false,
     isBestseller: true,
@@ -222,6 +232,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Sensors': 'Optical HR, SpO2, Accelerometer, Gyroscope'
     },
     warranty: '1 Year Official Brand Warranty',
+    gstRate: 18,
+    hsnCode: '8517',
     isPrime: true,
     isLightningDeal: false,
     isBestseller: true,

@@ -470,26 +470,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           )}
 
           {/* SUMMARY & WAREHOUSE 722157 DELIVERY INFO */}
-          <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
-            
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-800/80 text-[11px] text-sky-400 font-semibold">
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-sky-400" />
-              <span>Ships from Warehouse Pincode: <strong className="font-mono text-white">{WAREHOUSE_PINCODE}</strong> ({deliveryInfo.shippingTier})</span>
-            </div>
+          {(() => {
+            const totalGstAmount = cartItems.reduce((sum, item) => {
+              const rate = item.product.gstRate || 18;
+              const itemTotal = item.product.price * item.quantity;
+              return sum + Math.round(itemTotal * (rate / (100 + rate)));
+            }, 0);
+            const taxableSubtotal = subtotal - totalGstAmount;
 
-            <div className="flex justify-between text-slate-300 pt-1">
-              <span>Items Subtotal</span>
-              <span className="font-bold text-white">₹{subtotal.toLocaleString('en-IN')}</span>
-            </div>
-            <div className="flex justify-between text-slate-300">
-              <span>Delivery Charges ({deliveryInfo.estimatedDays})</span>
-              <span className="font-bold text-emerald-400">{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
-            </div>
-            <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-slate-800">
-              <span>Total Payable Amount</span>
-              <span className="text-xl text-amber-500 font-black">₹{total.toLocaleString('en-IN')}</span>
-            </div>
-          </div>
+            return (
+              <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
+                
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-800/80 text-[11px] text-sky-400 font-semibold">
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-sky-400" />
+                  <span>Ships from Warehouse Pincode: <strong className="font-mono text-white">{WAREHOUSE_PINCODE}</strong> ({deliveryInfo.shippingTier})</span>
+                </div>
+
+                <div className="flex justify-between text-slate-300 pt-1">
+                  <span>Taxable Value (Excl. GST)</span>
+                  <span className="font-bold text-white">₹{taxableSubtotal.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="flex items-center gap-1">
+                    <span>GST Tax (Category Wise)</span>
+                    <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-mono border border-amber-500/30">CGST + SGST</span>
+                  </span>
+                  <span className="font-bold text-amber-400 font-mono">₹{totalGstAmount.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Delivery Charges ({deliveryInfo.estimatedDays})</span>
+                  <span className="font-bold text-emerald-400">{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
+                </div>
+                <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-slate-800">
+                  <span>Total Amount (GST Included)</span>
+                  <span className="text-xl text-amber-500 font-black font-mono">₹{total.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+            );
+          })()}
 
           {!user ? (
             <button

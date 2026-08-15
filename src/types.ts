@@ -14,6 +14,8 @@ export interface Product {
   highlights?: string[];
   specs?: Record<string, string>;
   warranty?: string;
+  gstRate?: number;
+  hsnCode?: string;
   isPrime: boolean;
   isLightningDeal?: boolean;
   isBestseller?: boolean;

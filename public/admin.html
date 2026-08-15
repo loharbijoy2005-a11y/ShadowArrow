@@ -351,7 +351,7 @@
 
     <div class="relative max-w-md w-full bg-slate-900 border border-indigo-500/40 rounded-3xl p-6 text-white space-y-6 shadow-2xl z-[101]">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-        <h3 class="font-black text-base text-white">✏️ Manual Logistics Override</h3>
+        <h3 class="font-black text-base text-white">🚚 Customer Logistics & Courier Selection</h3>
         <button onclick="closeLogisticsModal()" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
       </div>
 
@@ -359,57 +359,103 @@
         <input type="hidden" id="logistics-order-id" value="" />
 
         <div>
-          <label class="block text-slate-400 mb-1 font-bold">Select Logistics / Courier Provider</label>
+          <label class="block text-slate-400 mb-1 font-bold">Customer Logistics / Courier Partner Service</label>
           <select id="logistics-courier-select" onchange="onLogisticsCourierChange()" required class="w-full bg-slate-950 border border-slate-700 px-3.5 py-2.5 rounded-xl text-white outline-none focus:border-indigo-500 font-bold text-xs">
-            <optgroup label="🚀 Shiprocket & Aggregators">
-              <option value="Shiprocket Express">Shiprocket Express</option>
-              <option value="Shiprocket Air">Shiprocket Air</option>
-              <option value="Shiprocket Surface">Shiprocket Surface</option>
-              <option value="NimbusPost Express">NimbusPost Express</option>
-              <option value="Pickrr Logistics">Pickrr Logistics</option>
-              <option value="Shyplite Express">Shyplite Express</option>
-              <option value="iThink Logistics">iThink Logistics</option>
+            <optgroup label="💙 Blue Dart Express Services">
+              <option value="Blue Dart Surface (Ground Express)">Blue Dart Surface (Ground Express)</option>
+              <option value="Blue Dart Apex (Air Priority)">Blue Dart Apex (Air Priority)</option>
+              <option value="Blue Dart Dart Surfakair">Blue Dart Dart Surfakair</option>
+              <option value="Blue Dart Critical Express">Blue Dart Critical Express</option>
+              <option value="Blue Dart International Priority">Blue Dart International Priority</option>
             </optgroup>
 
-            <optgroup label="📦 Top Domestic Indian Couriers (A-Z)">
-              <option value="Amazon Shipping">Amazon Shipping</option>
-              <option value="Aramex India">Aramex India</option>
-              <option value="Blue Dart Express">Blue Dart Express</option>
-              <option value="Delhivery Surface">Delhivery Surface</option>
-              <option value="Delhivery Express">Delhivery Express</option>
-              <option value="DTDC Express">DTDC Express</option>
-              <option value="Ecom Express">Ecom Express</option>
-              <option value="Ekart Logistics (Flipkart)">Ekart Logistics (Flipkart)</option>
+            <optgroup label="📦 Delhivery Logistics Services">
+              <option value="Delhivery Express Air (1-2 Days)">Delhivery Express Air (1-2 Days)</option>
+              <option value="Delhivery Surface Standard (3-5 Days)">Delhivery Surface Standard (3-5 Days)</option>
+              <option value="Delhivery Direct Local">Delhivery Direct Local</option>
+              <option value="Delhivery Heavy & Bulk (50kg+)">Delhivery Heavy & Bulk (50kg+)</option>
+              <option value="Delhivery Cross-Border">Delhivery Cross-Border</option>
+            </optgroup>
+
+            <optgroup label="🚀 Shiprocket Aggregator Services">
+              <option value="Shiprocket Air Express">Shiprocket Air Express</option>
+              <option value="Shiprocket Surface 0.5kg">Shiprocket Surface 0.5kg</option>
+              <option value="Shiprocket Surface 1kg+">Shiprocket Surface 1kg+</option>
+              <option value="Shiprocket Surface 5kg+">Shiprocket Surface 5kg+</option>
+              <option value="Shiprocket B2B Cargo">Shiprocket B2B Cargo</option>
+            </optgroup>
+
+            <optgroup label="📦 DTDC Courier Services">
+              <option value="DTDC Express Air">DTDC Express Air</option>
+              <option value="DTDC Surface Plus (Ground)">DTDC Surface Plus (Ground)</option>
+              <option value="DTDC Lite Standard">DTDC Lite Standard</option>
+              <option value="DTDC Priority International">DTDC Priority International</option>
+            </optgroup>
+
+            <optgroup label="🚚 Ekart Logistics (Flipkart)">
+              <option value="Ekart Air Express">Ekart Air Express</option>
+              <option value="Ekart Ground Surface">Ekart Ground Surface</option>
+            </optgroup>
+
+            <optgroup label="📦 Amazon Shipping (ATS)">
+              <option value="Amazon Swish Air">Amazon Swish Air</option>
+              <option value="Amazon Surface Ground">Amazon Surface Ground</option>
+            </optgroup>
+
+            <optgroup label="🐝 XpressBees Logistics">
+              <option value="XpressBees Air Express">XpressBees Air Express</option>
+              <option value="XpressBees Surface Ground">XpressBees Surface Ground</option>
+            </optgroup>
+
+            <optgroup label="📦 Ecom Express">
+              <option value="Ecom Express Air (EXS)">Ecom Express Air (EXS)</option>
+              <option value="Ecom Express Ground (EDS)">Ecom Express Ground (EDS)</option>
+            </optgroup>
+
+            <optgroup label="📮 India Post Services">
+              <option value="India Post Speed Post (Air)">India Post Speed Post (Air)</option>
+              <option value="India Post Registered Parcel">India Post Registered Parcel</option>
+              <option value="India Post Express Parcel">India Post Express Parcel</option>
+            </optgroup>
+
+            <optgroup label="💼 Professional Couriers (TPC)">
+              <option value="TPC Air Express">TPC Air Express</option>
+              <option value="TPC Surface Cargo">TPC Surface Cargo</option>
+            </optgroup>
+
+            <optgroup label="🚚 Other Domestic Couriers">
+              <option value="Shadowfax Express Air">Shadowfax Express Air</option>
+              <option value="Shadowfax Surface Ground">Shadowfax Surface Ground</option>
+              <option value="Aramex India Express">Aramex India Express</option>
               <option value="Franch Express">Franch Express</option>
               <option value="Gati-KWE Logistics">Gati-KWE Logistics</option>
-              <option value="India Post (Speed Post)">India Post (Speed Post)</option>
               <option value="Madhur Couriers">Madhur Couriers</option>
-              <option value="Professional Couriers (TPC)">Professional Couriers (TPC)</option>
-              <option value="Shadowfax Technologies">Shadowfax Technologies</option>
               <option value="Shree Maruti Courier">Shree Maruti Courier</option>
               <option value="Smartr Logistics">Smartr Logistics</option>
               <option value="ST Courier">ST Courier</option>
               <option value="Tirupati Courier">Tirupati Courier</option>
               <option value="Trackon Couriers">Trackon Couriers</option>
-              <option value="XpressBees Logistics">XpressBees Logistics</option>
             </optgroup>
 
-            <optgroup label="✈️ Global & International Logistics">
-              <option value="DHL Express">DHL Express</option>
-              <option value="FedEx Express">FedEx Express</option>
-              <option value="UPS Express">UPS Express</option>
-              <option value="DPD Express">DPD Express</option>
-            </optgroup>
-
-            <optgroup label="⚡ Hyperlocal & Local Delivery">
-              <option value="Porter Goods">Porter Goods</option>
+            <optgroup label="⚡ Hyperlocal Delivery">
+              <option value="Porter Goods Transport">Porter Goods Transport</option>
               <option value="Dunzo Business">Dunzo Business</option>
               <option value="Borzo (WeFast)">Borzo (WeFast)</option>
               <option value="Uber Connect">Uber Connect</option>
             </optgroup>
 
+            <optgroup label="✈️ Global & International">
+              <option value="DHL Express Worldwide">DHL Express Worldwide</option>
+              <option value="DHL eCommerce Ground">DHL eCommerce Ground</option>
+              <option value="FedEx Priority Overnight">FedEx Priority Overnight</option>
+              <option value="FedEx Economy Surface">FedEx Economy Surface</option>
+              <option value="FedEx International Priority">FedEx International Priority</option>
+              <option value="UPS Express Air">UPS Express Air</option>
+              <option value="DPD Express">DPD Express</option>
+            </optgroup>
+
             <optgroup label="✏️ Custom Provider">
-              <option value="CUSTOM_COURIER">➕ Add Custom / Other Logistics Provider...</option>
+              <option value="CUSTOM_COURIER">➕ Add Custom / Other Customer Logistics Provider...</option>
             </optgroup>
           </select>
         </div>
@@ -931,7 +977,16 @@
                   <option value="${o.status}" selected>📌 Current: ${o.status}</option>
                   <option value="Order Confirmed & Processing">Order Confirmed & Processing</option>
                   <option value="Packed & Ready for Dispatch">Packed & Ready for Dispatch</option>
-                  <option value="Shipped via Prime Express Air">Shipped via Prime Express Air</option>
+                  <optgroup label="🚚 Express Logistics & Transit">
+                    <option value="Shipped via Blue Dart Surface">Shipped via Blue Dart Surface</option>
+                    <option value="Shipped via Blue Dart Apex Air">Shipped via Blue Dart Apex Air</option>
+                    <option value="Shipped via Delhivery Surface">Shipped via Delhivery Surface</option>
+                    <option value="Shipped via Delhivery Express Air">Shipped via Delhivery Express Air</option>
+                    <option value="Shipped via Shiprocket Air Express">Shipped via Shiprocket Air Express</option>
+                    <option value="Shipped via DTDC Express Air">Shipped via DTDC Express Air</option>
+                    <option value="Shipped via Ekart Air Express">Shipped via Ekart Air Express</option>
+                    <option value="Shipped via India Post Speed Post">Shipped via India Post Speed Post</option>
+                  </optgroup>
                   <option value="Out for Delivery">Out for Delivery</option>
                   <option value="Delivered Successfully">Delivered Successfully</option>
                   <option value="Cancelled / Refunded">Cancelled / Refunded</option>

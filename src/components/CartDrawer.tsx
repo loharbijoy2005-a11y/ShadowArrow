@@ -28,6 +28,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponMsg, setCouponMsg] = useState('');
 
+  React.useEffect(() => {
+    try {
+      let sess = localStorage.getItem('shadow_cart_session');
+      if (!sess) {
+        sess = 'sess-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('shadow_cart_session', sess);
+      }
+      const userPhone = localStorage.getItem('shadow_user_phone') || '';
+      const userName = localStorage.getItem('shadow_user_name') || '';
+
+      fetch('/api/cart/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cartItems,
+          sessionId: sess,
+          phone: userPhone,
+          name: userName
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }, [cartItems]);
+
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);

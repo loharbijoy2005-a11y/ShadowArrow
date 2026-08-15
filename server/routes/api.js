@@ -572,13 +572,25 @@ router.post('/orders', async (req, res) => {
       const order = new Order(orderData);
       await order.save();
 
-      // Update User address in MongoDB
+      // Update or Auto-Create Customer Account in MongoDB Atlas
       const fullAddrStr = `${address.street}, ${address.city} - ${address.pincode}`;
       await User.findOneAndUpdate(
         { phone: cleanPhone },
-        { fullAddress: fullAddrStr, name: name }
+        { 
+          $set: {
+            phone: cleanPhone,
+            name: name,
+            fullAddress: fullAddrStr
+          },
+          $setOnInsert: {
+            email: req.body.email || '',
+            createdAt: new Date()
+          }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     } catch (e) {
+      console.log('MongoDB Order/User save error, falling back:', e.message);
       memoryOrders.unshift(orderData);
     }
 
@@ -1509,7 +1521,7 @@ router.delete('/admin/products/:productId', async (req, res) => {
 // 9. ADMIN USER MANAGEMENT & ANALYTICS API
 // ==========================================
 
-// 9a. GET /api/admin/users (Fetch all registered users with metrics & order statistics)
+// 9a. GET /api/admin/users (Fetch all registered users + customer entries from orders)
 router.get('/admin/users', async (req, res) => {
   try {
     if (!verifyAdminAuth(req)) {
@@ -1530,11 +1542,32 @@ router.get('/admin/users', async (req, res) => {
       allOrders = memoryOrders;
     }
 
+    const userPhoneSet = new Set(usersList.map(u => (u.phone || '').trim()).filter(Boolean));
+    const userEmailSet = new Set(usersList.map(u => (u.email || '').trim().toLowerCase()).filter(Boolean));
+
+    // Also include any unique customers who placed orders but weren't in User collection
+    allOrders.forEach(o => {
+      const oPhone = (o.phone || '').trim();
+      const oEmail = (o.email || '').trim().toLowerCase();
+      if ((oPhone && !userPhoneSet.has(oPhone)) || (oEmail && !userEmailSet.has(oEmail))) {
+        if (oPhone) userPhoneSet.add(oPhone);
+        if (oEmail) userEmailSet.add(oEmail);
+
+        usersList.push({
+          name: o.name || 'Prime Shopper',
+          phone: oPhone,
+          email: oEmail || '',
+          fullAddress: `${o.address?.street || ''}, ${o.address?.city || ''} - ${o.address?.pincode || ''}`,
+          createdAt: o.createdAt || new Date(),
+          authSource: '🛒 Checkout Customer'
+        });
+      }
+    });
+
     const enhancedUsers = usersList.map(u => {
       const uPhone = (u.phone || '').trim();
       const uEmail = (u.email || '').trim().toLowerCase();
 
-      // Calculate user metrics
       const userOrders = allOrders.filter(o => {
         const oPhone = (o.phone || '').trim();
         const oEmail = (o.email || '').trim().toLowerCase();
@@ -1543,13 +1576,12 @@ router.get('/admin/users', async (req, res) => {
 
       const totalSpent = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
-      // Determine Auth Source Badge
-      let authSource = '📧 Email & Password';
+      let authSource = u.authSource || '📧 Email & Password';
       if (u.googleId) authSource = '🌐 Google Auth';
       else if (!u.email && u.phone) authSource = '📱 Mobile OTP';
 
       return {
-        id: u._id || u.email || u.phone,
+        id: u._id || u.email || u.phone || ('usr-' + Math.random()),
         name: u.name || 'Shadow Customer',
         email: u.email || 'N/A (Mobile Login)',
         phone: u.phone || 'N/A',
@@ -1568,6 +1600,61 @@ router.get('/admin/users', async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch users: ' + error.message });
+  }
+});
+
+// ==========================================
+// 10. ABANDONED CARTS & ACTIVE SHOPPERS API
+// ==========================================
+const abandonedCartsStore = new Map();
+
+// 10a. POST /api/cart/sync (Sync customer active cart for abandoned cart tracking)
+router.post('/cart/sync', (req, res) => {
+  try {
+    const { items, phone, email, name, sessionId } = req.body;
+    if (!items || items.length === 0) {
+      if (sessionId) abandonedCartsStore.delete(sessionId);
+      if (phone) abandonedCartsStore.delete(phone);
+      return res.json({ success: true, message: 'Cart cleared' });
+    }
+
+    const cartId = phone || email || sessionId || ('session-' + req.ip);
+    const cartData = {
+      cartId,
+      phone: phone || 'Guest Shopper',
+      email: email || '',
+      name: name || 'Guest Customer',
+      items,
+      totalItems: items.reduce((sum, i) => sum + (i.quantity || 1), 0),
+      cartTotal: items.reduce((sum, i) => sum + (i.product?.price || i.price || 0) * (i.quantity || 1), 0),
+      updatedAt: new Date()
+    };
+
+    abandonedCartsStore.set(cartId, cartData);
+    return res.json({ success: true, cartId });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// 10b. GET /api/admin/abandoned-carts (Fetch active/abandoned carts for admin)
+router.get('/admin/abandoned-carts', (req, res) => {
+  try {
+    if (!verifyAdminAuth(req)) {
+      return res.status(403).json({ success: false, message: 'Access Denied: Admin Authentication Required.' });
+    }
+
+    const carts = Array.from(abandonedCartsStore.values()).sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+
+    return res.json({
+      success: true,
+      count: carts.length,
+      carts
+    });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch abandoned carts: ' + e.message });
   }
 });
 

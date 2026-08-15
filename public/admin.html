@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shadow Arrow — Master Admin Control Center</title>
+  <title>Shadow Arrow — Master Admin Control Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
@@ -25,18 +25,18 @@
 
       <div>
         <h2 class="text-2xl font-black tracking-tight text-white">SHADOW ARROW MASTER ADMIN</h2>
-        <p class="text-xs text-slate-400 mt-1">Standalone Express Backend Dashboard — Live MongoDB Atlas</p>
+        <p class="text-xs text-slate-400 mt-1">Standalone Express Backend Control Hub — Live MongoDB Atlas</p>
       </div>
 
       <div id="auth-error" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-2xl font-bold"></div>
 
       <form id="admin-login-form" class="space-y-4">
         <div>
-          <label class="block text-slate-400 text-xs text-left mb-1 font-bold">Enter Admin Secret Passcode</label>
+          <label class="block text-slate-400 text-xs text-left mb-1 font-bold">Admin Secret Passcode</label>
           <input
             type="password"
             id="admin-passcode"
-            placeholder="Enter Passcode..."
+            placeholder="Enter Secret Passcode..."
             required
             class="w-full bg-slate-950 border border-slate-700 text-sm px-4 py-3.5 rounded-2xl text-white outline-none focus:border-amber-500 font-mono text-center tracking-widest"
           />
@@ -45,11 +45,11 @@
           type="submit"
           class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3.5 rounded-2xl text-sm shadow-xl transition transform active:scale-95"
         >
-          Unlock Admin Control Center
+          Unlock Master Admin Control Hub
         </button>
       </form>
 
-      <p class="text-[11px] text-slate-500">Restricted Authorized Administrator Verification Required</p>
+      <p class="text-[11px] text-slate-500">Restricted Authorized Store Management Access Only</p>
     </div>
   </div>
 
@@ -64,31 +64,33 @@
             SA
           </div>
           <div>
-            <h1 class="font-black text-lg text-white tracking-tight">SHADOW ARROW MASTER CONTROL CENTER</h1>
+            <h1 class="font-black text-lg text-white tracking-tight">SHADOW ARROW MASTER CONTROL HUB</h1>
             <p class="text-[10px] text-slate-400">Database: <span class="text-amber-400 font-mono font-bold">shadow_arrow</span> (MongoDB Atlas Live)</p>
           </div>
         </div>
 
         <!-- MAIN SECTION TABS -->
         <div class="flex flex-wrap items-center bg-slate-950 p-1.5 rounded-2xl border border-slate-800 text-xs font-bold gap-1 shadow-inner">
-          <button id="tab-btn-all" onclick="switchTab('all')" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black">
-            📊 View All (Master View)
+          <button id="tab-btn-all" onclick="switchTab('all')" class="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black">
+            📊 Master View (View All)
           </button>
-          <button id="tab-btn-products" onclick="switchTab('products')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
-            🛍️ Products & Stock (<span id="badge-products-count">0</span>)
+          <button id="tab-btn-products" onclick="switchTab('products')" class="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition">
+            🛍️ Products (<span id="badge-products-count">0</span>)
           </button>
-          <button id="tab-btn-orders" onclick="switchTab('orders')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
+          <button id="tab-btn-orders" onclick="switchTab('orders')" class="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition">
             📦 Orders (<span id="badge-orders-count">0</span>)
           </button>
-          <button id="tab-btn-users" onclick="switchTab('users')" class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition">
+          <button id="tab-btn-carts" onclick="switchTab('carts')" class="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition">
+            🛒 Abandoned Carts (<span id="badge-carts-count">0</span>)
+          </button>
+          <button id="tab-btn-users" onclick="switchTab('users')" class="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition">
             👥 Customers (<span id="badge-users-count">0</span>)
           </button>
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="openAddProductModal()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-lg transition flex items-center gap-1.5 transform hover:scale-105">
-            <span class="text-sm">+</span>
-            <span>Add Product</span>
+          <button onclick="openAddProductModal()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-lg transition flex items-center gap-1 transform hover:scale-105">
+            <span>+ Add Product</span>
           </button>
           <button id="btn-refresh" onclick="refreshData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition">
             🔄 Refresh
@@ -110,7 +112,7 @@
       </div>
 
       <!-- MASTER METRICS SUMMARY CARDS -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
           <span class="text-slate-400 text-[11px] block">Total Revenue</span>
           <span id="stat-revenue" class="text-2xl font-black text-amber-400 font-mono mt-1 block">₹0</span>
@@ -124,7 +126,11 @@
           <span id="stat-users-count" class="text-2xl font-black text-emerald-400 font-mono mt-1 block">0</span>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-slate-400 text-[11px] block">Low Stock Items</span>
+          <span class="text-slate-400 text-[11px] block">Active Carts</span>
+          <span id="stat-carts-count" class="text-2xl font-black text-cyan-400 font-mono mt-1 block">0</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-slate-400 text-[11px] block">Low Stock Alert</span>
           <span id="stat-low-stock" class="text-2xl font-black text-rose-400 font-mono mt-1 block">0</span>
         </div>
       </div>
@@ -158,10 +164,10 @@
           <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
             <div>
               <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
-                <span>📦 Customer Orders & Tracking Control</span>
+                <span>📦 Customer Orders & Razorpay Transaction Details</span>
                 <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">Real-time Feed</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Update status directly in MongoDB, Edit Courier Details (BlueDart, Delhivery), or Auto-Book Shiprocket</p>
+              <p class="text-xs text-slate-400 mt-0.5">View Razorpay Txn IDs, update status directly in MongoDB, Edit Courier Details, or Track via Shiprocket</p>
             </div>
             <div class="flex items-center gap-2">
               <input
@@ -180,16 +186,35 @@
         </div>
       </section>
 
-      <!-- SECTION 3: USER MANAGEMENT & CUSTOMER INSIGHTS -->
+      <!-- SECTION 3: ABANDONED CARTS & ACTIVE SHOPPERS -->
+      <section id="view-carts" class="space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+          <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                <span>🛒 Abandoned Carts & Active Shoppers</span>
+                <span class="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-0.5 rounded-full font-bold">Live Cart Sync</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Track products sitting in customer shopping carts, total cart value, and customer phone/email</p>
+            </div>
+          </div>
+
+          <div id="carts-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="text-center py-12 text-slate-500 text-xs font-bold col-span-full">Loading active/abandoned carts...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: USER MANAGEMENT & CUSTOMER INSIGHTS -->
       <section id="view-users" class="space-y-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
           <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
             <div>
               <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
-                <span>👥 Registered Customer Accounts & Analytics</span>
-                <span class="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-0.5 rounded-full font-bold">Customer LTV</span>
+                <span>👥 Registered Customer Directory & Analytics</span>
+                <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 px-2.5 py-0.5 rounded-full font-bold">100% MongoDB Synced</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">View signup dates, auth provider (Mobile OTP vs Email vs Google), saved addresses, total orders, and total spent</p>
+              <p class="text-xs text-slate-400 mt-0.5">View customer signup dates, auth provider (Mobile OTP vs Email vs Google vs Checkout), saved addresses, total orders, and LTV</p>
             </div>
             <div class="flex items-center gap-2">
               <input
@@ -362,6 +387,7 @@
     let allOrders = [];
     let allProducts = [];
     let allUsers = [];
+    let allCarts = [];
 
     const authPortal = document.getElementById('auth-portal');
     const dashboardPortal = document.getElementById('dashboard-portal');
@@ -373,6 +399,7 @@
     const ordersList = document.getElementById('orders-list');
     const productsList = document.getElementById('products-list');
     const usersList = document.getElementById('users-list');
+    const cartsList = document.getElementById('carts-list');
 
     function checkAuth() {
       if (sessionStorage.getItem('shadow_admin_token') === ADMIN_TOKEN) {
@@ -432,49 +459,61 @@
       const btnAll = document.getElementById('tab-btn-all');
       const btnOrders = document.getElementById('tab-btn-orders');
       const btnProducts = document.getElementById('tab-btn-products');
+      const btnCarts = document.getElementById('tab-btn-carts');
       const btnUsers = document.getElementById('tab-btn-users');
 
       const viewOrders = document.getElementById('view-orders');
       const viewProducts = document.getElementById('view-products');
+      const viewCarts = document.getElementById('view-carts');
       const viewUsers = document.getElementById('view-users');
 
       // Reset Styles
-      [btnAll, btnOrders, btnProducts, btnUsers].forEach(b => {
-        b.className = 'px-3.5 py-2 rounded-xl text-slate-300 hover:text-white transition';
+      [btnAll, btnOrders, btnProducts, btnCarts, btnUsers].forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition';
       });
 
       if (tab === 'all') {
-        btnAll.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        btnAll.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
         viewProducts.classList.remove('hidden');
         viewOrders.classList.remove('hidden');
+        viewCarts.classList.remove('hidden');
         viewUsers.classList.remove('hidden');
       } else if (tab === 'orders') {
-        btnOrders.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        btnOrders.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
         viewOrders.classList.remove('hidden');
         viewProducts.classList.add('hidden');
+        viewCarts.classList.add('hidden');
         viewUsers.classList.add('hidden');
       } else if (tab === 'products') {
-        btnProducts.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        btnProducts.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
         viewProducts.classList.remove('hidden');
+        viewOrders.classList.add('hidden');
+        viewCarts.classList.add('hidden');
+        viewUsers.classList.add('hidden');
+      } else if (tab === 'carts') {
+        btnCarts.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        viewCarts.classList.remove('hidden');
+        viewProducts.classList.add('hidden');
         viewOrders.classList.add('hidden');
         viewUsers.classList.add('hidden');
       } else if (tab === 'users') {
-        btnUsers.className = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
+        btnUsers.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow transition font-black';
         viewUsers.classList.remove('hidden');
         viewOrders.classList.add('hidden');
         viewProducts.classList.add('hidden');
+        viewCarts.classList.add('hidden');
       }
     }
 
     async function refreshData() {
       loadOrders();
       loadProducts();
+      loadCarts();
       loadUsers();
     }
 
-    // ================= PRODUCTS LOGIC WITH DIRECT INLINE EDITING =================
+    // ================= PRODUCTS LOGIC =================
     async function loadProducts() {
-      productsList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold col-span-full">Refreshing MongoDB products...</div>';
       try {
         const res = await fetch('/api/admin/products', {
           headers: { 'x-admin-token': ADMIN_TOKEN }
@@ -484,10 +523,10 @@
           allProducts = data.products;
           renderProducts(allProducts);
         } else {
-          productsList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Failed to fetch products.</div>';
+          renderProducts([]);
         }
       } catch (err) {
-        productsList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Server Connection Error.</div>';
+        renderProducts([]);
       }
     }
 
@@ -499,7 +538,7 @@
       document.getElementById('stat-low-stock').innerText = lowStockCount;
 
       if (products.length === 0) {
-        productsList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold col-span-full">No products in MongoDB catalog.</div>';
+        productsList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold col-span-full">No products found in MongoDB. Click "+ Add Product" to create your first product.</div>';
         return;
       }
 
@@ -726,7 +765,6 @@
 
     // ================= ORDERS LOGIC =================
     async function loadOrders() {
-      ordersList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold">Refreshing MongoDB orders...</div>';
       try {
         const res = await fetch('/api/admin/orders', {
           headers: { 'x-admin-token': ADMIN_TOKEN }
@@ -736,10 +774,10 @@
           allOrders = data.orders;
           renderOrders(allOrders);
         } else {
-          ordersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold">Failed to fetch orders.</div>';
+          renderOrders([]);
         }
       } catch (err) {
-        ordersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold">Server Connection Error.</div>';
+        renderOrders([]);
       }
     }
 
@@ -752,7 +790,8 @@
       const filtered = allOrders.filter(o => 
         (o.orderId || '').toLowerCase().includes(query) ||
         (o.name || '').toLowerCase().includes(query) ||
-        (o.phone || '').includes(query)
+        (o.phone || '').includes(query) ||
+        (o.razorpayPaymentId || '').toLowerCase().includes(query)
       );
       renderOrders(filtered);
     }
@@ -768,65 +807,90 @@
         return;
       }
 
-      ordersList.innerHTML = orders.map(o => `
-        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4">
-          <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-slate-800">
-            <div>
-              <span class="font-mono font-black text-amber-400 text-sm">${o.orderId}</span>
-              <span class="bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">${o.paymentMethod}</span>
-              <span class="text-slate-500 text-[10px] font-mono ml-2">${new Date(o.createdAt || Date.now()).toLocaleString('en-IN')}</span>
-            </div>
-            <div class="text-right">
-              <span class="font-black text-sm text-white font-mono">₹${(o.total || 0).toLocaleString('en-IN')}</span>
-            </div>
-          </div>
+      ordersList.innerHTML = orders.map(o => {
+        const isPrepaid = (o.paymentMethod || '').toLowerCase().includes('online') || (o.paymentMethod || '').toLowerCase().includes('razorpay');
+        const payBadgeClass = isPrepaid ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400';
+        const txnRef = o.razorpayPaymentId || (isPrepaid ? 'PAID_RAZORPAY_CONFIRMED' : 'COD_VERIFIED');
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-300">
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-              <div class="font-bold text-white">${o.name}</div>
-              <div class="text-[11px] text-slate-400 font-mono">Phone: +91 ${o.phone}</div>
-              <div class="text-[11px] text-slate-400">${o.address?.street || ''}, ${o.address?.city || ''} - ${o.address?.pincode || ''}</div>
-            </div>
-
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-              <div class="font-bold text-amber-400 text-[11px]">Items Ordered</div>
-              <div class="text-[11px] space-y-0.5 mt-1">
-                ${(o.items || []).map(i => `<div>• ${i.name || 'Item'} x ${i.quantity || 1} (₹${i.price || 0})</div>`).join('')}
+        return `
+          <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 shadow-lg">
+            <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-slate-800">
+              <div>
+                <span class="font-mono font-black text-amber-400 text-sm">${o.orderId}</span>
+                <span class="border text-[10px] font-bold px-2 py-0.5 rounded-full ml-2 ${payBadgeClass}">${o.paymentMethod || 'Online Payment'}</span>
+                <span class="text-slate-500 text-[10px] font-mono ml-2">${new Date(o.createdAt || Date.now()).toLocaleString('en-IN')}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-black text-sm text-white font-mono">₹${(o.total || 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
 
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-400 text-[11px]">Logistics Details</span>
-                <button onclick="openLogisticsModal('${o.orderId}', '${o.courierName || ''}', '${o.awbCode || ''}', '${o.trackingUrl || ''}')" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold">✏️ Edit Courier</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-300">
+              <!-- CUSTOMER INFO -->
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-white">${o.name}</div>
+                <div class="text-[11px] text-slate-300 font-mono font-bold">📱 +91 ${o.phone}</div>
+                <div class="text-[11px] text-slate-400">📍 ${o.address?.street || ''}, ${o.address?.city || ''} - ${o.address?.pincode || ''}</div>
               </div>
-              <div class="text-[11px]">Courier: <strong>${o.courierName || 'Prime Express'}</strong></div>
-              <div class="text-[11px]">AWB: <strong class="text-amber-400 font-mono">${o.awbCode || 'Not Assigned'}</strong></div>
+
+              <!-- TRANSACTION & PAYMENT DETAILS -->
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-emerald-400 text-[11px]">💳 Payment & Transaction Info</div>
+                <div class="text-[11px] text-slate-300">Txn ID: <strong class="font-mono text-amber-400">${txnRef}</strong></div>
+                <div class="text-[11px] text-slate-400">Subtotal: ₹${o.subtotal || o.total} | Fee: ₹${o.deliveryFee || 0}</div>
+              </div>
+
+              <!-- LOGISTICS DETAILS -->
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-slate-400 text-[11px]">Logistics Details</span>
+                  <button onclick="openLogisticsModal('${o.orderId}', '${o.courierName || ''}', '${o.awbCode || ''}', '${o.trackingUrl || ''}')" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold">✏️ Edit Courier</button>
+                </div>
+                <div class="text-[11px]">Courier: <strong>${o.courierName || 'Prime Express'}</strong></div>
+                <div class="text-[11px]">AWB: <strong class="text-amber-400 font-mono">${o.awbCode || 'Not Assigned'}</strong></div>
+              </div>
+            </div>
+
+            <!-- ORDER ITEMS BREAKDOWN -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-xs">
+              <div class="font-bold text-slate-400 text-[11px] mb-1">Ordered Items (${(o.items || []).length})</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${(o.items || []).map(i => `
+                  <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                    <img src="${i.image || '/assets/keyboard.png'}" class="w-8 h-8 rounded object-cover" onerror="this.src='/assets/keyboard.png'" />
+                    <div class="flex-1 truncate">
+                      <div class="font-bold text-white truncate">${i.name || 'Item'}</div>
+                      <div class="text-slate-400 font-mono">Qty: ${i.quantity || 1} × ₹${i.price || 0}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- STATUS UPDATER & SHIPROCKET AUTO BOOK -->
+            <div class="pt-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-3 text-xs">
+              <div class="flex items-center gap-2">
+                <label class="text-slate-400 font-bold">Update Status:</label>
+                <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="bg-slate-900 border border-amber-500/40 text-amber-400 font-bold px-3 py-1.5 rounded-xl outline-none text-xs">
+                  <option value="${o.status}" selected>📌 Current: ${o.status}</option>
+                  <option value="Order Confirmed & Processing">Order Confirmed & Processing</option>
+                  <option value="Packed & Ready for Dispatch">Packed & Ready for Dispatch</option>
+                  <option value="Shipped via Prime Express Air">Shipped via Prime Express Air</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered Successfully">Delivered Successfully</option>
+                  <option value="Cancelled / Refunded">Cancelled / Refunded</option>
+                </select>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="bookShiprocket('${o.orderId}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow">
+                  🚀 Shiprocket Auto-Book
+                </button>
+              </div>
             </div>
           </div>
-
-          <div class="pt-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-3 text-xs">
-            <div class="flex items-center gap-2">
-              <label class="text-slate-400 font-bold">Update Status:</label>
-              <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="bg-slate-900 border border-amber-500/40 text-amber-400 font-bold px-3 py-1.5 rounded-xl outline-none text-xs">
-                <option value="${o.status}" selected>📌 Current: ${o.status}</option>
-                <option value="Order Confirmed & Processing">Order Confirmed & Processing</option>
-                <option value="Packed & Ready for Dispatch">Packed & Ready for Dispatch</option>
-                <option value="Shipped via Prime Express Air">Shipped via Prime Express Air</option>
-                <option value="Out for Delivery">Out for Delivery</option>
-                <option value="Delivered Successfully">Delivered Successfully</option>
-                <option value="Cancelled / Refunded">Cancelled / Refunded</option>
-              </select>
-            </div>
-
-            <div class="flex gap-2">
-              <button onclick="bookShiprocket('${o.orderId}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow">
-                🚀 Shiprocket Auto-Book
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function updateOrderStatus(orderId, newStatus) {
@@ -902,9 +966,64 @@
       }
     }
 
+    // ================= ABANDONED CARTS LOGIC =================
+    async function loadCarts() {
+      try {
+        const res = await fetch('/api/admin/abandoned-carts', {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.carts)) {
+          allCarts = data.carts;
+          renderCarts(allCarts);
+        } else {
+          renderCarts([]);
+        }
+      } catch (err) {
+        renderCarts([]);
+      }
+    }
+
+    function renderCarts(carts) {
+      document.getElementById('badge-carts-count').innerText = carts.length;
+      document.getElementById('stat-carts-count').innerText = carts.length;
+
+      if (carts.length === 0) {
+        cartsList.innerHTML = '<div class="text-center py-12 text-slate-500 font-bold col-span-full">No active or abandoned customer carts found.</div>';
+        return;
+      }
+
+      cartsList.innerHTML = carts.map(c => `
+        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-lg text-xs">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-800">
+            <div>
+              <h4 class="font-extrabold text-white text-sm">${c.name || 'Guest Shopper'}</h4>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">📱 ${c.phone || 'Unknown Phone'}</p>
+            </div>
+            <span class="bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono font-bold text-[10px] px-2 py-0.5 rounded-full">
+              ₹${(c.cartTotal || 0).toLocaleString('en-IN')} (${c.totalItems} Items)
+            </span>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold block">Cart Items Sitting Pending:</span>
+            ${(c.items || []).map(i => `
+              <div class="text-[11px] text-slate-300 flex justify-between">
+                <span class="truncate">• ${i.product?.name || i.name || 'Item'} x ${i.quantity || 1}</span>
+                <span class="font-mono text-amber-400 font-bold">₹${(i.product?.price || i.price || 0) * (i.quantity || 1)}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="pt-2 border-t border-slate-800 text-[10px] text-slate-500 text-right">
+            Last Cart Sync: ${new Date(c.updatedAt).toLocaleTimeString('en-IN')}
+          </div>
+        </div>
+      `).join('');
+    }
+
     // ================= USERS & ANALYTICS LOGIC =================
     async function loadUsers() {
-      usersList.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold col-span-full">Refreshing registered customer accounts...</div>';
       try {
         const res = await fetch('/api/admin/users', {
           headers: { 'x-admin-token': ADMIN_TOKEN }
@@ -914,10 +1033,10 @@
           allUsers = data.users;
           renderUsers(allUsers);
         } else {
-          usersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Failed to fetch customer users.</div>';
+          renderUsers([]);
         }
       } catch (err) {
-        usersList.innerHTML = '<div class="text-center py-10 text-rose-400 font-bold col-span-full">Server Connection Error.</div>';
+        renderUsers([]);
       }
     }
 
@@ -945,7 +1064,7 @@
       }
 
       usersList.innerHTML = users.map(u => `
-        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between text-xs">
+        <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between text-xs shadow-lg">
           <div class="space-y-2">
             <div class="flex justify-between items-start gap-2 border-b border-slate-800 pb-2">
               <div>

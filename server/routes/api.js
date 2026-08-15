@@ -881,7 +881,7 @@ router.post('/shiprocket/create-order', async (req, res) => {
               };
             }) : [{ name: 'Prime Item', sku: 'SKU-SA-100', units: 1, selling_price: orderToShip.total || 500, hsn: '8471', tax_percentage: 18 }],
             vendor_details: {
-              gstin: process.env.SELLER_GSTIN || '19AABCS1429B1Z0'
+              gstin: process.env.SELLER_GSTIN || '19BVKPL6301H1ZH'
             },
             payment_method: (orderToShip.paymentMethod || '').includes('COD') ? 'COD' : 'Prepaid',
             sub_total: orderToShip.total || 500,

@@ -493,7 +493,7 @@ export const App: React.FC = () => {
                           className="bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/30 py-1.5 px-3 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 transition"
                         >
                           <FileText className="w-3.5 h-3.5 text-amber-400" />
-                          <span>📄 GST Invoice</span>
+                          <span>📄 Invoice & Warranty</span>
                         </button>
                       </div>
                     </div>

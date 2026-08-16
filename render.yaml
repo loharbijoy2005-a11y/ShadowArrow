@@ -1,0 +1,36 @@
+services:
+  # 1. Golang API Backend Service
+  - type: web
+    name: shadow-arrow-backend
+    env: go
+    buildCommand: cd backend && go build -o server main.go
+    startCommand: cd backend && ./server
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: DATABASE_NAME
+        value: shadow_arrow_db
+      - key: JWT_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: SHIPROCKET_EMAIL
+        sync: false
+      - key: SHIPROCKET_PASSWORD
+        sync: false
+      - key: SHIPROCKET_PICKUP_LOCATION
+        value: warehouse
+
+  # 2. Python Gemini AI Stylist Microservice
+  - type: web
+    name: shadow-arrow-ai-service
+    env: python
+    buildCommand: cd ai_service && pip install -r requirements.txt
+    startCommand: cd ai_service && python main.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash

@@ -1,7 +1,37 @@
-node_modules
-dist
-.DS_Store
-*.log
-.env
+# Node / Next.js dependencies and build outputs
+node_modules/
+.next/
+build/
+dist/
 
-.vercel
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+
+# Go compiled binaries
+*.exe
+server.exe
+*.out
+*.test
+
+# Environment files & secrets
+.env
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production
+.env.production.local
+*.pem
+*.key
+
+# OS / Editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -92,13 +92,12 @@ func GetAbandonedCarts(c *gin.Context) {
 	var combinedLeads []models.AbandonedCart
 
 	// 1. Fetch unpaid / cancelled / pending online payment orders
-	orderOpts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(50)
+	orderOpts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(100)
 	orderFilter := bson.M{
-		"payment_method": "ONLINE",
 		"$or": []bson.M{
-			{"payment_status": bson.M{"$ne": "PAID"}},
-			{"order_status": "PENDING_PAYMENT"},
-			{"order_status": "CANCELLED"},
+			bson.M{"payment_method": "ONLINE", "payment_status": bson.M{"$ne": "PAID"}},
+			bson.M{"order_status": bson.M{"$in": []string{"PENDING_PAYMENT", "CANCELLED", "FAILED"}}},
+			bson.M{"payment_status": bson.M{"$in": []string{"CANCELLED", "FAILED", "PENDING_PAYMENT"}}},
 		},
 	}
 
@@ -107,11 +106,16 @@ func GetAbandonedCarts(c *gin.Context) {
 		var pendingOrders []models.Order
 		if err := orderCursor.All(ctx, &pendingOrders); err == nil {
 			for _, ord := range pendingOrders {
-				key := ord.CustomerPhone
-				if key == "" {
-					key = ord.OrderID
+				// Don't mark active COD orders as abandoned
+				if ord.PaymentMethod == "COD" && ord.OrderStatus != "CANCELLED" && ord.OrderStatus != "FAILED" && ord.OrderStatus != "PENDING_PAYMENT" {
+					continue
 				}
-				if !seenKeys[key] {
+
+				key := ord.OrderID
+				if key == "" {
+					key = ord.CustomerPhone
+				}
+				if key != "" && !seenKeys[key] {
 					seenKeys[key] = true
 					var cartItems []models.CartSyncItem
 					for _, it := range ord.Items {
@@ -127,6 +131,8 @@ func GetAbandonedCarts(c *gin.Context) {
 					status := "PENDING_ONLINE_PAYMENT"
 					if ord.OrderStatus == "CANCELLED" || ord.PaymentStatus == "CANCELLED" {
 						status = "PAYMENT_CANCELLED"
+					} else if ord.OrderStatus == "FAILED" || ord.PaymentStatus == "FAILED" {
+						status = "PAYMENT_FAILED"
 					}
 					combinedLeads = append(combinedLeads, models.AbandonedCart{
 						SessionID:     ord.OrderID,
@@ -145,7 +151,7 @@ func GetAbandonedCarts(c *gin.Context) {
 	}
 
 	// 2. Fetch active abandoned cart sessions from checkout
-	cartOpts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}).SetLimit(50)
+	cartOpts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}).SetLimit(100)
 	cartFilter := bson.M{
 		"items":  bson.M{"$not": bson.M{"$size": 0}},
 		"status": bson.M{"$ne": "COMPLETED"},
@@ -155,11 +161,11 @@ func GetAbandonedCarts(c *gin.Context) {
 		var activeCarts []models.AbandonedCart
 		if err := cartCursor.All(ctx, &activeCarts); err == nil {
 			for _, ac := range activeCarts {
-				key := ac.CustomerPhone
+				key := ac.SessionID
 				if key == "" {
-					key = ac.SessionID
+					key = ac.CustomerPhone
 				}
-				if !seenKeys[key] {
+				if key != "" && !seenKeys[key] {
 					seenKeys[key] = true
 					combinedLeads = append(combinedLeads, ac)
 				}

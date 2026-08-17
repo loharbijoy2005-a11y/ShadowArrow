@@ -13,7 +13,7 @@ export default function AbandonedCartsPage() {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('admin_token');
+    const saved = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
     if (saved) {
       setToken(saved);
       fetchAbandonedCarts(saved);
@@ -37,6 +37,7 @@ export default function AbandonedCartsPage() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('ops_admin_token');
     localStorage.removeItem('admin_token');
     window.location.href = '/';
   };

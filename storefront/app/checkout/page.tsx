@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
 import axios from 'axios';
-import { Lock, CreditCard, Banknote, ShieldCheck, ArrowRight, Loader2, MapPin } from 'lucide-react';
+import { Lock, CreditCard, Banknote, ShieldCheck, ArrowRight, Loader2, MapPin, AlertTriangle, RefreshCw, XCircle, ShieldAlert } from 'lucide-react';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import TruckOrderButton from '@/components/TruckOrderButton';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -40,7 +40,20 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
-  const [autoTriggered, setAutoTriggered] = useState(false);
+
+  // Animated Payment Failure / Cancellation Modal State
+  const [paymentErrorModal, setPaymentErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    reason: string;
+    detail: string;
+    orderId?: string;
+  } | null>(null);
+
+  // Pre-warm Razorpay checkout script on page mount for instant modal pop-up
+  useEffect(() => {
+    loadRazorpayScript();
+  }, []);
 
   // Prefill details from logged in user profile & localStorage
   useEffect(() => {
@@ -120,8 +133,6 @@ export default function CheckoutPage() {
     }
   }, [shippingAddress, pincode]);
 
-  // Remove autoTriggered useEffect to prevent auto-submitting before user clicks Place Order
-
   if (cart.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
@@ -147,26 +158,51 @@ export default function CheckoutPage() {
 
   const validateCheckoutForm = (): boolean => {
     if (!customerName.trim()) {
-      alert('⚠️ Full Name is mandatory. Please enter your name to proceed with the order.');
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Missing Required Information',
+        reason: 'Full Name is mandatory.',
+        detail: 'Please enter your complete name to proceed with shipping.',
+      });
       return false;
     }
     if (!customerEmail.trim() || !customerEmail.includes('@')) {
-      alert('⚠️ Email Address is mandatory. Please enter a valid email address.');
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Invalid Email Address',
+        reason: 'Valid Email Address is mandatory.',
+        detail: 'We need your email address to send digital invoice & shipment tracking link.',
+      });
       return false;
     }
     const cleanPhone = customerPhone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 10) {
       setPhoneError('⚠️ Please enter a valid 10-digit mobile number.');
-      alert('⚠️ 10-Digit Mobile Number is mandatory to receive order & courier updates.');
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Invalid Phone Number',
+        reason: '10-Digit Mobile Number is mandatory.',
+        detail: 'Courier partner requires a valid phone number for OTP verification & delivery updates.',
+      });
       return false;
     }
     if (!shippingAddress.trim()) {
-      alert('⚠️ Complete Delivery Address is mandatory. Please enter your house/flat no and street address.');
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Missing Delivery Address',
+        reason: 'Shipping street address is mandatory.',
+        detail: 'Please enter your house/flat number and street address.',
+      });
       return false;
     }
     const cleanPin = pincode.trim();
     if (!cleanPin || cleanPin.length < 6) {
-      alert('⚠️ Valid 6-Digit Delivery Pincode is mandatory.');
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Invalid Delivery Pincode',
+        reason: 'Valid 6-digit Pincode is required.',
+        detail: 'Please enter a valid Indian postal pincode to calculate delivery speed.',
+      });
       return false;
     }
     return true;
@@ -178,7 +214,8 @@ export default function CheckoutPage() {
     triggerPlaceOrder();
   };
 
-  const triggerPlaceOrder = async () => {
+  const triggerPlaceOrder = async (overrideMethod?: 'ONLINE' | 'COD') => {
+    const activeMethod = overrideMethod || paymentMethod;
     if (!validateCheckoutForm()) return;
 
     setLoading(true);
@@ -200,7 +237,7 @@ export default function CheckoutPage() {
       shipping_address: fullAddress,
       items: orderItems,
       total_amount: subtotal,
-      payment_method: paymentMethod,
+      payment_method: activeMethod,
     };
 
     try {
@@ -228,13 +265,13 @@ export default function CheckoutPage() {
       const createdOrder = res.data;
       const orderId = createdOrder.order_id;
 
-      if (paymentMethod === 'COD') {
+      if (activeMethod === 'COD') {
         clearCart();
         router.push(`/order-confirmation/${orderId}`);
         return;
       }
 
-      // Online Payment Handler
+      // Online Payment Handler - Open Razorpay Modal
       const razorpayOrderId = createdOrder.razorpay_order_id || '';
       
       const scriptLoaded = await loadRazorpayScript();
@@ -257,7 +294,13 @@ export default function CheckoutPage() {
               router.push(`/order-confirmation/${orderId}`);
             } catch (err) {
               setLoading(false);
-              alert('⚠️ Payment verification failed. Please try again.');
+              setPaymentErrorModal({
+                isOpen: true,
+                title: 'Payment Verification Failed',
+                reason: 'Bank authorization mismatch or gateway timeout.',
+                detail: 'If money was deducted from your account, it will be automatically refunded within 3-5 business days.',
+                orderId: orderId,
+              });
             }
           },
           modal: {
@@ -274,7 +317,14 @@ export default function CheckoutPage() {
               } catch (err) {
                 console.warn('Failed to mark cancelled order status:', err);
               }
-              alert('⚠️ Payment Cancelled: You closed the payment window without completing payment. Your order has NOT been placed.');
+              
+              setPaymentErrorModal({
+                isOpen: true,
+                title: 'Payment Cancelled',
+                reason: 'Payment popup was closed before completing payment.',
+                detail: 'Your bank account was NOT charged. You can retry paying online or choose Cash on Delivery (COD).',
+                orderId: orderId,
+              });
             },
           },
           prefill: {
@@ -283,7 +333,7 @@ export default function CheckoutPage() {
             contact: customerPhone,
           },
           theme: {
-            color: '#2563eb',
+            color: '#0f172a',
           },
         };
 
@@ -295,10 +345,28 @@ export default function CheckoutPage() {
         rzp.open();
       } else {
         setLoading(false);
-        alert('⚠️ Unable to connect to Razorpay payment gateway. Please check your internet connection or choose Cash on Delivery.');
+        setPaymentErrorModal({
+          isOpen: true,
+          title: 'Payment Gateway Error',
+          reason: 'Unable to connect to Razorpay payment servers.',
+          detail: 'Please check your internet connection or choose Cash on Delivery (COD).',
+        });
       }
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to initialize payment. Please try again.');
+      setLoading(false);
+      let errorReason = err.response?.data?.error || err.message || 'Payment initialization failed.';
+      
+      // Clean up technical server URLs from user-facing error text
+      if (errorReason.includes('onrender') || errorReason.includes('vercel') || errorReason.includes('Network Error')) {
+        errorReason = 'Backend server response timeout. Server waking up from standby.';
+      }
+
+      setPaymentErrorModal({
+        isOpen: true,
+        title: 'Order Initialization Failed',
+        reason: errorReason,
+        detail: 'You can retry placing the order online or switch to Cash on Delivery (COD) for instant order confirmation.',
+      });
     } finally {
       setLoading(false);
     }
@@ -557,6 +625,84 @@ export default function CheckoutPage() {
           </div>
         </form>
       </main>
+
+      {/* Animated Payment Failure / Cancellation Modal */}
+      {paymentErrorModal?.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white max-w-md w-full rounded-3xl p-6 sm:p-8 shadow-2xl border border-red-100 space-y-6 text-center transform transition-all animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            
+            {/* Decorative Neon Glow */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Animated Red Warning Badge */}
+            <div className="mx-auto w-20 h-20 rounded-full bg-red-50 flex items-center justify-center relative">
+              <div className="absolute inset-0 rounded-full bg-red-400/20 animate-ping" />
+              <AlertTriangle className="w-10 h-10 text-red-600 relative z-10 animate-bounce" />
+            </div>
+
+            {/* Modal Header */}
+            <div className="space-y-1.5">
+              <h3 className="text-xl font-black uppercase text-slate-900 tracking-tight font-sans">
+                {paymentErrorModal.title}
+              </h3>
+              <p className="text-xs text-slate-500 font-mono">
+                Order Ref: {paymentErrorModal.orderId || 'UNPAID_GHOST_CANCELLED'}
+              </p>
+            </div>
+
+            {/* Reason Box */}
+            <div className="bg-red-50/80 border border-red-200 p-4 rounded-2xl text-left space-y-1.5">
+              <div className="flex items-center space-x-2 text-red-800 font-bold text-xs uppercase font-mono">
+                <XCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>Failure Details</span>
+              </div>
+              <p className="text-xs text-slate-800 font-semibold leading-relaxed">
+                {paymentErrorModal.reason}
+              </p>
+              <p className="text-[11px] text-slate-500 pt-1 border-t border-red-100">
+                {paymentErrorModal.detail}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentErrorModal(null);
+                  triggerPlaceOrder('ONLINE');
+                }}
+                className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-600/25 flex items-center justify-center space-x-2 transition active:scale-[0.98]"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Retry Online Payment</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentErrorModal(null);
+                  setPaymentMethod('COD');
+                  triggerPlaceOrder('COD');
+                }}
+                className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center space-x-2 transition active:scale-[0.98]"
+              >
+                <Banknote className="w-4 h-4" />
+                <span>Pay via Cash on Delivery (COD)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentErrorModal(null)}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition"
+              >
+                Close & Edit Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MobileBottomNav onToggleAI={() => {}} />
     </div>

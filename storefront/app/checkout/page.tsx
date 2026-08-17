@@ -11,7 +11,7 @@ import TruckOrderButton from '@/components/TruckOrderButton';
 import MobileBottomNav from '@/components/MobileBottomNav';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY || 'rzp_live_TQY1cJr1ekxaco';
+const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY || 'your_razorpay_key_id_here';
 
 const loadRazorpayScript = (): Promise<boolean> => {
   return new Promise((resolve) => {

@@ -34,8 +34,8 @@ func LoadConfig() *Config {
 	razorpayKeySecret := getEnv("RAZORPAY_KEY_SECRET", "rzp_test_key_secret")
 	aiServiceURL := getEnv("AI_SERVICE_URL", "http://localhost:5001")
 	adminPass := getEnv("ADMIN_MASTER_PASS", "admin123")
-	srEmail := getEnv("SHIPROCKET_EMAIL", "loharbijoy357@gmail.com")
-	srPass := getEnv("SHIPROCKET_PASSWORD", "bgE@4NwneHFWkBpbs^EqncxHU294!0rM")
+	srEmail := getEnv("SHIPROCKET_EMAIL", "shiprocket_email@example.com")
+	srPass := getEnv("SHIPROCKET_PASSWORD", "shiprocket_password_placeholder")
 	srPickup := getEnv("SHIPROCKET_PICKUP_LOCATION", "warehouse")
 
 	log.Printf("[CONFIG] Loaded configuration. Database: %s, Port: %s", dbName, port)

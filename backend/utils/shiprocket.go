@@ -17,14 +17,14 @@ func getShiprocketEmail() string {
 	if val := os.Getenv("SHIPROCKET_EMAIL"); val != "" {
 		return val
 	}
-	return "loharbijoy357@gmail.com"
+	return "shiprocket_email@example.com"
 }
 
 func getShiprocketPassword() string {
 	if val := os.Getenv("SHIPROCKET_PASSWORD"); val != "" {
 		return val
 	}
-	return "bgE@4NwneHFWkBpbs^EqncxHU294!0rM"
+	return "shiprocket_password_placeholder"
 }
 
 func getShiprocketPickupLocation() string {

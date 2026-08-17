@@ -108,8 +108,13 @@ export default function AccountPage() {
       if (phone) queryUrl += `phone=${encodeURIComponent(phone)}&`;
       if (email) queryUrl += `email=${encodeURIComponent(email)}`;
 
-      const res = await axios.get(queryUrl);
-      setOrders(res.data || []);
+      const rawOrders = Array.isArray(res.data) ? res.data : [];
+      const sortedOrders = [...rawOrders].sort((a: any, b: any) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+      setOrders(sortedOrders);
     } catch (err) {
       console.warn('Failed to fetch user orders', err);
       setOrders([]);

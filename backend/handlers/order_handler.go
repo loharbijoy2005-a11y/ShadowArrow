@@ -394,7 +394,7 @@ func GetUserOrders(c *gin.Context) {
 		filter["customer_email"] = email
 	}
 
-	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}})
+	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}})
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user orders"})
@@ -443,7 +443,7 @@ func GetAdminOrders(c *gin.Context) {
 		filter["order_status"] = status
 	}
 
-	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}})
+	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}})
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})

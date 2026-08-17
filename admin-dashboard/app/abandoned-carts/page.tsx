@@ -11,6 +11,7 @@ export default function AbandonedCartsPage() {
   const [carts, setCarts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
 
   useEffect(() => {
     const saved = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
@@ -44,6 +45,24 @@ export default function AbandonedCartsPage() {
 
   const totalAbandonedValue = carts.reduce((acc, c) => acc + (c.total_amount || 0), 0);
   const totalCartItems = carts.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0);
+
+  const cartCounts = {
+    ALL: carts.length,
+    PAYMENT_CANCELLED: carts.filter(c => c.status === 'PAYMENT_CANCELLED' || c.status === 'PAYMENT_FAILED').length,
+    PENDING_ONLINE_PAYMENT: carts.filter(c => c.status === 'PENDING_ONLINE_PAYMENT').length,
+    ABANDONED_CART: carts.filter(c => c.status !== 'PAYMENT_CANCELLED' && c.status !== 'PAYMENT_FAILED' && c.status !== 'PENDING_ONLINE_PAYMENT').length,
+  };
+
+  const filteredCarts = carts.filter(c => {
+    if (categoryFilter === 'PAYMENT_CANCELLED') {
+      return c.status === 'PAYMENT_CANCELLED' || c.status === 'PAYMENT_FAILED';
+    } else if (categoryFilter === 'PENDING_ONLINE_PAYMENT') {
+      return c.status === 'PENDING_ONLINE_PAYMENT';
+    } else if (categoryFilter === 'ABANDONED_CART') {
+      return c.status !== 'PAYMENT_CANCELLED' && c.status !== 'PAYMENT_FAILED' && c.status !== 'PENDING_ONLINE_PAYMENT';
+    }
+    return true;
+  });
 
   const getWhatsAppLink = (phone: string, name: string, items: any[]) => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -84,6 +103,31 @@ export default function AbandonedCartsPage() {
           </button>
         </div>
 
+        {/* Dedicated Abandoned Lead Category Tabs */}
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
+          {[
+            { id: 'ALL', label: 'All Lead Sessions', count: cartCounts.ALL, color: 'border-gray-600 text-white bg-ops-800' },
+            { id: 'PAYMENT_CANCELLED', label: '❌ Payment Popup Cancelled / Failed', count: cartCounts.PAYMENT_CANCELLED, color: 'border-red-500/40 text-red-300 bg-red-500/10' },
+            { id: 'PENDING_ONLINE_PAYMENT', label: '⏳ Pending Online Payment', count: cartCounts.PENDING_ONLINE_PAYMENT, color: 'border-amber-500/40 text-amber-300 bg-amber-500/10' },
+            { id: 'ABANDONED_CART', label: '🛒 Left In Cart (Before Checkout)', count: cartCounts.ABANDONED_CART, color: 'border-blue-500/40 text-blue-300 bg-blue-500/10' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setCategoryFilter(tab.id)}
+              className={`px-4 py-2.5 rounded-xl border transition flex items-center space-x-2 font-bold ${
+                categoryFilter === tab.id
+                  ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-2 ring-blue-500/50'
+                  : `${tab.color} hover:bg-ops-700`
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/40 font-mono">
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* Analytics Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-2">
@@ -118,7 +162,7 @@ export default function AbandonedCartsPage() {
         <div className="bg-ops-800 border border-ops-700 rounded-2xl overflow-hidden shadow-xl">
           <div className="p-6 border-b border-ops-700 flex justify-between items-center">
             <h2 className="font-mono font-bold text-sm uppercase text-white tracking-wider">
-              Customer Cart Session Registry ({carts.length})
+              Customer Cart Session Registry ({filteredCarts.length} / {carts.length})
             </h2>
             <span className="text-xs font-mono text-gray-400">Real-time LocalStorage + DB Sync</span>
           </div>
@@ -127,9 +171,9 @@ export default function AbandonedCartsPage() {
             <div className="p-12 text-center text-gray-400 font-mono text-xs">
               Loading active cart sessions...
             </div>
-          ) : carts.length === 0 ? (
+          ) : filteredCarts.length === 0 ? (
             <div className="p-12 text-center text-gray-400 font-mono text-xs">
-              No abandoned carts found in database.
+              No lead sessions matched the current category tab.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -144,7 +188,7 @@ export default function AbandonedCartsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ops-700/50">
-                  {carts.map((c) => (
+                  {filteredCarts.map((c) => (
                     <tr key={c.id || c.session_id} className="hover:bg-ops-700/30 transition">
                       
                       {/* Customer Info */}

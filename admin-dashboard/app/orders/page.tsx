@@ -113,9 +113,37 @@ export default function OrdersAdminPage() {
     }
   };
 
+  // Tab Section Badge Counters & Computation
+  const sectionCounts = {
+    ALL: orders.length,
+    COD: orders.filter(o => o.payment_method === 'COD').length,
+    ONLINE: orders.filter(o => o.payment_method === 'ONLINE' && (o.payment_status === 'PAID' || o.payment_status === 'SUCCESS')).length,
+    ONLINE_FAIL: orders.filter(o => (o.payment_method === 'ONLINE' && o.payment_status !== 'PAID' && o.payment_status !== 'SUCCESS') || o.order_status === 'PAYMENT_FAILED' || o.order_status === 'PAYMENT_CANCELLED').length,
+    CONFIRMED: orders.filter(o => o.order_status === 'CONFIRMED' || o.order_status === 'PLACED').length,
+    PROCESSING: orders.filter(o => o.order_status === 'PROCESSING' || o.order_status === 'PACKED').length,
+    SHIPPED: orders.filter(o => o.order_status === 'SHIPPED').length,
+    DELIVERED: orders.filter(o => o.order_status === 'DELIVERED').length,
+    CANCELLED: orders.filter(o => o.order_status === 'CANCELLED' || o.order_status === 'REFUNDED').length,
+  };
+
   // Client-side Filtered Orders Computation
   const filteredOrders = orders.filter((ord) => {
-    if (statusFilter !== 'ALL' && ord.order_status !== statusFilter) {
+    if (statusFilter === 'COD') {
+      if (ord.payment_method !== 'COD') return false;
+    } else if (statusFilter === 'ONLINE') {
+      if (ord.payment_method !== 'ONLINE' || (ord.payment_status !== 'PAID' && ord.payment_status !== 'SUCCESS')) return false;
+    } else if (statusFilter === 'ONLINE_FAIL') {
+      if (ord.payment_method === 'COD') return false;
+      const isFailed = ord.payment_status !== 'PAID' && ord.payment_status !== 'SUCCESS';
+      const isStatusFail = ord.order_status === 'PAYMENT_FAILED' || ord.order_status === 'PAYMENT_CANCELLED';
+      if (!isFailed && !isStatusFail) return false;
+    } else if (statusFilter === 'CONFIRMED') {
+      if (ord.order_status !== 'CONFIRMED' && ord.order_status !== 'PLACED') return false;
+    } else if (statusFilter === 'PROCESSING') {
+      if (ord.order_status !== 'PROCESSING' && ord.order_status !== 'PACKED') return false;
+    } else if (statusFilter === 'CANCELLED') {
+      if (ord.order_status !== 'CANCELLED' && ord.order_status !== 'REFUNDED') return false;
+    } else if (statusFilter !== 'ALL' && ord.order_status !== statusFilter) {
       return false;
     }
 
@@ -279,6 +307,37 @@ export default function OrdersAdminPage() {
             </button>
           </div>
         </header>
+
+        {/* Dedicated Section Filter Tabs Bar */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs pb-2 border-b border-ops-700/60">
+          {[
+            { id: 'ALL', label: 'All Orders', count: sectionCounts.ALL, color: 'border-gray-600 text-white bg-ops-800' },
+            { id: 'COD', label: '💵 COD (Cash on Delivery)', count: sectionCounts.COD, color: 'border-amber-500/40 text-amber-300 bg-amber-500/10' },
+            { id: 'ONLINE', label: '💳 Online Paid', count: sectionCounts.ONLINE, color: 'border-blue-500/40 text-blue-300 bg-blue-500/10' },
+            { id: 'ONLINE_FAIL', label: '⚠️ Payment Failed / Unpaid', count: sectionCounts.ONLINE_FAIL, color: 'border-red-500/40 text-red-300 bg-red-500/10' },
+            { id: 'CONFIRMED', label: '⏳ Confirmed / Placed', count: sectionCounts.CONFIRMED, color: 'border-indigo-500/40 text-indigo-300 bg-indigo-500/10' },
+            { id: 'PROCESSING', label: '📦 Packed & Processing', count: sectionCounts.PROCESSING, color: 'border-purple-500/40 text-purple-300 bg-purple-500/10' },
+            { id: 'SHIPPED', label: '🚚 Shipped / In Transit', count: sectionCounts.SHIPPED, color: 'border-cyan-500/40 text-cyan-300 bg-cyan-500/10' },
+            { id: 'DELIVERED', label: '✅ Delivered', count: sectionCounts.DELIVERED, color: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10' },
+            { id: 'CANCELLED', label: '❌ Cancelled / Restocked', count: sectionCounts.CANCELLED, color: 'border-rose-500/40 text-rose-300 bg-rose-500/10' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3 py-2 rounded-xl border transition flex items-center space-x-1.5 font-bold ${
+                statusFilter === tab.id
+                  ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-2 ring-blue-500/50'
+                  : `${tab.color} hover:bg-ops-700`
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 font-mono">
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {/* Date & Time Calendar Control Bar */}
         <div className="bg-ops-800 border border-ops-700 rounded-2xl p-5 shadow-xl space-y-4 font-mono text-xs">

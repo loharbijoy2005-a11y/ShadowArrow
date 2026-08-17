@@ -91,6 +91,9 @@ func main() {
 		// Coupon Code Validation Route
 		v1.POST("/coupons/validate", handlers.ValidateCoupon)
 
+		// Public Site Theme Settings Route
+		v1.GET("/settings/theme", handlers.GetThemeSettings)
+
 		// AI Chat Proxy Route (Rate Limited to Prevent Prompt Token Abuse)
 		v1.POST("/ai/chat", middleware.RateLimiterMiddleware("ai_chat", 20, time.Minute), handlers.AIChatProxy(cfg))
 
@@ -122,6 +125,8 @@ func main() {
 			admin.POST("/coupons", handlers.CreateCoupon)
 			admin.PUT("/coupons/:id/status", handlers.ToggleCouponStatus)
 			admin.DELETE("/coupons/:id", handlers.DeleteCoupon)
+
+			admin.PUT("/settings/theme", handlers.UpdateThemeSettings)
 
 			admin.POST("/cms/banners", handlers.SaveBanners)
 		}

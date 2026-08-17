@@ -4,6 +4,7 @@ import { CartProvider } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 import Footer from '@/components/Footer';
 import TrackOrderBubbleModal from '@/components/TrackOrderBubbleModal';
+import ThemeProvider from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'SHADOW ARROW | Prime Marketplace Streetwear & Techwear',
@@ -18,14 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="bg-slate-50 min-h-screen flex flex-col font-sans transition-colors">
-        <CartProvider>
-          <div className="flex-1 flex flex-col">
-            {children}
-          </div>
-          <CartDrawer />
-          <TrackOrderBubbleModal />
-          <Footer />
-        </CartProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <div className="flex-1 flex flex-col">
+              {children}
+            </div>
+            <CartDrawer />
+            <TrackOrderBubbleModal />
+            <Footer />
+          </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

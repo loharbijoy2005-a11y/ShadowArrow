@@ -256,13 +256,27 @@ func GetAdminCustomers(c *gin.Context) {
 			item.Name = "Customer"
 		}
 
-		// Determine customer trust score badge
-		if item.OrdersCancelled == 0 {
+		// Determine customer trust/loyalty score badge
+		// 1-9 cancellations -> HIGH (1 single cancellation will NEVER drop to Medium)
+		// 10-19 cancellations OR high ratio -> MEDIUM
+		// 20+ cancellations -> RISK
+		cancels := item.OrdersCancelled
+		total := item.TotalOrders
+
+		if cancels < 10 {
 			item.TrustScore = "HIGH"
-		} else if item.OrdersReceived >= item.OrdersCancelled {
-			item.TrustScore = "MEDIUM"
+		} else if cancels >= 10 && cancels < 20 {
+			if total >= 30 && (float64(cancels)/float64(total)) <= 0.35 {
+				item.TrustScore = "HIGH"
+			} else {
+				item.TrustScore = "MEDIUM"
+			}
 		} else {
-			item.TrustScore = "RISK"
+			if total >= 50 && (float64(cancels)/float64(total)) <= 0.35 {
+				item.TrustScore = "MEDIUM"
+			} else {
+				item.TrustScore = "RISK"
+			}
 		}
 
 		customerList = append(customerList, *item)

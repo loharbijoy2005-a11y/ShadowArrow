@@ -61,7 +61,7 @@ func GetAnalytics(c *gin.Context) {
 	// Fetch all orders for revenue calculation
 	cursor, err := ordersColl.Find(ctx, bson.M{})
 	var totalRevenue float64 = 0
-	confirmedCount, processingCount, shippedCount, deliveredCount, cancelledCount := 0, 0, 0, 0
+	confirmedCount, processingCount, shippedCount, deliveredCount, cancelledCount := 0, 0, 0, 0, 0
 
 	if err == nil {
 		var orders []models.Order

@@ -165,8 +165,13 @@ export default function ProductsAdminPage() {
                       </td>
                       <td className="p-4 font-mono">
                         <span className="text-white font-bold">₹{prod.price}</span>
-                        {prod.compare_price > 0 && (
-                          <span className="text-xs text-gray-500 line-through ml-2">₹{prod.compare_price}</span>
+                        {prod.compare_price > prod.price && (
+                          <>
+                            <span className="text-xs text-gray-500 line-through ml-2">₹{prod.compare_price}</span>
+                            <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold ml-2 border border-red-500/30">
+                              -{Math.round(((prod.compare_price - prod.price) / prod.compare_price) * 100)}% OFF
+                            </span>
+                          </>
                         )}
                       </td>
                       <td className="p-4">

@@ -136,7 +136,13 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
                 value={comparePrice}
                 onChange={(e) => setComparePrice(e.target.value)}
                 className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                placeholder="e.g. 3499"
               />
+              {Number(comparePrice) > Number(price) && Number(comparePrice) > 0 && Number(price) > 0 && (
+                <p className="text-[11px] text-emerald-400 font-mono mt-1 font-semibold">
+                  ⚡ Offer: {Math.round(((Number(comparePrice) - Number(price)) / Number(comparePrice)) * 100)}% OFF (Save ₹{Number(comparePrice) - Number(price)})
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Stock Quantity</label>

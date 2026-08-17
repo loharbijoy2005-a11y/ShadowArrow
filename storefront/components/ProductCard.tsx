@@ -31,8 +31,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
   };
 
-  const discountPercent = product.compare_price > product.price
-    ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
+  const comparePrice = Number(product.compare_price || product.comparePrice || product.original_price || product.mrp || 0);
+  const currentPrice = Number(product.price || 0);
+  const discountPercent = (comparePrice > currentPrice && comparePrice > 0)
+    ? Math.round(((comparePrice - currentPrice) / comparePrice) * 100)
     : 0;
 
   const subtitle = product.category === 'Apparel'

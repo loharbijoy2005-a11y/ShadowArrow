@@ -182,15 +182,32 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-4 border-y border-slate-800 py-4 font-mono">
-              <span className="text-3xl font-bold text-white">₹{product.price}</span>
-              {product.compare_price > 0 && (
-                <span className="text-sm text-slate-500 line-through">₹{product.compare_price}</span>
-              )}
-              <span className="text-xs text-emerald-400 font-bold font-sans bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
-                Inclusive of all Taxes
-              </span>
-            </div>
+            {(() => {
+              const comparePrice = Number(product.compare_price || product.comparePrice || product.original_price || product.mrp || 0);
+              const currentPrice = Number(product.price || 0);
+              const discountPercent = (comparePrice > currentPrice && comparePrice > 0)
+                ? Math.round(((comparePrice - currentPrice) / comparePrice) * 100)
+                : 0;
+              const savingsAmount = comparePrice > currentPrice ? comparePrice - currentPrice : 0;
+
+              return (
+                <div className="flex flex-wrap items-center gap-3 border-y border-slate-800 py-4 font-mono">
+                  <span className="text-3xl font-black text-white">₹{currentPrice}</span>
+                  {comparePrice > currentPrice && (
+                    <>
+                      <span className="text-base text-slate-500 line-through font-semibold">₹{comparePrice}</span>
+                      <span className="px-3 py-1 bg-red-500/20 text-red-400 font-bold font-sans border border-red-500/30 text-xs rounded-full flex items-center space-x-1">
+                        <span>-{discountPercent}% OFF</span>
+                        {savingsAmount > 0 && <span className="text-[10px] text-red-300 opacity-90">(Save ₹{savingsAmount.toLocaleString('en-IN')})</span>}
+                      </span>
+                    </>
+                  )}
+                  <span className="text-xs text-emerald-400 font-bold font-sans bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                    Inclusive of all Taxes
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Description */}
             <p className="text-sm text-slate-300 leading-relaxed font-sans">{product.description}</p>

@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import InvoiceModal from '@/components/InvoiceModal';
+import ThermalLabelModal from '@/components/ThermalLabelModal';
 import axios from 'axios';
-import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X } from 'lucide-react';
+import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X, Printer } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -26,6 +27,10 @@ export default function OrdersAdminPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any>(null);
+
+  // Bulk Thermal Label & Batch Printing State
+  const [thermalPrintOrders, setThermalPrintOrders] = useState<any[]>([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
 
   // Date Range & Search Filtering States
   const [startDate, setStartDate] = useState('');
@@ -178,6 +183,29 @@ export default function OrdersAdminPage() {
     document.body.removeChild(link);
   };
 
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedOrderIds(filteredOrders.map(o => o.order_id || o.id || o._id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleToggleSelectOrder = (id: string) => {
+    setSelectedOrderIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handlePrintBatchThermal = () => {
+    if (selectedOrderIds.length > 0) {
+      const selected = filteredOrders.filter(o => selectedOrderIds.includes(o.order_id || o.id || o._id));
+      setThermalPrintOrders(selected);
+    } else {
+      setThermalPrintOrders(filteredOrders);
+    }
+  };
+
   const handleUpdateStatusSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingOrder) return;
@@ -220,9 +248,19 @@ export default function OrdersAdminPage() {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-ops-700">
           <div>
             <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ORDER FULFILLMENT DESK</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">Calendar date range lookup, dispatch manifests, Txn IDs & real-time MongoDB pipeline</p>
+            <p className="text-xs text-gray-400 font-mono mt-1">Calendar date range lookup, 4x6 Thermal batch labels, Txn IDs & real-time MongoDB pipeline</p>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={handlePrintBatchThermal}
+              disabled={filteredOrders.length === 0}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-mono font-bold rounded-lg transition shadow"
+              title="Print Batch 4x6 Thermal Labels"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Thermal Labels ({selectedOrderIds.length > 0 ? selectedOrderIds.length : filteredOrders.length})</span>
+            </button>
+
             <button
               onClick={handleExportCSV}
               disabled={filteredOrders.length === 0}
@@ -230,7 +268,7 @@ export default function OrdersAdminPage() {
               title="Export filtered orders manifest to CSV"
             >
               <Download className="w-4 h-4" />
-              <span>Export CSV Manifest</span>
+              <span>Export CSV</span>
             </button>
             <button
               onClick={() => token && fetchOrders(token, statusFilter, startDate, endDate)}
@@ -369,9 +407,6 @@ export default function OrdersAdminPage() {
             <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold">
               📦 Orders Found: <strong className="text-white">{filteredOrders.length}</strong>
             </span>
-            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full font-bold">
-              💰 Filtered Sales: <strong className="text-white">₹{filteredTotalValue.toFixed(2)}</strong>
-            </span>
           </div>
         </div>
 
@@ -380,6 +415,14 @@ export default function OrdersAdminPage() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-ops-900/80 border-b border-ops-700 text-gray-400 text-xs font-mono uppercase">
+                <th className="p-4 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectAll}
+                    checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                    className="rounded bg-ops-900 border-ops-700 text-blue-600 focus:ring-0 cursor-pointer"
+                  />
+                </th>
                 <th className="p-4">Order ID & Date</th>
                 <th className="p-4">Customer Details</th>
                 <th className="p-4">Items Summary</th>
@@ -391,7 +434,7 @@ export default function OrdersAdminPage() {
             <tbody className="divide-y divide-ops-700">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
+                  <td colSpan={7} className="p-8 text-center text-gray-500 font-mono">
                     {loading ? 'Fetching orders from database...' : 'No orders matched the current date/search filter.'}
                   </td>
                 </tr>
@@ -401,9 +444,18 @@ export default function OrdersAdminPage() {
                   const courier = ord.courier_partner || ord.courier_name;
                   const awb = ord.awb_number || ord.tracking_number;
                   const razorpayTxn = ord.razorpay_payment_id || ord.razorpay_order_id;
+                  const isSelected = selectedOrderIds.includes(id);
 
                   return (
-                    <tr key={id} className="hover:bg-ops-700/50 transition">
+                    <tr key={id} className={`hover:bg-ops-700/50 transition ${isSelected ? 'bg-blue-950/30' : ''}`}>
+                      <td className="p-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelectOrder(id)}
+                          className="rounded bg-ops-900 border-ops-700 text-blue-600 focus:ring-0 cursor-pointer"
+                        />
+                      </td>
                       <td className="p-4 font-mono">
                         <p className="font-bold text-blue-400 text-sm">#{ord.order_id}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">
@@ -422,43 +474,33 @@ export default function OrdersAdminPage() {
                               • <span className="font-semibold text-white">{it.title}</span> {it.size ? `(${it.size})` : ''} x {it.quantity}
                             </p>
                           ))}
-                          <p className="font-mono text-emerald-400 font-bold mt-1">Total: ₹{ord.total_amount}</p>
                         </div>
                       </td>
-                      <td className="p-4 font-mono text-xs">
-                        <span className={`px-2 py-0.5 rounded font-bold uppercase ${
-                          ord.payment_method === 'ONLINE' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
+                      <td className="p-4 font-mono">
+                        <p className="font-bold text-emerald-400">₹{(ord.total_amount || 0).toFixed(2)}</p>
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
+                          ord.payment_method === 'COD' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'
                         }`}>
-                          {ord.payment_method}
+                          {ord.payment_method === 'COD' ? 'Cash on Delivery (COD)' : 'ONLINE'}
                         </span>
-                        <div className="mt-1">
-                          <span className={`font-semibold ${
-                            ord.payment_status === 'PAID' ? 'text-emerald-400' :
-                            ord.payment_status === 'REFUNDED' ? 'text-purple-400' : 'text-amber-400'
-                          }`}>
-                            {ord.payment_status}
-                          </span>
-                        </div>
-                        {ord.payment_method === 'ONLINE' && razorpayTxn && (
-                          <div className="mt-1 text-[10px] text-gray-300 bg-ops-900 px-2 py-1 rounded border border-ops-700" title={razorpayTxn}>
-                            Txn ID: <strong className="text-blue-300 font-bold">{razorpayTxn}</strong>
-                          </div>
+                        {razorpayTxn && (
+                          <p className="text-[10px] text-gray-400 mt-1 font-bold">
+                            Txn: <span className="text-gray-200">{razorpayTxn}</span>
+                          </p>
                         )}
                       </td>
                       <td className="p-4">
                         <div className="space-y-1">
-                          <span className={`inline-block px-2.5 py-1 rounded text-xs font-mono font-bold uppercase ${
-                            ord.order_status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                            ord.order_status === 'SHIPPED' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
-                            ord.order_status === 'PROCESSING' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                            ord.order_status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                            ord.order_status === 'REFUNDED' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' :
-                            'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          <span className={`inline-block px-2.5 py-1 rounded text-xs font-mono font-bold ${
+                            ord.order_status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                            ord.order_status === 'SHIPPED' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                            ord.order_status === 'CANCELLED' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                            'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           }`}>
                             {ord.order_status}
                           </span>
                           {awb && (
-                            <div className="text-[11px] font-mono text-gray-300 mt-1">
+                            <div className="text-[11px] font-mono mt-1">
                               <span className="text-gray-400">{courier || 'Courier'}:</span> <strong className="text-blue-400 font-bold">{awb}</strong>
                             </div>
                           )}
@@ -466,6 +508,14 @@ export default function OrdersAdminPage() {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => setThermalPrintOrders([ord])}
+                            className="p-2 text-gray-400 hover:text-emerald-400 rounded-lg hover:bg-ops-700 flex items-center space-x-1 text-xs"
+                            title="Print Single 4x6 Thermal Label"
+                          >
+                            <Printer className="w-4 h-4 text-emerald-400" />
+                            <span className="hidden md:inline font-mono font-bold text-emerald-400">4x6 Label</span>
+                          </button>
                           <button
                             onClick={() => setSelectedInvoiceOrder(ord)}
                             className="p-2 text-gray-400 hover:text-blue-400 rounded-lg hover:bg-ops-700 flex items-center space-x-1 text-xs"
@@ -508,6 +558,14 @@ export default function OrdersAdminPage() {
         <InvoiceModal
           order={selectedInvoiceOrder}
           onClose={() => setSelectedInvoiceOrder(null)}
+        />
+      )}
+
+      {/* Thermal Label Modal (Single or Bulk Batch) */}
+      {thermalPrintOrders.length > 0 && (
+        <ThermalLabelModal
+          orders={thermalPrintOrders}
+          onClose={() => setThermalPrintOrders([])}
         />
       )}
 

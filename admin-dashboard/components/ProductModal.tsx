@@ -14,9 +14,57 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
   const [category, setCategory] = useState(product?.category || 'Apparel');
   const [price, setPrice] = useState(product?.price || '');
   const [comparePrice, setComparePrice] = useState(product?.compare_price || '');
+  const [offerDiscount, setOfferDiscount] = useState<string>(() => {
+    const comp = Number(product?.compare_price || 0);
+    const pr = Number(product?.price || 0);
+    if (comp > pr && comp > 0 && pr > 0) {
+      return String(Math.round(((comp - pr) / comp) * 100));
+    }
+    return '';
+  });
   const [stock, setStock] = useState(product?.stock ?? 10);
   const [description, setDescription] = useState(product?.description || '');
   const [images, setImages] = useState<string[]>(product?.images || ['']);
+
+  // Bi-directional automatic price & offer calculation handlers
+  const handleComparePriceChange = (val: string) => {
+    setComparePrice(val);
+    const comp = Number(val);
+    const disc = Number(offerDiscount);
+    const pr = Number(price);
+
+    if (comp > 0 && disc > 0 && disc < 100) {
+      const calculatedPrice = Math.round(comp * (1 - disc / 100));
+      setPrice(String(calculatedPrice));
+    } else if (comp > 0 && pr > 0 && comp > pr) {
+      const calculatedDisc = Math.round(((comp - pr) / comp) * 100);
+      setOfferDiscount(String(calculatedDisc));
+    }
+  };
+
+  const handleOfferDiscountChange = (val: string) => {
+    setOfferDiscount(val);
+    const disc = Number(val);
+    const comp = Number(comparePrice);
+
+    if (comp > 0 && val !== '' && disc >= 0 && disc < 100) {
+      const calculatedPrice = Math.round(comp * (1 - disc / 100));
+      setPrice(String(calculatedPrice));
+    }
+  };
+
+  const handlePriceChange = (val: string) => {
+    setPrice(val);
+    const pr = Number(val);
+    const comp = Number(comparePrice);
+
+    if (comp > 0 && pr > 0 && comp > pr) {
+      const calculatedDisc = Math.round(((comp - pr) / comp) * 100);
+      setOfferDiscount(String(calculatedDisc));
+    } else if (pr >= comp) {
+      setOfferDiscount('0');
+    }
+  };
   
   // Specs state
   const [fabricGsm, setFabricGsm] = useState(product?.specs?.fabric_gsm || '350 GSM');
@@ -118,31 +166,39 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Price (₹)</label>
+              <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Compare Price / MRP (₹)</label>
+              <input
+                type="number"
+                value={comparePrice}
+                onChange={(e) => handleComparePriceChange(e.target.value)}
+                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"
+                placeholder="e.g. 3499"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-mono text-emerald-400 font-bold uppercase mb-1">Offer Discount (% OFF)</label>
+              <input
+                type="number"
+                min="0"
+                max="99"
+                value={offerDiscount}
+                onChange={(e) => handleOfferDiscountChange(e.target.value)}
+                className="w-full bg-ops-900 border border-emerald-500/50 rounded p-2 text-emerald-300 font-bold focus:outline-none focus:border-emerald-400 font-mono text-sm"
+                placeholder="e.g. 57"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Selling Price (₹)</label>
               <input
                 type="number"
                 required
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                onChange={(e) => handlePriceChange(e.target.value)}
+                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"
+                placeholder="e.g. 1499"
               />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Compare Price (₹)</label>
-              <input
-                type="number"
-                value={comparePrice}
-                onChange={(e) => setComparePrice(e.target.value)}
-                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
-                placeholder="e.g. 3499"
-              />
-              {Number(comparePrice) > Number(price) && Number(comparePrice) > 0 && Number(price) > 0 && (
-                <p className="text-[11px] text-emerald-400 font-mono mt-1 font-semibold">
-                  ⚡ Offer: {Math.round(((Number(comparePrice) - Number(price)) / Number(comparePrice)) * 100)}% OFF (Save ₹{Number(comparePrice) - Number(price)})
-                </p>
-              )}
             </div>
             <div>
               <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Stock Quantity</label>
@@ -151,10 +207,19 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
                 required
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-ops-900 border border-ops-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"
               />
             </div>
           </div>
+
+          {Number(comparePrice) > Number(price) && Number(comparePrice) > 0 && Number(price) > 0 && (
+            <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-lg flex items-center justify-between text-xs font-mono text-emerald-300">
+              <span>⚡ Live Customer View: <strong className="text-white">₹{price}</strong> <span className="line-through text-gray-400">₹{comparePrice}</span></span>
+              <span className="font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/40">
+                {offerDiscount || Math.round(((Number(comparePrice) - Number(price)) / Number(comparePrice)) * 100)}% OFF (Save ₹{Number(comparePrice) - Number(price)})
+              </span>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Description</label>

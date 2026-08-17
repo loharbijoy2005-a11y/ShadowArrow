@@ -115,6 +115,7 @@ func main() {
 
 			admin.GET("/tickets", handlers.GetTickets)
 			admin.PUT("/tickets/:id/status", handlers.UpdateTicketStatus)
+			admin.PUT("/tickets/:id/allow-media", handlers.ToggleMediaPermission)
 			admin.POST("/tickets/:id/reply", handlers.ReplyToTicket)
 
 			admin.GET("/coupons", handlers.GetCoupons)

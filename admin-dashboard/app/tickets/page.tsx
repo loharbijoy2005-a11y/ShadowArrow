@@ -13,6 +13,9 @@ export default function TicketsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Status Filter State
+  const [statusTab, setStatusTab] = useState('ALL');
+
   // Chat Drawer State
   const [activeTicket, setActiveTicket] = useState<any | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
@@ -66,6 +69,22 @@ export default function TicketsAdminPage() {
     }
   };
 
+  const handleToggleCustomerMediaPermission = async (ticketId: string, currentAllow: boolean) => {
+    try {
+      await axios.put(
+        `${API_URL}/api/v1/admin/tickets/${ticketId}/allow-media`,
+        { allow_media_attachment: !currentAllow },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (activeTicket) {
+        setActiveTicket({ ...activeTicket, allow_media_attachment: !currentAllow });
+      }
+      if (token) fetchTickets(token);
+    } catch (err) {
+      alert('Failed to toggle customer media permission');
+    }
+  };
+
   const handleOpenChatDrawer = async (ticket: any) => {
     setActiveTicket(ticket);
     const id = ticket.ticket_id || ticket.id || ticket._id;
@@ -113,8 +132,12 @@ export default function TicketsAdminPage() {
     }
   };
 
-  const applyQuickPreset = (presetText: string) => {
+  const applyQuickPreset = (presetText: string, unlockCustomerMedia: boolean = false) => {
     setReplyMessage(presetText);
+    if (unlockCustomerMedia && activeTicket && !activeTicket.allow_media_attachment) {
+      const id = activeTicket.ticket_id || activeTicket.id || activeTicket._id;
+      handleToggleCustomerMediaPermission(id, false);
+    }
   };
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,6 +177,36 @@ export default function TicketsAdminPage() {
           </button>
         </header>
 
+        {/* Status Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          {[
+            { id: 'ALL', label: 'All Tickets', count: tickets.length },
+            { id: 'OPEN', label: 'Open', count: tickets.filter(t => t.status === 'OPEN').length },
+            { id: 'IN_PROGRESS', label: 'In Progress', count: tickets.filter(t => t.status === 'IN_PROGRESS').length },
+            { id: 'RESOLVED', label: 'Resolved', count: tickets.filter(t => t.status === 'RESOLVED').length },
+            { id: 'CLOSED', label: 'Closed', count: tickets.filter(t => t.status === 'CLOSED').length },
+          ].map((tab) => {
+            const isSelected = statusTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setStatusTab(tab.id)}
+                className={`px-4 py-2 rounded-xl border transition flex items-center space-x-2 font-bold text-xs ${
+                  isSelected
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                    : 'bg-ops-800 border-ops-700/80 text-gray-300 hover:bg-ops-700 hover:text-white'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${isSelected ? 'bg-black/30 text-white' : 'bg-ops-900 text-gray-400'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Tickets Table */}
         <div className="bg-ops-800 border border-ops-700 rounded-2xl overflow-hidden shadow-xl">
           <table className="w-full text-left border-collapse text-xs">
@@ -168,14 +221,18 @@ export default function TicketsAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ops-700">
-              {tickets.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
-                    {loading ? 'Fetching support tickets from MongoDB...' : 'No support tickets logged yet.'}
-                  </td>
-                </tr>
-              ) : (
-                tickets.map((t) => {
+              {(() => {
+                const filteredTickets = tickets.filter(t => statusTab === 'ALL' || t.status === statusTab);
+                if (filteredTickets.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
+                        {loading ? 'Fetching support tickets from MongoDB...' : 'No tickets match the selected status tab.'}
+                      </td>
+                    </tr>
+                  );
+                }
+                return filteredTickets.map((t) => {
                   const id = t.ticket_id || t.id || t._id;
                   const msgCount = (t.messages || []).length;
                   return (
@@ -226,8 +283,8 @@ export default function TicketsAdminPage() {
                       </td>
                     </tr>
                   );
-                })
-              )}
+                });
+              })()}
             </tbody>
           </table>
         </div>
@@ -275,11 +332,16 @@ export default function TicketsAdminPage() {
 
             {/* Quick Action Presets Bar */}
             <div className="space-y-1.5 shrink-0 bg-ops-900/70 p-3 rounded-2xl border border-ops-700/50">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">⚡ Quick Admin Action Presets</span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-gray-400 uppercase font-bold block">⚡ Quick Admin Action Presets</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${activeTicket.allow_media_attachment ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-gray-500/20 text-gray-400'}`}>
+                  {activeTicket.allow_media_attachment ? '🔓 Customer Upload: UNLOCKED' : '🔒 Customer Upload: LOCKED'}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => applyQuickPreset('Hi! Please reply with a clear photo screenshot of your defect/payment receipt.')}
+                  onClick={() => applyQuickPreset('Hi! Please reply with a clear photo screenshot of your defect/payment receipt.', true)}
                   className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-blue-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
                 >
                   <Camera className="w-3 h-3" />
@@ -288,7 +350,7 @@ export default function TicketsAdminPage() {
 
                 <button
                   type="button"
-                  onClick={() => applyQuickPreset('Hi! Please reply with a short unboxing video clip showing the defect/damaged item.')}
+                  onClick={() => applyQuickPreset('Hi! Please reply with a short unboxing video clip showing the defect/damaged item.', true)}
                   className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-purple-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
                 >
                   <Video className="w-3 h-3" />
@@ -297,11 +359,27 @@ export default function TicketsAdminPage() {
 
                 <button
                   type="button"
-                  onClick={() => applyQuickPreset('Hi! Please share a screenshot of the payment transaction from your bank/UPI app.')}
+                  onClick={() => applyQuickPreset('Hi! Please share a screenshot of the payment transaction from your bank/UPI app.', true)}
                   className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-emerald-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
                 >
                   <CreditCard className="w-3 h-3" />
                   <span>Request Payment Proof</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = activeTicket.ticket_id || activeTicket.id || activeTicket._id;
+                    handleToggleCustomerMediaPermission(id, !!activeTicket.allow_media_attachment);
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold border flex items-center space-x-1 transition ${
+                    activeTicket.allow_media_attachment
+                      ? 'bg-amber-900/40 hover:bg-amber-800/60 text-amber-300 border-amber-800/50'
+                      : 'bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border-emerald-800/50'
+                  }`}
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>{activeTicket.allow_media_attachment ? '🔒 Lock Customer Upload' : '🔓 Unlock Customer Photo/Video'}</span>
                 </button>
 
                 <button

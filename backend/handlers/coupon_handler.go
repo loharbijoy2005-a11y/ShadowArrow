@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -155,10 +156,23 @@ func ValidateCoupon(c *gin.Context) {
 	collection := db.GetCollection("coupons")
 
 	var coupon models.Coupon
-	err := collection.FindOne(ctx, bson.M{"code": codeUpper}).Decode(&coupon)
+	filter := bson.M{"code": primitive.Regex{Pattern: "^" + regexp.QuoteMeta(codeUpper) + "$", Options: "i"}}
+	err := collection.FindOne(ctx, filter).Decode(&coupon)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid coupon code"})
-		return
+		// Fallback Built-In Promos if database coupon not found
+		switch codeUpper {
+		case "SHADOW10":
+			coupon = models.Coupon{Code: "SHADOW10", Type: "PERCENTAGE", DiscountValue: 10, MinOrderValue: 499, Active: true}
+		case "FLAT200":
+			coupon = models.Coupon{Code: "FLAT200", Type: "FLAT", DiscountValue: 200, MinOrderValue: 1499, Active: true}
+		case "WELCOME50":
+			coupon = models.Coupon{Code: "WELCOME50", Type: "FLAT", DiscountValue: 50, MinOrderValue: 299, Active: true}
+		case "SAVE10":
+			coupon = models.Coupon{Code: "SAVE10", Type: "PERCENTAGE", DiscountValue: 10, MinOrderValue: 0, Active: true}
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid coupon code '%s'. Try SHADOW10 or FLAT200", codeUpper)})
+			return
+		}
 	}
 
 	if !coupon.Active {

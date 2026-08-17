@@ -66,6 +66,30 @@ func CreateTicket(c *gin.Context) {
 	ticket.Messages = []models.TicketMessage{initialMsg}
 
 	collection := db.GetCollection("support_tickets")
+
+	// Limit check: Maximum 5 active tickets (OPEN / IN_PROGRESS) per customer
+	if ticket.CustomerPhone != "" || ticket.CustomerEmail != "" {
+		activeFilter := bson.M{
+			"status": bson.M{"$in": []string{"OPEN", "IN_PROGRESS"}},
+		}
+		if ticket.CustomerPhone != "" && ticket.CustomerEmail != "" {
+			activeFilter["$or"] = []bson.M{
+				{"customer_phone": ticket.CustomerPhone},
+				{"customer_email": ticket.CustomerEmail},
+			}
+		} else if ticket.CustomerPhone != "" {
+			activeFilter["customer_phone"] = ticket.CustomerPhone
+		} else {
+			activeFilter["customer_email"] = ticket.CustomerEmail
+		}
+
+		activeCount, err := collection.CountDocuments(ctx, activeFilter)
+		if err == nil && activeCount >= 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum limit of 5 active support tickets reached. Please wait until existing open tickets are resolved."})
+			return
+		}
+	}
+
 	result, err := collection.InsertOne(ctx, ticket)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create support ticket"})
@@ -214,6 +238,12 @@ func ReplyToTicket(c *gin.Context) {
 		return
 	}
 
+	// Restrict customer photo/video uploads unless explicitly unlocked by Support Admin
+	if payload.Sender == "customer" && payload.MediaURL != "" && !existingTicket.AllowMediaAttachment {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Photo/video attachments are disabled for customer chat until requested by Support Team."})
+		return
+	}
+
 	senderName := payload.SenderName
 	if senderName == "" {
 		if payload.Sender == "admin" {
@@ -303,5 +333,48 @@ func UpdateTicketStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Ticket status updated successfully",
 		"status":  payload.Status,
+	})
+}
+
+type ToggleMediaPermissionPayload struct {
+	AllowMediaAttachment bool `json:"allow_media_attachment"`
+}
+
+func ToggleMediaPermission(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ticketIDParam := c.Param("id")
+	var payload ToggleMediaPermissionPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	collection := db.GetCollection("support_tickets")
+
+	var filter bson.M
+	if objID, err := primitive.ObjectIDFromHex(ticketIDParam); err == nil {
+		filter = bson.M{"_id": objID}
+	} else {
+		filter = bson.M{"ticket_id": ticketIDParam}
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"allow_media_attachment": payload.AllowMediaAttachment,
+			"updated_at":             time.Now(),
+		},
+	}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil || result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found or update failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":                "Media upload permission updated",
+		"allow_media_attachment": payload.AllowMediaAttachment,
 	})
 }

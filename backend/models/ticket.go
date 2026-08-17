@@ -24,10 +24,11 @@ type SupportTicket struct {
 	Category      string             `json:"category" bson:"category"`
 	IssueText     string             `json:"issue_text" bson:"issue_text" binding:"required"`
 	ImageURL      string             `json:"image_url" bson:"image_url"`
-	Status        string             `json:"status" bson:"status"`     // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-	Priority      string             `json:"priority" bson:"priority"` // HIGH, MEDIUM, LOW
-	Messages      []TicketMessage    `json:"messages" bson:"messages"`
-	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
+	Status                string             `json:"status" bson:"status"`     // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+	Priority              string             `json:"priority" bson:"priority"` // HIGH, MEDIUM, LOW
+	AllowMediaAttachment  bool               `json:"allow_media_attachment" bson:"allow_media_attachment"`
+	Messages              []TicketMessage    `json:"messages" bson:"messages"`
+	CreatedAt             time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
 	ClosedAt      *time.Time         `json:"closed_at,omitempty" bson:"closed_at,omitempty"`
 }

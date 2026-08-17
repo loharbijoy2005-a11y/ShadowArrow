@@ -498,8 +498,8 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
             {selectedTicket.status !== 'CLOSED' ? (
               <form onSubmit={handleSendReply} className="shrink-0 space-y-2 pt-1">
                 {replyMedia && (
-                  <div className="p-2 bg-slate-100 rounded-xl flex items-center justify-between text-xs">
-                    <span className="text-[11px] font-mono text-emerald-600 font-bold">Media Attached</span>
+                  <div className="p-2 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-mono">
+                    <span className="text-[11px] text-emerald-600 font-bold">Media Attached</span>
                     <button type="button" onClick={() => setReplyMedia('')} className="text-slate-400 hover:text-red-600">
                       <X className="w-4 h-4" />
                     </button>
@@ -507,10 +507,12 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
                 )}
 
                 <div className="flex gap-2">
-                  <label className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl cursor-pointer transition shrink-0" title="Attach Media">
-                    <Upload className="w-4 h-4" />
-                    <input type="file" accept="image/*,video/*" onChange={(e) => handleImageFile(e, true)} className="hidden" />
-                  </label>
+                  {selectedTicket.allow_media_attachment ? (
+                    <label className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 rounded-xl cursor-pointer transition shrink-0 flex items-center space-x-1" title="Attach Photo/Video (Unlocked by Support)">
+                      <Upload className="w-4 h-4 text-emerald-600" />
+                      <input type="file" accept="image/*,video/*" onChange={(e) => handleImageFile(e, true)} className="hidden" />
+                    </label>
+                  ) : null}
 
                   <input
                     type="text"
@@ -529,6 +531,12 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
                     {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>
                 </div>
+
+                {!selectedTicket.allow_media_attachment && (
+                  <p className="text-[10px] text-slate-400 font-mono text-center">
+                    📷 Photo/video attachments will unlock when requested by Support Team.
+                  </p>
+                )}
               </form>
             ) : (
               <div className="p-3 bg-slate-100 text-slate-500 rounded-xl text-center text-xs font-mono">

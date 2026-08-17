@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
-import { Lock, ShieldCheck, DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { Lock, ShieldCheck, DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, TrendingUp, XCircle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -123,64 +123,79 @@ export default function AdminPage() {
         </header>
 
         {/* Top Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-2 shadow-xl">
             <div className="flex justify-between items-center text-gray-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Total Sales Revenue</span>
+              <span className="text-xs uppercase tracking-wider font-bold">Total Sales Revenue</span>
               <DollarSign className="w-5 h-5 text-emerald-400" />
             </div>
-            <p className="text-3xl font-mono font-bold text-white">
+            <p className="text-3xl font-black text-white">
               ₹{analytics ? analytics.total_revenue?.toLocaleString('en-IN') : '0'}
             </p>
-            <div className="flex items-center space-x-1 text-xs text-emerald-400 font-mono">
+            <div className="flex items-center space-x-1 text-xs text-emerald-400 font-bold">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Verified Revenue</span>
             </div>
           </div>
 
-          <div className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-2">
+          <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-2 shadow-xl">
             <div className="flex justify-between items-center text-gray-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Customer Orders</span>
+              <span className="text-xs uppercase tracking-wider font-bold">Customer Orders</span>
               <ShoppingBag className="w-5 h-5 text-blue-400" />
             </div>
-            <p className="text-3xl font-mono font-bold text-white">
+            <p className="text-3xl font-black text-white">
               {analytics ? analytics.total_orders : '0'}
             </p>
-            <p className="text-xs text-gray-400 font-mono">Total Orders Received</p>
+            <p className="text-xs text-gray-400">Total Orders Placed</p>
           </div>
 
-          <div className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-2">
+          <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-2 shadow-xl">
             <div className="flex justify-between items-center text-gray-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Inventory Health</span>
+              <span className="text-xs uppercase tracking-wider font-bold">Cancelled / Refunded</span>
+              <XCircle className="w-5 h-5 text-rose-400" />
+            </div>
+            <p className="text-3xl font-black text-rose-400">
+              {analytics?.status_breakdown ? analytics.status_breakdown.cancelled || 0 : '0'}
+            </p>
+            <p className="text-xs text-rose-400/80 font-bold">Cancelled & Refunded</p>
+          </div>
+
+          <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-2 shadow-xl">
+            <div className="flex justify-between items-center text-gray-400">
+              <span className="text-xs uppercase tracking-wider font-bold">Inventory Alerts</span>
               <AlertTriangle className="w-5 h-5 text-amber-400" />
             </div>
-            <p className="text-3xl font-mono font-bold text-white">
+            <p className="text-3xl font-black text-white">
               {analytics ? analytics.low_stock_count : '0'}
             </p>
-            <p className="text-xs text-amber-400 font-mono">Low Stock Alerts (&lt; 10 units)</p>
+            <p className="text-xs text-amber-400">Low Stock (&lt; 10 units left)</p>
           </div>
         </div>
 
         {/* Order Status Breakdown */}
         {analytics?.status_breakdown && (
-          <section className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-4">
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-gray-300">Fulfillment Pipeline Status</h2>
-            <div className="grid grid-cols-4 gap-4">
-              <div className="p-4 bg-ops-900 border border-ops-700 rounded-lg text-center">
-                <p className="text-xs text-gray-400 font-mono uppercase">Confirmed</p>
-                <p className="text-xl font-mono font-bold text-blue-400 mt-1">{analytics.status_breakdown.confirmed}</p>
+          <section className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-4 shadow-xl">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-gray-300">Fulfillment Pipeline Breakdown</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="p-4 bg-ops-900 border border-ops-700 rounded-xl text-center space-y-1">
+                <p className="text-xs text-gray-400 uppercase font-bold">Confirmed</p>
+                <p className="text-2xl font-black text-blue-400">{analytics.status_breakdown.confirmed}</p>
               </div>
-              <div className="p-4 bg-ops-900 border border-ops-700 rounded-lg text-center">
-                <p className="text-xs text-gray-400 font-mono uppercase">Processing</p>
-                <p className="text-xl font-mono font-bold text-amber-400 mt-1">{analytics.status_breakdown.processing}</p>
+              <div className="p-4 bg-ops-900 border border-ops-700 rounded-xl text-center space-y-1">
+                <p className="text-xs text-gray-400 uppercase font-bold">Processing</p>
+                <p className="text-2xl font-black text-amber-400">{analytics.status_breakdown.processing}</p>
               </div>
-              <div className="p-4 bg-ops-900 border border-ops-700 rounded-lg text-center">
-                <p className="text-xs text-gray-400 font-mono uppercase">Shipped</p>
-                <p className="text-xl font-mono font-bold text-purple-400 mt-1">{analytics.status_breakdown.shipped}</p>
+              <div className="p-4 bg-ops-900 border border-ops-700 rounded-xl text-center space-y-1">
+                <p className="text-xs text-gray-400 uppercase font-bold">Shipped</p>
+                <p className="text-2xl font-black text-cyan-400">{analytics.status_breakdown.shipped}</p>
               </div>
-              <div className="p-4 bg-ops-900 border border-ops-700 rounded-lg text-center">
-                <p className="text-xs text-gray-400 font-mono uppercase">Delivered</p>
-                <p className="text-xl font-mono font-bold text-emerald-400 mt-1">{analytics.status_breakdown.delivered}</p>
+              <div className="p-4 bg-ops-900 border border-ops-700 rounded-xl text-center space-y-1">
+                <p className="text-xs text-gray-400 uppercase font-bold">Delivered</p>
+                <p className="text-2xl font-black text-emerald-400">{analytics.status_breakdown.delivered}</p>
+              </div>
+              <div className="p-4 bg-ops-900 border border-rose-500/30 bg-rose-500/5 rounded-xl text-center space-y-1">
+                <p className="text-xs text-rose-400 uppercase font-bold">Cancelled</p>
+                <p className="text-2xl font-black text-rose-400">{analytics.status_breakdown.cancelled || 0}</p>
               </div>
             </div>
           </section>

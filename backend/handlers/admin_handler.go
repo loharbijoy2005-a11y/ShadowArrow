@@ -61,7 +61,7 @@ func GetAnalytics(c *gin.Context) {
 	// Fetch all orders for revenue calculation
 	cursor, err := ordersColl.Find(ctx, bson.M{})
 	var totalRevenue float64 = 0
-	confirmedCount, processingCount, shippedCount, deliveredCount := 0, 0, 0, 0
+	confirmedCount, processingCount, shippedCount, deliveredCount, cancelledCount := 0, 0, 0, 0
 
 	if err == nil {
 		var orders []models.Order
@@ -79,6 +79,8 @@ func GetAnalytics(c *gin.Context) {
 				shippedCount++
 			case "DELIVERED":
 				deliveredCount++
+			case "CANCELLED", "REFUNDED":
+				cancelledCount++
 			}
 		}
 	}
@@ -103,6 +105,7 @@ func GetAnalytics(c *gin.Context) {
 			"processing": processingCount,
 			"shipped":    shippedCount,
 			"delivered":  deliveredCount,
+			"cancelled":  cancelledCount,
 		},
 	})
 }

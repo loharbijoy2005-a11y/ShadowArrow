@@ -11,7 +11,7 @@ import { SlidersHorizontal, Loader2, Sparkles, Package, ChevronLeft, ChevronRigh
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-const HERO_SLIDES = [
+const DEFAULT_HERO_SLIDES = [
   {
     tag: 'LIMITED DROP 2026 • URBAN STREETWEAR',
     title: 'REDEFINE YOUR OVERSIZED SILHOUETTE',
@@ -29,18 +29,10 @@ const HERO_SLIDES = [
     categoryFilter: 'Footwear',
     image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800',
   },
-  {
-    tag: 'MINIMALIST HARDWARE & ACCESSORIES',
-    title: 'TECHNICAL LIFESTYLE ESSENTIALS',
-    desc: 'Insulated 304 food-grade stainless hydro flasks, high-precision sensors, and waterproof Cordura slings.',
-    ctaText: 'Discover Accessories',
-    ctaLink: '#catalog',
-    categoryFilter: 'Accessories',
-    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800',
-  },
 ];
 
 export default function HomePage() {
+  const [heroSlides, setHeroSlides] = useState<any[]>(DEFAULT_HERO_SLIDES);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -55,11 +47,51 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/v1/cms/banners`);
+      if (res.data && res.data.length > 0) {
+        const mapped = res.data.map((b: any) => ({
+          tag: 'SHADOW ARROW OFFICIAL',
+          title: b.heading,
+          desc: b.subtext || 'Exclusive streetwear drop engineered for ultimate style.',
+          ctaText: 'Shop Now',
+          ctaLink: b.target_link || '#catalog',
+          image: b.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
+        }));
+        setHeroSlides(mapped);
+      }
+    } catch (err) {
+      const cached = localStorage.getItem('shadow_hero_banners');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.length > 0) {
+            const mapped = parsed.map((b: any) => ({
+              tag: 'SHADOW ARROW OFFICIAL',
+              title: b.heading,
+              desc: b.subtext || 'Exclusive streetwear drop engineered for ultimate style.',
+              ctaText: 'Shop Now',
+              ctaLink: b.target_link || '#catalog',
+              image: b.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
+            }));
+            setHeroSlides(mapped);
+          }
+        } catch (e) {}
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (heroSlides.length === 0) return;
     const slideTimer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(slideTimer);
-  }, []);
+  }, [heroSlides]);
 
   useEffect(() => {
     setPage(1);
@@ -105,7 +137,7 @@ export default function HomePage() {
         p.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeSlide = HERO_SLIDES[currentSlide];
+  const activeSlide = heroSlides[currentSlide] || heroSlides[0] || DEFAULT_HERO_SLIDES[0];
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
@@ -161,20 +193,20 @@ export default function HomePage() {
 
           {/* Controls */}
           <button
-            onClick={() => setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
+            onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition hidden sm:flex"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)}
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition hidden sm:flex"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-            {HERO_SLIDES.map((_, idx) => (
+            {heroSlides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}

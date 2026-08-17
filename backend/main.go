@@ -59,9 +59,11 @@ func main() {
 	// V1 API Group
 	v1 := r.Group("/api/v1")
 	{
-		// Public Product Routes
+		// Public Product & CMS Routes
 		v1.GET("/products", handlers.GetProducts)
 		v1.GET("/products/:id", handlers.GetProductByID)
+		v1.GET("/cms/banners", handlers.GetBanners)
+		v1.GET("/banners", handlers.GetBanners)
 
 		// Public Order & Tracking Routes (Strict Order Creation Rate Limit)
 		v1.POST("/orders/create", middleware.RateLimiterMiddleware("order_create", 6, 2*time.Minute), handlers.CreateOrder(cfg))
@@ -106,6 +108,7 @@ func main() {
 			admin.GET("/abandoned-carts", handlers.GetAbandonedCarts)
 			admin.GET("/tickets", handlers.GetTickets)
 			admin.PUT("/tickets/:id/status", handlers.UpdateTicketStatus)
+			admin.POST("/cms/banners", handlers.SaveBanners)
 		}
 	}
 

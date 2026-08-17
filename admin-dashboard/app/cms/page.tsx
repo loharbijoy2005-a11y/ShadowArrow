@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Layout, Image as ImageIcon, FileText, Plus, Trash2, Save, CheckCircle2, Globe, Sparkles } from 'lucide-react';
+import axios from 'axios';
+import { Layout, Image as ImageIcon, FileText, Plus, Trash2, Save, CheckCircle2, Globe, Sparkles, RefreshCw } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export default function CMSAdminPage() {
   const [activeTab, setActiveTab] = useState<'banners' | 'policies'>('banners');
   const [saved, setSaved] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   // Banners State
-  const [banners, setBanners] = useState([
-    { id: '1', heading: 'SHADOW ARROW PREMIUM OVERSIZED COLLECTION', subtext: 'High-density heavy cotton urban wear', image_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=80', target_link: '/product/over-1' },
-    { id: '2', heading: 'FESTIVE URBAN DROP • UP TO 40% OFF', subtext: 'Free Express Shipping Across India', image_url: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1200&q=80', target_link: '/checkout' },
-  ]);
+  const [banners, setBanners] = useState<any[]>([]);
 
   const [newHeading, setNewHeading] = useState('');
   const [newSubtext, setNewSubtext] = useState('');
@@ -22,34 +23,72 @@ export default function CMSAdminPage() {
   // Policy Pages State
   const [privacyPolicy, setPrivacyPolicy] = useState(`At SHADOW ARROW, we prioritize customer data privacy...`);
   const [returnPolicy, setReturnPolicy] = useState(`7-Day Easy Return & Replacement Policy across India...`);
-  const [shippingPolicy, setShippingPolicy] = useState(`Express Dispatch within 24 hours of order placement...`);
 
-  const handleAddBanner = (e: React.FormEvent) => {
+  useEffect(() => {
+    const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
+    if (savedToken) setToken(savedToken);
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/v1/cms/banners`);
+      if (res.data && res.data.length > 0) {
+        setBanners(res.data);
+      }
+    } catch (err) {
+      const cached = localStorage.getItem('shadow_hero_banners');
+      if (cached) setBanners(JSON.parse(cached));
+    }
+  };
+
+  const syncBannersWithBackend = async (updatedBanners: any[]) => {
+    setBanners(updatedBanners);
+    localStorage.setItem('shadow_hero_banners', JSON.stringify(updatedBanners));
+
+    if (token) {
+      try {
+        await axios.post(`${API_URL}/api/v1/admin/cms/banners`, { banners: updatedBanners }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        console.warn('Backend sync failed, saved in local cache');
+      }
+    }
+  };
+
+  const handleAddBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHeading.trim() || !newImageUrl.trim()) return;
 
-    setBanners([
-      ...banners,
-      {
-        id: Date.now().toString(),
-        heading: newHeading,
-        subtext: newSubtext,
-        image_url: newImageUrl,
-        target_link: newTargetLink || '/',
-      },
-    ]);
+    const newBanner = {
+      id: Date.now().toString(),
+      heading: newHeading,
+      subtext: newSubtext,
+      image_url: newImageUrl,
+      target_link: newTargetLink || '/',
+    };
+
+    const updated = [...banners, newBanner];
+    await syncBannersWithBackend(updated);
 
     setNewHeading('');
     setNewSubtext('');
     setNewImageUrl('');
     setNewTargetLink('');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleDeleteBanner = (id: string) => {
-    setBanners(banners.filter(b => b.id !== id));
+  const handleDeleteBanner = async (id: string) => {
+    const updated = banners.filter(b => b.id !== id);
+    await syncBannersWithBackend(updated);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleSaveCMS = () => {
+  const handleSaveCMS = async () => {
+    await syncBannersWithBackend(banners);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

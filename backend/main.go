@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"time"
+
 	"shadow-arrow-backend/config"
 	"shadow-arrow-backend/db"
 	"shadow-arrow-backend/handlers"
@@ -28,8 +30,22 @@ func main() {
 	// 4. Initialize Gin Router
 	r := gin.Default()
 
-	// 5. Apply CORS Middleware
+	// 5. Apply Global Security & CORS Middlewares (Anti-DDoS, OWASP Headers, Sensitive File Protection)
 	r.Use(middleware.CORSMiddleware())
+	r.Use(middleware.SecurityHeadersMiddleware())
+	r.Use(middleware.BlockSensitiveFilesMiddleware())
+	r.Use(middleware.RateLimiterMiddleware("global", 120, time.Minute))
+
+	// Root Endpoint
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "online",
+			"service": "Shadow Arrow Golang API Backend",
+			"version": "1.0.0",
+			"health":  "/health",
+			"api_v1":  "/api/v1/products",
+		})
+	})
 
 	// Healthcheck Endpoint
 	r.GET("/health", func(c *gin.Context) {
@@ -47,30 +63,31 @@ func main() {
 		v1.GET("/products", handlers.GetProducts)
 		v1.GET("/products/:id", handlers.GetProductByID)
 
-		// Public Order & Tracking Routes
-		v1.POST("/orders/create", handlers.CreateOrder(cfg))
+		// Public Order & Tracking Routes (Strict Order Creation Rate Limit)
+		v1.POST("/orders/create", middleware.RateLimiterMiddleware("order_create", 6, 2*time.Minute), handlers.CreateOrder(cfg))
 		v1.POST("/orders/verify-payment", handlers.VerifyPayment(cfg))
 		v1.POST("/payment/verify", handlers.VerifyPayment(cfg))
 		v1.GET("/orders/track/:id", handlers.TrackOrder)
 		v1.GET("/user/orders", handlers.GetUserOrders)
 
-		// Auth & Account Sync Routes
+		// Auth & Account Sync Routes (Strict Auth Rate Limit)
 		v1.POST("/auth/google-sync", handlers.GoogleSync)
-		v1.POST("/auth/phone-login", handlers.PhoneLogin)
+		v1.POST("/auth/phone-login", middleware.RateLimiterMiddleware("auth_login", 6, 3*time.Minute), handlers.PhoneLogin)
 
 		// User Profile Routes
 		v1.PUT("/user/profile", handlers.UpdateUserProfile)
 		v1.GET("/user/profile", handlers.GetUserProfile)
 
-		// Support Ticket Routes
-		v1.POST("/tickets/create", handlers.CreateTicket)
-		v1.POST("/support/tickets", handlers.CreateTicket)
+		// Support Ticket & Cart Sync Routes (Strict Ticket Creation Rate Limit)
+		v1.POST("/tickets/create", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
+		v1.POST("/support/tickets", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
+		v1.POST("/cart/sync", handlers.SyncCart)
 
-		// AI Chat Proxy Route
-		v1.POST("/ai/chat", handlers.AIChatProxy(cfg))
+		// AI Chat Proxy Route (Rate Limited to Prevent Prompt Token Abuse)
+		v1.POST("/ai/chat", middleware.RateLimiterMiddleware("ai_chat", 20, time.Minute), handlers.AIChatProxy(cfg))
 
-		// Admin Auth Route
-		v1.POST("/admin/login", handlers.AdminLogin(cfg))
+		// Admin Auth Route (Strict Brute-Force Rate Limiter)
+		v1.POST("/admin/login", middleware.RateLimiterMiddleware("admin_login", 5, 5*time.Minute), handlers.AdminLogin(cfg))
 
 		// Protected Admin Routes (JWT authenticated)
 		admin := v1.Group("/admin")
@@ -85,6 +102,8 @@ func main() {
 			admin.PUT("/orders/:id/shipment", handlers.UpdateOrderStatus)
 
 			admin.GET("/analytics", handlers.GetAnalytics)
+			admin.GET("/customers", handlers.GetAdminCustomers)
+			admin.GET("/abandoned-carts", handlers.GetAbandonedCarts)
 			admin.GET("/tickets", handlers.GetTickets)
 			admin.PUT("/tickets/:id/status", handlers.UpdateTicketStatus)
 		}

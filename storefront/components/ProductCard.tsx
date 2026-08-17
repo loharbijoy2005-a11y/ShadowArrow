@@ -77,10 +77,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transition-all transform ${
+            className={`absolute bottom-3 right-3 p-2.5 sm:p-3 rounded-full shadow-md transition-all transform ${
               isOutOfStock
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                : 'bg-slate-900 hover:bg-blue-600 text-white opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100'
+                : 'bg-slate-900 hover:bg-blue-600 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 scale-100 sm:scale-90 sm:group-hover:scale-100'
             }`}
             title={isOutOfStock ? "Out of Stock" : "Quick Add to Cart"}
           >

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
 import AIChatWindow from '@/components/AIChatWindow';
+import GalaxyVFXBackground from '@/components/GalaxyVFXBackground';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import axios from 'axios';
 import { SlidersHorizontal, Loader2, Sparkles, Package, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 
@@ -106,7 +108,8 @@ export default function HomePage() {
   const activeSlide = HERO_SLIDES[currentSlide];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
+      <GalaxyVFXBackground />
       <Header onSearch={setSearchQuery} onToggleAI={() => setAiOpen(!aiOpen)} />
 
       {/* Hero Banner Section */}
@@ -263,6 +266,7 @@ export default function HomePage() {
       </main>
 
       <AIChatWindow isOpen={aiOpen} onClose={() => setAiOpen(false)} />
+      <MobileBottomNav onToggleAI={() => setAiOpen(!aiOpen)} />
     </div>
   );
 }

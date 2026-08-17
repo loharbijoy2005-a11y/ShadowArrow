@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, BarChart3, HelpCircle, Lock, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, BarChart3, HelpCircle, Users, Lock, LogOut, ShoppingCart, Palette } from 'lucide-react';
+import { useAdminTheme } from '@/context/ThemeContext';
 
 interface NavigationProps {
   onLogout: () => void;
@@ -11,9 +12,12 @@ interface NavigationProps {
 
 export default function Navigation({ onLogout }: NavigationProps) {
   const pathname = usePathname();
+  const { setIsCustomizerOpen, theme } = useAdminTheme();
 
   const navItems = [
     { name: 'Control Overview', href: '/', icon: LayoutDashboard },
+    { name: 'Customer Registry', href: '/customers', icon: Users },
+    { name: 'Abandoned Carts', href: '/abandoned-carts', icon: ShoppingCart },
     { name: 'Inventory Hub', href: '/products', icon: Package },
     { name: 'Fulfillment Desk', href: '/orders', icon: ShoppingBag },
     { name: 'Support Tickets', href: '/tickets', icon: HelpCircle },
@@ -23,14 +27,24 @@ export default function Navigation({ onLogout }: NavigationProps) {
   return (
     <aside className="w-64 bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0">
       <div>
-        <div className="p-6 border-b border-ops-700 flex items-center space-x-3">
-          <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
-            <Lock className="w-5 h-5" />
+        <div className="p-6 border-b border-ops-700 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="font-mono font-bold text-sm tracking-wider uppercase text-white">Ops Control</h1>
+              <p className="text-[10px] text-gray-400 font-mono">GATEWAY v2.4.1</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-mono font-bold text-sm tracking-wider uppercase text-white">Ops Control</h1>
-            <p className="text-[10px] text-gray-400 font-mono">GATEWAY v2.4.1</p>
-          </div>
+
+          <button
+            onClick={() => setIsCustomizerOpen(true)}
+            className="p-2 rounded-lg bg-ops-700 hover:bg-ops-600 text-gray-300 transition"
+            title="Customize Theme & Colors"
+          >
+            <Palette className="w-4 h-4 text-blue-400" />
+          </button>
         </div>
 
         <nav className="p-4 space-y-1">
@@ -55,10 +69,18 @@ export default function Navigation({ onLogout }: NavigationProps) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-ops-700">
+      <div className="p-4 border-t border-ops-700 space-y-2">
+        <button
+          onClick={() => setIsCustomizerOpen(true)}
+          className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-mono font-bold text-gray-300 bg-ops-700 hover:bg-ops-600 transition"
+        >
+          <Palette className="w-4 h-4 text-purple-400" />
+          <span>Customize Theme</span>
+        </button>
+
         <button
           onClick={onLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+          className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-mono font-medium text-red-400 hover:bg-red-500/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Lock Session</span>

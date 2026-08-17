@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-import { User, Smartphone, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Smartphone, ArrowRight, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 import axios from 'axios';
 
@@ -18,35 +17,56 @@ export default function AccountLoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Option 1: Firebase Google Sign-In with MongoDB Profile Sync & Merging
+  // State for post-Google phone number linking modal
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<any>(null);
+  const [googleMobileInput, setGoogleMobileInput] = useState('');
+  const [googleMobileError, setGoogleMobileError] = useState('');
+  const [linkingLoading, setLinkingLoading] = useState(false);
+
+  // Option 1: Firebase Google Sign-In with MongoDB Profile Sync & Mandatory Mobile Prompt
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError('');
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      
-      const userPayload = {
+
+      const baseUserPayload = {
         uid: user.uid,
-        name: user.displayName || user.email?.split('@')[0] || 'User',
+        name: user.displayName || user.email?.split('@')[0] || 'Customer',
         email: user.email || '',
         phone: user.phoneNumber || '',
         photo_url: user.photoURL || '',
       };
 
+      // Try initial sync with backend
+      let existingPhone = user.phoneNumber || '';
       try {
-        const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, userPayload);
-        const mergedUser = {
-          ...syncRes.data,
-          isLoggedIn: true,
-          loginTime: new Date().toISOString(),
-        };
-        localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
+        const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, baseUserPayload);
+        if (syncRes.data && syncRes.data.phone) {
+          existingPhone = syncRes.data.phone;
+        }
       } catch (err) {
-        // Fallback local save if offline
-        localStorage.setItem('shadow_user', JSON.stringify({ ...userPayload, isLoggedIn: true }));
+        console.warn('Initial google sync offline fallback', err);
       }
 
+      // If user has no phone number linked, prompt them to enter mobile number
+      if (!existingPhone || !/^[6-9]\d{9}$/.test(existingPhone)) {
+        setPendingGoogleUser(baseUserPayload);
+        setShowPhoneModal(true);
+        setGoogleLoading(false);
+        return;
+      }
+
+      // If phone is already linked, complete login
+      const mergedUser = {
+        ...baseUserPayload,
+        phone: existingPhone,
+        isLoggedIn: true,
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
       router.push('/account');
     } catch (err: any) {
       console.error('Google Sign-In Error:', err);
@@ -56,11 +76,55 @@ export default function AccountLoginPage() {
     }
   };
 
+  // Submit phone number to link with Google profile in MongoDB
+  const handleLinkGoogleMobile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleMobileInput.trim() || !/^[6-9]\d{9}$/.test(googleMobileInput.trim())) {
+      setGoogleMobileError('Please enter a valid 10-digit Indian phone number starting with 6-9.');
+      return;
+    }
+
+    setLinkingLoading(true);
+    setGoogleMobileError('');
+
+    try {
+      const updatedPayload = {
+        ...pendingGoogleUser,
+        phone: googleMobileInput.trim(),
+      };
+
+      const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, updatedPayload);
+      const mergedUser = {
+        ...(syncRes.data || updatedPayload),
+        phone: googleMobileInput.trim(),
+        isLoggedIn: true,
+        loginTime: new Date().toISOString(),
+      };
+
+      localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
+      setShowPhoneModal(false);
+      router.push('/account');
+    } catch (err: any) {
+      // Fallback local save if backend sync fails
+      const fallbackUser = {
+        ...pendingGoogleUser,
+        phone: googleMobileInput.trim(),
+        isLoggedIn: true,
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem('shadow_user', JSON.stringify(fallbackUser));
+      setShowPhoneModal(false);
+      router.push('/account');
+    } finally {
+      setLinkingLoading(false);
+    }
+  };
+
   // Option 2: Direct Phone Login with Backend Merging
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !phone.trim() || !/^[6-9]\d{9}$/.test(phone.trim())) {
-      setError('Please provide a valid Full Name and 10-digit Phone Number.');
+      setError('Full Name and a valid 10-digit Phone Number (starting 6-9) are compulsory.');
       return;
     }
 
@@ -146,19 +210,23 @@ export default function AccountLoginPage() {
           {/* Option 2: Direct Phone Login */}
           <form onSubmit={handlePhoneLogin} className="space-y-4 text-xs">
             <div>
-              <label className="block text-slate-700 font-medium mb-1.5 uppercase font-mono">Full Name</label>
+              <label className="block text-slate-700 font-medium mb-1.5 uppercase font-mono">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full Name"
+                placeholder="Enter Full Name"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-medium mb-1.5 uppercase font-mono">10-Digit Phone Number</label>
+              <label className="block text-slate-700 font-medium mb-1.5 uppercase font-mono">
+                10-Digit Mobile Number <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Smartphone className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
@@ -167,7 +235,7 @@ export default function AccountLoginPage() {
                   maxLength={10}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Enter 10-Digit Phone Number"
+                  placeholder="Enter 10-Digit Mobile Number"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono"
                 />
               </div>
@@ -184,6 +252,67 @@ export default function AccountLoginPage() {
           </form>
         </div>
       </main>
+
+      {/* Mandatory Mobile Linking Modal for Google Sign-In Users */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 max-w-md w-full rounded-3xl p-8 shadow-2xl space-y-6">
+            
+            <div className="text-center space-y-2">
+              <div className="inline-flex p-3 bg-blue-50 text-blue-600 rounded-2xl mb-1">
+                <Smartphone className="w-7 h-7" />
+              </div>
+              <h2 className="text-xl font-black uppercase text-slate-900 tracking-tight">Link Your Mobile Number</h2>
+              <p className="text-xs text-slate-500">
+                Hi <span className="font-bold text-slate-900">{pendingGoogleUser?.name}</span>! Please enter your 10-digit mobile number to complete your profile & enable order tracking.
+              </p>
+            </div>
+
+            {googleMobileError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs text-center font-mono">
+                {googleMobileError}
+              </div>
+            )}
+
+            <form onSubmit={handleLinkGoogleMobile} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-700 font-medium mb-1.5 uppercase font-mono">
+                  10-Digit Phone Number <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Smartphone className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    value={googleMobileInput}
+                    onChange={(e) => setGoogleMobileInput(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Enter 10-Digit Mobile Number"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono text-sm"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={linkingLoading}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition shadow disabled:opacity-50"
+              >
+                {linkingLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <>
+                    <span>Link Mobile & Complete Profile</span>
+                    <ShieldCheck className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

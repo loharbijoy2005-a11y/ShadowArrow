@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Printer, Download, CheckCircle } from 'lucide-react';
+import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 
 interface TaxInvoiceModalProps {
   order: any;
@@ -108,7 +109,7 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
             </div>
             <div className="text-right font-mono text-[11px] text-slate-700">
               <p className="font-bold text-slate-900">REGISTERED SELLER GSTIN</p>
-              <p className="text-blue-600 font-bold">19BVKPL6301H1ZH</p>
+              <GSTBadgeTooltip className="text-blue-600 font-bold" />
               <p className="text-[10px] text-slate-500">support.shadowarrow@gmail.com</p>
             </div>
           </div>

@@ -33,7 +33,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="w-9 h-9 bg-white text-black flex items-center justify-center font-black rounded-lg transform group-hover:rotate-12 transition-transform duration-300">
+          <div className="sa_logo_badge w-9 h-9 rounded-lg text-sm tracking-tight font-black shadow-lg">
             SA
           </div>
           <span className="shadow_arrow_logo font-black text-xl tracking-tighter text-white uppercase">

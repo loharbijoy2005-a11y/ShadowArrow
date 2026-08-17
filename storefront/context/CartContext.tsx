@@ -30,8 +30,17 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
 
   useEffect(() => {
+    // Generate or retrieve persistent session ID
+    let sid = localStorage.getItem('shadow_session_id');
+    if (!sid) {
+      sid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+      localStorage.setItem('shadow_session_id', sid);
+    }
+    setSessionId(sid);
+
     const saved = localStorage.getItem('shadow_cart');
     if (saved) {
       try {
@@ -42,9 +51,50 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Sync cart with backend whenever items change
   useEffect(() => {
     localStorage.setItem('shadow_cart', JSON.stringify(cart));
-  }, [cart]);
+
+    if (sessionId) {
+      const syncCartWithBackend = async () => {
+        try {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+          let custName = '';
+          let custPhone = '';
+          let custEmail = '';
+
+          const savedUser = localStorage.getItem('shadow_user');
+          if (savedUser) {
+            const u = JSON.parse(savedUser);
+            custName = u.name || '';
+            custPhone = u.phone || '';
+            custEmail = u.email || '';
+          }
+
+          const totalAmt = cart.reduce((acc, i) => acc + i.price * i.quantity, 0);
+
+          await fetch(`${API_URL}/api/v1/cart/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              customer_name: custName,
+              customer_phone: custPhone,
+              customer_email: custEmail,
+              items: cart,
+              total_amount: totalAmt,
+              status: cart.length > 0 ? 'ABANDONED' : 'CLEARED',
+            }),
+          });
+        } catch (err) {
+          console.warn('Backend cart sync failed silent:', err);
+        }
+      };
+
+      const timer = setTimeout(syncCartWithBackend, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cart, sessionId]);
 
   const addToCart = (item: Omit<CartItem, 'id'>) => {
     setCart((prev) => {

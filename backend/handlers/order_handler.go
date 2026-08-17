@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"shadow-arrow-backend/config"
@@ -26,12 +28,20 @@ type VerifyPaymentPayload struct {
 }
 
 type UpdateStatusPayload struct {
-	OrderStatus    string `json:"order_status" binding:"required"`
-	Status         string `json:"status"`
-	CourierPartner string `json:"courier_partner"`
-	CourierName    string `json:"courier_name"`
-	AWBNumber      string `json:"awb_number"`
-	TrackingNumber string `json:"tracking_number"`
+	OrderStatus       string `json:"order_status"`
+	Status            string `json:"status"`
+	PaymentStatus     string `json:"payment_status"`
+	PaymentMethod     string `json:"payment_method"`
+	CustomerName      string `json:"customer_name"`
+	CustomerPhone     string `json:"customer_phone"`
+	CustomerEmail     string `json:"customer_email"`
+	ShippingAddress   string `json:"shipping_address"`
+	CourierPartner    string `json:"courier_partner"`
+	CourierName       string `json:"courier_name"`
+	AWBNumber         string `json:"awb_number"`
+	TrackingNumber    string `json:"tracking_number"`
+	RazorpayPaymentID string `json:"razorpay_payment_id"`
+	RazorpayOrderID   string `json:"razorpay_order_id"`
 }
 
 func generateReadableOrderID() string {
@@ -56,10 +66,17 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		// Enforce mandatory customer profile & shipping details
+		if strings.TrimSpace(order.CustomerName) == "" || strings.TrimSpace(order.CustomerPhone) == "" || strings.TrimSpace(order.ShippingAddress) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Customer name, mobile number, and complete delivery address are mandatory to place an order"})
+			return
+		}
+
 		productCollection := db.GetCollection("products")
 
-		// 1. Strict Atomic Inventory Validation before creating order
-		for _, item := range order.Items {
+		// 1. Strict Price & Stock Integrity Shield (Prevents Price Tampering Attacks)
+		var verifiedTotal float64
+		for i, item := range order.Items {
 			if item.ProductID != "" {
 				if objID, err := primitive.ObjectIDFromHex(item.ProductID); err == nil {
 					var p models.Product
@@ -72,24 +89,21 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Item '%s' is out of stock", p.Title)})
 						return
 					}
+					// Security Shield: Overwrite client payload price with authoritative DB price
+					order.Items[i].Price = p.Price
+					verifiedTotal += p.Price * float64(item.Quantity)
 				}
+			} else {
+				verifiedTotal += item.Price * float64(item.Quantity)
 			}
 		}
 
 		order.OrderID = generateReadableOrderID()
 		order.CreatedAt = time.Now()
-		order.OrderStatus = "CONFIRMED"
-
-		// Calculate total if not provided
-		if order.TotalAmount <= 0 {
-			var total float64
-			for _, item := range order.Items {
-				total += item.Price * float64(item.Quantity)
-			}
-			order.TotalAmount = total
-		}
+		order.TotalAmount = verifiedTotal
 
 		if order.PaymentMethod == "ONLINE" {
+			order.OrderStatus = "PENDING_PAYMENT"
 			order.PaymentStatus = "PENDING"
 			razorpayOrderID, err := utils.CreateRazorpayOrder(
 				order.TotalAmount,
@@ -103,6 +117,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 			order.RazorpayOrderID = razorpayOrderID
 		} else {
+			order.OrderStatus = "CONFIRMED"
 			order.PaymentMethod = "COD"
 			order.PaymentStatus = "PENDING"
 
@@ -190,6 +205,7 @@ func VerifyPayment(cfg *config.Config) gin.HandlerFunc {
 		update := bson.M{
 			"$set": bson.M{
 				"payment_status":      "PAID",
+				"order_status":        "CONFIRMED",
 				"razorpay_payment_id": payload.RazorpayPaymentID,
 				"razorpay_signature":  payload.RazorpaySignature,
 			},
@@ -202,6 +218,7 @@ func VerifyPayment(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		order.PaymentStatus = "PAID"
+		order.OrderStatus = "CONFIRMED"
 		order.RazorpayPaymentID = payload.RazorpayPaymentID
 		order.RazorpaySignature = payload.RazorpaySignature
 
@@ -234,60 +251,116 @@ func TrackOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	queryParam := c.Param("id")
+	rawQuery := strings.TrimSpace(c.Param("id"))
 	collection := db.GetCollection("orders")
 
-	var order models.Order
-	var err error
+	// Strip non-digit characters to handle phone searches flexibly
+	cleanDigits := regexp.MustCompile(`\D`).ReplaceAllString(rawQuery, "")
 
-	err = collection.FindOne(ctx, bson.M{
-		"$or": []bson.M{
-			{"order_id": queryParam},
-			{"customer_phone": queryParam},
-			{"customer_email": queryParam},
-			{"razorpay_order_id": queryParam},
-		},
-	}).Decode(&order)
+	var filter bson.M
+	if len(cleanDigits) >= 10 {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+				{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: cleanDigits, Options: "i"}}},
+				{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+			},
+		}
+	} else {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+				{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+				{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+				{"razorpay_order_id": rawQuery},
+			},
+		}
+	}
 
+	// Always sort by created_at DESC so the LATEST / NEWEST order is fetched first
+	findOpts := options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(10)
+	cursor, err := collection.Find(ctx, filter, findOpts)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error":   "Order not found",
-			"query":   queryParam,
+			"query":   rawQuery,
+			"message": "No active order matches the provided Order ID, Email, or Phone Number",
+		})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var orders []models.Order
+	if err := cursor.All(ctx, &orders); err != nil || len(orders) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Order not found",
+			"query":   rawQuery,
 			"message": "No active order matches the provided Order ID, Email, or Phone Number",
 		})
 		return
 	}
 
-	etaDate := order.CreatedAt.Add(96 * time.Hour).Format("02 Jan 2006")
+	latestOrder := orders[0]
 
-	courier := order.CourierPartner
-	if courier == "" {
-		courier = order.CourierName
+	// Dynamic delivery ETA calculation based on customer pincode in shipping address
+	deliveryHours := 120
+	etaDaysText := "4-6 Business Days"
+	if strings.Contains(latestOrder.ShippingAddress, "700") || strings.Contains(latestOrder.ShippingAddress, "71") || strings.Contains(latestOrder.ShippingAddress, "72") || strings.Contains(latestOrder.ShippingAddress, "73") || strings.Contains(latestOrder.ShippingAddress, "74") {
+		deliveryHours = 72
+		etaDaysText = "2-3 Business Days"
+	} else if strings.Contains(latestOrder.ShippingAddress, "110") || strings.Contains(latestOrder.ShippingAddress, "400") || strings.Contains(latestOrder.ShippingAddress, "560") || strings.Contains(latestOrder.ShippingAddress, "600") || strings.Contains(latestOrder.ShippingAddress, "500") {
+		deliveryHours = 96
+		etaDaysText = "3-4 Business Days"
 	}
-	awb := order.AWBNumber
+	etaDate := fmt.Sprintf("%s (%s)", latestOrder.CreatedAt.Add(time.Duration(deliveryHours)*time.Hour).Format("02 Jan 2006"), etaDaysText)
+
+	courier := latestOrder.CourierPartner
+	if courier == "" {
+		courier = latestOrder.CourierName
+	}
+	awb := latestOrder.AWBNumber
 	if awb == "" {
-		awb = order.TrackingNumber
+		awb = latestOrder.TrackingNumber
+	}
+
+	// Prepare history of all orders for this customer query
+	type CompactOrder struct {
+		OrderID     string    `json:"order_id"`
+		OrderStatus string    `json:"order_status"`
+		TotalAmount float64   `json:"total_amount"`
+		CreatedAt   time.Time `json:"created_at"`
+	}
+
+	var allOrdersList []CompactOrder
+	for _, o := range orders {
+		allOrdersList = append(allOrdersList, CompactOrder{
+			OrderID:     o.OrderID,
+			OrderStatus: o.OrderStatus,
+			TotalAmount: o.TotalAmount,
+			CreatedAt:   o.CreatedAt,
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"order_id":               order.OrderID,
-		"customer_name":          order.CustomerName,
-		"customer_phone":         order.CustomerPhone,
-		"customer_email":         order.CustomerEmail,
-		"shipping_address":       order.ShippingAddress,
-		"total_amount":           order.TotalAmount,
-		"payment_method":         order.PaymentMethod,
-		"payment_status":         order.PaymentStatus,
-		"order_status":           order.OrderStatus,
+		"order_id":               latestOrder.OrderID,
+		"customer_name":          latestOrder.CustomerName,
+		"customer_phone":         latestOrder.CustomerPhone,
+		"customer_email":         latestOrder.CustomerEmail,
+		"shipping_address":       latestOrder.ShippingAddress,
+		"total_amount":           latestOrder.TotalAmount,
+		"payment_method":         latestOrder.PaymentMethod,
+		"payment_status":         latestOrder.PaymentStatus,
+		"order_status":           latestOrder.OrderStatus,
 		"courier_partner":        courier,
 		"courier_name":           courier,
 		"awb_number":             awb,
 		"tracking_number":        awb,
-		"shiprocket_order_id":    order.ShiprocketOrderID,
-		"shiprocket_shipment_id": order.ShiprocketShipmentID,
+		"shiprocket_order_id":    latestOrder.ShiprocketOrderID,
+		"shiprocket_shipment_id": latestOrder.ShiprocketShipmentID,
 		"delivery_eta":           etaDate,
-		"items":                  order.Items,
-		"created_at":             order.CreatedAt,
+		"items":                  latestOrder.Items,
+		"created_at":             latestOrder.CreatedAt,
+		"recent_orders":          allOrdersList,
 	})
 }
 
@@ -444,10 +517,34 @@ func UpdateOrderStatus(c *gin.Context) {
 	var existingOrder models.Order
 	_ = collection.FindOne(ctx, filter).Decode(&existingOrder)
 
-	updateFields := bson.M{
-		"order_status": targetStatus,
+	updateFields := bson.M{}
+	if targetStatus != "" {
+		updateFields["order_status"] = targetStatus
 	}
-
+	if payload.PaymentStatus != "" {
+		updateFields["payment_status"] = payload.PaymentStatus
+	}
+	if payload.PaymentMethod != "" {
+		updateFields["payment_method"] = payload.PaymentMethod
+	}
+	if payload.CustomerName != "" {
+		updateFields["customer_name"] = payload.CustomerName
+	}
+	if payload.CustomerPhone != "" {
+		updateFields["customer_phone"] = payload.CustomerPhone
+	}
+	if payload.CustomerEmail != "" {
+		updateFields["customer_email"] = payload.CustomerEmail
+	}
+	if payload.ShippingAddress != "" {
+		updateFields["shipping_address"] = payload.ShippingAddress
+	}
+	if payload.RazorpayPaymentID != "" {
+		updateFields["razorpay_payment_id"] = payload.RazorpayPaymentID
+	}
+	if payload.RazorpayOrderID != "" {
+		updateFields["razorpay_order_id"] = payload.RazorpayOrderID
+	}
 	if courier != "" {
 		updateFields["courier_partner"] = courier
 		updateFields["courier_name"] = courier

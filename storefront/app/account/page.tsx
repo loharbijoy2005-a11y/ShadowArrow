@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import TaxInvoiceModal from '@/components/TaxInvoiceModal';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import { User, Package, MapPin, LogOut, Plus, Trash2, Edit3, PhoneCall, FileText, Loader2, RefreshCw, Smartphone, Copy, Check, Truck } from 'lucide-react';
 import axios from 'axios';
 
@@ -675,6 +676,8 @@ export default function AccountPage() {
           </div>
         </div>
       )}
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav onToggleAI={() => {}} />
     </div>
   );
 }

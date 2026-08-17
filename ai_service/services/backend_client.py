@@ -38,3 +38,21 @@ def create_support_ticket(customer_phone: str, issue_text: str, priority: str = 
     except Exception as e:
         logger.error(f"Failed to create support ticket: {e}")
         return {"error": True, "message": "Support service temporarily offline."}
+
+def fetch_products(category: str = "") -> list:
+    """Queries Golang backend GET /api/v1/products."""
+    url = f"{BACKEND_URL}/api/v1/products?limit=50"
+    if category:
+        url += f"&category={category}"
+    try:
+        resp = requests.get(url, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, dict):
+                return data.get("products", [])
+            elif isinstance(data, list):
+                return data
+        return []
+    except Exception as e:
+        logger.error(f"Failed to fetch products for AI service: {e}")
+        return []

@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
     if (isOutOfStock) return;
     handleAddToCart();
     setIsCartOpen(false);
-    router.push('/checkout');
+    router.push('/checkout?buyNow=true');
   };
 
   if (loading || !product) {

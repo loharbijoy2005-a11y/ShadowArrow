@@ -30,8 +30,13 @@ export default function OrdersAdminPage() {
   // Status Edit Modal State
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [newStatus, setNewStatus] = useState('CONFIRMED');
+  const [paymentStatus, setPaymentStatus] = useState('PAID');
+  const [custName, setCustName] = useState('');
+  const [custPhone, setCustPhone] = useState('');
+  const [shippingAddress, setShippingAddress] = useState('');
   const [courierName, setCourierName] = useState('Blue Dart Express');
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [txnId, setTxnId] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -72,6 +77,11 @@ export default function OrdersAdminPage() {
         {
           order_status: newStatus,
           status: newStatus,
+          payment_status: paymentStatus,
+          customer_name: custName.trim(),
+          customer_phone: custPhone.trim(),
+          shipping_address: shippingAddress.trim(),
+          razorpay_payment_id: txnId.trim(),
           courier_partner: courierName,
           courier_name: courierName,
           awb_number: trackingNumber.trim(),
@@ -82,7 +92,7 @@ export default function OrdersAdminPage() {
       setEditingOrder(null);
       if (token) fetchOrders(token, statusFilter);
     } catch (err) {
-      alert('Failed to update order status & shipment AWB');
+      alert('Failed to update order details in MongoDB');
     } finally {
       setSubmitting(false);
     }
@@ -96,7 +106,7 @@ export default function OrdersAdminPage() {
         <header className="flex justify-between items-center pb-6 border-b border-ops-700">
           <div>
             <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ORDER FULFILLMENT DESK</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">Customer dispatch queue, AWB tracking pipeline & lifecycle states</p>
+            <p className="text-xs text-gray-400 font-mono mt-1">Customer dispatch queue, Razorpay Txn IDs, AWB tracking pipeline & real-time MongoDB sync</p>
           </div>
           <div className="flex items-center space-x-3">
             <select
@@ -129,7 +139,7 @@ export default function OrdersAdminPage() {
                 <th className="p-4">Order ID & Date</th>
                 <th className="p-4">Customer Details</th>
                 <th className="p-4">Items Summary</th>
-                <th className="p-4">Payment</th>
+                <th className="p-4">Payment & Razorpay Txn</th>
                 <th className="p-4">Fulfillment Status & AWB</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -146,6 +156,7 @@ export default function OrdersAdminPage() {
                   const id = ord.order_id || ord.id || ord._id;
                   const courier = ord.courier_partner || ord.courier_name;
                   const awb = ord.awb_number || ord.tracking_number;
+                  const razorpayTxn = ord.razorpay_payment_id || ord.razorpay_order_id;
 
                   return (
                     <tr key={id} className="hover:bg-ops-700/50 transition">
@@ -184,6 +195,11 @@ export default function OrdersAdminPage() {
                             {ord.payment_status}
                           </span>
                         </div>
+                        {ord.payment_method === 'ONLINE' && razorpayTxn && (
+                          <div className="mt-1 text-[10px] text-gray-300 bg-ops-900 px-2 py-1 rounded border border-ops-700" title={razorpayTxn}>
+                            Txn ID: <strong className="text-blue-300 font-bold">{razorpayTxn}</strong>
+                          </div>
+                        )}
                       </td>
                       <td className="p-4">
                         <div className="space-y-1">
@@ -218,14 +234,19 @@ export default function OrdersAdminPage() {
                             onClick={() => {
                               setEditingOrder(ord);
                               setNewStatus(ord.order_status || 'SHIPPED');
+                              setPaymentStatus(ord.payment_status || 'PAID');
+                              setCustName(ord.customer_name || '');
+                              setCustPhone(ord.customer_phone || '');
+                              setShippingAddress(ord.shipping_address || '');
                               setCourierName(ord.courier_partner || ord.courier_name || 'Blue Dart Express');
                               setTrackingNumber(ord.awb_number || ord.tracking_number || '');
+                              setTxnId(ord.razorpay_payment_id || ord.razorpay_order_id || '');
                             }}
                             className="p-2 text-gray-400 hover:text-purple-400 rounded-lg hover:bg-ops-700 flex items-center space-x-1 text-xs"
-                            title="Update Courier & AWB Number"
+                            title="Edit Order Details & AWB"
                           >
                             <Truck className="w-4 h-4" />
-                            <span className="hidden md:inline font-mono font-bold text-blue-400">Update AWB</span>
+                            <span className="hidden md:inline font-mono font-bold text-blue-400">Edit Details</span>
                           </button>
                         </div>
                       </td>
@@ -249,49 +270,107 @@ export default function OrdersAdminPage() {
       {/* Update Order Status & Shipment Modal */}
       {editingOrder && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-ops-800 border border-ops-700 max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-mono font-bold text-white">UPDATE SHIPMENT & AWB DETAILS</h3>
+          <div className="bg-ops-800 border border-ops-700 max-w-lg w-full rounded-xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-mono font-bold text-white uppercase">Edit Order & Real-Time MongoDB Sync</h3>
             <p className="text-xs text-gray-400 font-mono">Order Ref: #{editingOrder.order_id}</p>
 
-            <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 text-sm">
-              <div>
-                <label className="block text-xs font-mono text-gray-400 uppercase mb-1">Fulfillment Status</label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white font-mono"
-                >
-                  <option value="CONFIRMED">1. CONFIRMED (Order Placed)</option>
-                  <option value="PROCESSING">2. PROCESSING (Packed & Ready)</option>
-                  <option value="SHIPPED">3. SHIPPED (Handed to Courier)</option>
-                  <option value="DELIVERED">4. DELIVERED (Package Delivered)</option>
-                  <option value="CANCELLED">5. CANCELLED (Restock Items)</option>
-                  <option value="REFUNDED">6. REFUNDED (Payment Refunded)</option>
-                </select>
+            <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 text-sm font-mono">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">1. Fulfillment Status</label>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  >
+                    <option value="CONFIRMED">CONFIRMED (Order Placed)</option>
+                    <option value="PROCESSING">PROCESSING (Packed & Ready)</option>
+                    <option value="SHIPPED">SHIPPED (Handed to Courier)</option>
+                    <option value="DELIVERED">DELIVERED (Package Delivered)</option>
+                    <option value="CANCELLED">CANCELLED (Restock Items)</option>
+                    <option value="REFUNDED">REFUNDED (Payment Refunded)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">2. Payment Status</label>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  >
+                    <option value="PAID">PAID</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="REFUNDED">REFUNDED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">3. Customer Name</label>
+                  <input
+                    type="text"
+                    value={custName}
+                    onChange={(e) => setCustName(e.target.value)}
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">4. Customer Mobile</label>
+                  <input
+                    type="text"
+                    value={custPhone}
+                    onChange={(e) => setCustPhone(e.target.value)}
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-gray-400 uppercase mb-1">1. Courier Partner</label>
-                <select
-                  value={courierName}
-                  onChange={(e) => setCourierName(e.target.value)}
-                  className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white font-mono"
-                >
-                  {INDIAN_COURIERS.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <label className="block text-xs text-gray-400 uppercase mb-1">5. Shipping Address</label>
+                <textarea
+                  rows={2}
+                  value={shippingAddress}
+                  onChange={(e) => setShippingAddress(e.target.value)}
+                  className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">6. Courier Partner</label>
+                  <select
+                    value={courierName}
+                    onChange={(e) => setCourierName(e.target.value)}
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  >
+                    {INDIAN_COURIERS.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase mb-1">7. AWB / Tracking No</label>
+                  <input
+                    type="text"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder="e.g. AWB-984729104"
+                    className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-gray-400 uppercase mb-1">2. AWB / Tracking Number (Mandatory)</label>
+                <label className="block text-xs text-gray-400 uppercase mb-1">8. Razorpay Payment / Txn ID</label>
                 <input
                   type="text"
-                  required
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="e.g. AWB-984729104 or DELHIVERY-883921"
-                  className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white font-mono"
+                  value={txnId}
+                  onChange={(e) => setTxnId(e.target.value)}
+                  placeholder="e.g. pay_online_17283921"
+                  className="w-full bg-ops-900 border border-ops-700 rounded p-2.5 text-white text-xs font-mono"
                 />
               </div>
 
@@ -299,16 +378,16 @@ export default function OrdersAdminPage() {
                 <button
                   type="button"
                   onClick={() => setEditingOrder(null)}
-                  className="px-4 py-2 bg-ops-700 text-gray-300 rounded hover:bg-ops-600"
+                  className="px-4 py-2 bg-ops-700 text-gray-300 rounded hover:bg-ops-600 text-xs font-mono"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-500 disabled:opacity-50"
+                  className="px-6 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-500 disabled:opacity-50 text-xs font-mono font-bold"
                 >
-                  {submitting ? 'Saving AWB...' : 'Save / Dispatch'}
+                  {submitting ? 'Syncing to MongoDB...' : 'Save & Sync MongoDB'}
                 </button>
               </div>
             </form>

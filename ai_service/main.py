@@ -27,6 +27,16 @@ class ChatResponse(BaseModel):
     response: str
     status: str = "success"
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": "Shadow AI Stylist & Support Microservice",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "ai_service", "port": PORT}

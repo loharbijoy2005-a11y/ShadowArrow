@@ -121,8 +121,8 @@ func DispatchToShiprocket(order *models.Order) (int, int, error) {
 		})
 	}
 
-	city := "Kolkata"
-	pincode := "700091"
+	city := "Bankura"
+	pincode := "722157"
 	state := "West Bengal"
 
 	srReq := ShiprocketOrderRequest{

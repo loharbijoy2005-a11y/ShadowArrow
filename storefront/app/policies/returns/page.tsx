@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import { RefreshCw, CheckCircle2, AlertOctagon, RotateCcw, CreditCard } from 'lucide-react';
 
@@ -119,8 +118,6 @@ export default function ReturnsPolicyPage() {
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

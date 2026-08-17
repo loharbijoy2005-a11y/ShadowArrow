@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import { Scale, CheckCircle2, ShieldAlert, Copyright, HelpCircle } from 'lucide-react';
 
@@ -103,8 +102,6 @@ export default function TermsOfServicePage() {
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import { ShieldCheck, Lock, Eye, Server, FileText } from 'lucide-react';
 
@@ -107,8 +106,6 @@ export default function PrivacyPolicyPage() {
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import axios from 'axios';
 import { Search, Package, Truck, CheckCircle2, AlertCircle, Clock, Calendar, Copy, Check, FileText, CheckCircle } from 'lucide-react';
 import TaxInvoiceModal from '@/components/TaxInvoiceModal';
@@ -283,7 +282,6 @@ export default function TrackOrderPage() {
         )}
       </main>
 
-      <Footer />
       <MobileBottomNav onToggleAI={() => {}} />
     </div>
   );

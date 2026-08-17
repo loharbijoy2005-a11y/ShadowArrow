@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import { Truck, Clock, MapPin, ShieldCheck, FileCheck } from 'lucide-react';
 
@@ -115,8 +114,6 @@ export default function ShippingPolicyPage() {
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

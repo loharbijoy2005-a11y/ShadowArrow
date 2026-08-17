@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ShoppingCart, Phone, MessageSquare, Mail, RefreshCw, Clock, ArrowRight, UserCheck, Package, AlertCircle, Layers } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const STOREFRONT_URL = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://shadowarrow.in';
 
 export default function AbandonedCartsPage() {
   const [carts, setCarts] = useState<any[]>([]);
@@ -73,7 +74,7 @@ export default function AbandonedCartsPage() {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const num = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
     const itemListStr = items.map((i) => `• ${i.title} (Qty: ${i.quantity})`).join('\n');
-    const msg = `Hi ${name || 'there'}! 👋 We noticed you left some stylish items in your SHADOW ARROW cart:\n\n${itemListStr}\n\nComplete your order now & claim FREE express delivery! 🚀\nShop now: http://localhost:3000/checkout`;
+    const msg = `Hi ${name || 'there'}! 👋 We noticed you left some stylish items in your SHADOW ARROW cart:\n\n${itemListStr}\n\nComplete your order now & claim FREE express delivery! 🚀\nShop now: ${STOREFRONT_URL}/checkout`;
     return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -175,7 +176,7 @@ export default function AbandonedCartsPage() {
             <h2 className="font-mono font-bold text-sm uppercase text-white tracking-wider">
               Customer Cart Session Registry ({filteredCarts.length} / {carts.length})
             </h2>
-            <span className="text-xs font-mono text-gray-400">Real-time LocalStorage + DB Sync</span>
+            <span className="text-xs font-mono text-gray-400">Real-time Cloud Session & DB Sync</span>
           </div>
 
           {loading ? (
@@ -290,7 +291,7 @@ export default function AbandonedCartsPage() {
 
                           {c.customer_email && (
                             <a
-                              href={`mailto:${c.customer_email}?subject=Your SHADOW ARROW Cart is Waiting!&body=Hi ${c.customer_name || 'Customer'},\n\nWe saved your cart items! Complete your purchase today with Free Delivery: http://localhost:3000/checkout`}
+                              href={`mailto:${c.customer_email}?subject=Your SHADOW ARROW Cart is Waiting!&body=Hi ${c.customer_name || 'Customer'},\n\nWe saved your cart items! Complete your purchase today with Free Delivery: ${STOREFRONT_URL}/checkout`}
                               className="p-2.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white rounded-xl transition flex items-center space-x-1 font-bold text-[11px]"
                               title="Send Email Reminder"
                             >

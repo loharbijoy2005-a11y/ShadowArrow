@@ -614,13 +614,18 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Animated Truck Order Button */}
+            {/* Dynamic Order Action Button */}
             <TruckOrderButton
               type="submit"
               disabled={loading}
               loading={loading}
               onValidate={validateCheckoutForm}
-              defaultText="PLACE ORDER"
+              isCOD={paymentMethod === 'COD'}
+              defaultText={
+                paymentMethod === 'COD'
+                  ? 'PLACE ORDER (COD)'
+                  : `PROCEED TO PAY ₹${subtotal.toFixed(2)}`
+              }
             />
           </div>
         </form>

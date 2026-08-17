@@ -5,7 +5,7 @@ import Navigation from '@/components/Navigation';
 import InvoiceModal from '@/components/InvoiceModal';
 import ThermalLabelModal from '@/components/ThermalLabelModal';
 import axios from 'axios';
-import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X, Printer } from 'lucide-react';
+import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X, Printer, Banknote, CreditCard, AlertCircle, Package, Layers } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -308,35 +308,40 @@ export default function OrdersAdminPage() {
           </div>
         </header>
 
-        {/* Dedicated Section Filter Tabs Bar */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs pb-2 border-b border-ops-700/60">
+        {/* Sleek Professional Section Filter Tabs Bar (Lucide Icons, Neutral Elegant Dark Theme) */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs pb-3 border-b border-ops-700/60">
           {[
-            { id: 'ALL', label: 'All Orders', count: sectionCounts.ALL, color: 'border-gray-600 text-white bg-ops-800' },
-            { id: 'COD', label: '💵 COD (Cash on Delivery)', count: sectionCounts.COD, color: 'border-amber-500/40 text-amber-300 bg-amber-500/10' },
-            { id: 'ONLINE', label: '💳 Online Paid', count: sectionCounts.ONLINE, color: 'border-blue-500/40 text-blue-300 bg-blue-500/10' },
-            { id: 'ONLINE_FAIL', label: '⚠️ Payment Failed / Unpaid', count: sectionCounts.ONLINE_FAIL, color: 'border-red-500/40 text-red-300 bg-red-500/10' },
-            { id: 'CONFIRMED', label: '⏳ Confirmed / Placed', count: sectionCounts.CONFIRMED, color: 'border-indigo-500/40 text-indigo-300 bg-indigo-500/10' },
-            { id: 'PROCESSING', label: '📦 Packed & Processing', count: sectionCounts.PROCESSING, color: 'border-purple-500/40 text-purple-300 bg-purple-500/10' },
-            { id: 'SHIPPED', label: '🚚 Shipped / In Transit', count: sectionCounts.SHIPPED, color: 'border-cyan-500/40 text-cyan-300 bg-cyan-500/10' },
-            { id: 'DELIVERED', label: '✅ Delivered', count: sectionCounts.DELIVERED, color: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10' },
-            { id: 'CANCELLED', label: '❌ Cancelled / Restocked', count: sectionCounts.CANCELLED, color: 'border-rose-500/40 text-rose-300 bg-rose-500/10' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-2 rounded-xl border transition flex items-center space-x-1.5 font-bold ${
-                statusFilter === tab.id
-                  ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-2 ring-blue-500/50'
-                  : `${tab.color} hover:bg-ops-700`
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 font-mono">
-                {tab.count}
-              </span>
-            </button>
-          ))}
+            { id: 'ALL', label: 'All Orders', count: sectionCounts.ALL, Icon: Layers, iconColor: 'text-gray-400' },
+            { id: 'COD', label: 'COD (Cash on Delivery)', count: sectionCounts.COD, Icon: Banknote, iconColor: 'text-amber-400' },
+            { id: 'ONLINE', label: 'Online Paid', count: sectionCounts.ONLINE, Icon: CreditCard, iconColor: 'text-blue-400' },
+            { id: 'ONLINE_FAIL', label: 'Payment Failed / Unpaid', count: sectionCounts.ONLINE_FAIL, Icon: AlertCircle, iconColor: 'text-red-400' },
+            { id: 'CONFIRMED', label: 'Confirmed / Placed', count: sectionCounts.CONFIRMED, Icon: Clock, iconColor: 'text-indigo-400' },
+            { id: 'PROCESSING', label: 'Packed & Processing', count: sectionCounts.PROCESSING, Icon: Package, iconColor: 'text-purple-400' },
+            { id: 'SHIPPED', label: 'Shipped / In Transit', count: sectionCounts.SHIPPED, Icon: Truck, iconColor: 'text-cyan-400' },
+            { id: 'DELIVERED', label: 'Delivered', count: sectionCounts.DELIVERED, Icon: CheckCircle2, iconColor: 'text-emerald-400' },
+            { id: 'CANCELLED', label: 'Cancelled / Restocked', count: sectionCounts.CANCELLED, Icon: XCircle, iconColor: 'text-rose-400' },
+          ].map((tab) => {
+            const IconComponent = tab.Icon;
+            const isSelected = statusFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setStatusFilter(tab.id)}
+                className={`px-3 py-2 rounded-xl border transition flex items-center space-x-2 font-bold text-xs ${
+                  isSelected
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                    : 'bg-ops-800 border-ops-700/80 text-gray-300 hover:bg-ops-700 hover:text-white'
+                }`}
+              >
+                <IconComponent className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : tab.iconColor}`} />
+                <span>{tab.label}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${isSelected ? 'bg-black/30 text-white' : 'bg-ops-900 text-gray-400'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Date & Time Calendar Control Bar */}

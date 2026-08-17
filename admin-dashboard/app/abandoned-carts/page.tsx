@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
-import { ShoppingCart, Phone, MessageSquare, Mail, RefreshCw, Clock, ArrowRight, UserCheck, Package } from 'lucide-react';
+import { ShoppingCart, Phone, MessageSquare, Mail, RefreshCw, Clock, ArrowRight, UserCheck, Package, AlertCircle, Layers } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -108,29 +108,35 @@ export default function AbandonedCartsPage() {
           </button>
         </div>
 
-        {/* Dedicated Abandoned Lead Category Tabs */}
+        {/* Sleek Professional Category Tabs (Lucide Icons, Neutral Dark Theme) */}
         <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
           {[
-            { id: 'ALL', label: 'All Lead Sessions', count: cartCounts.ALL, color: 'border-gray-600 text-white bg-ops-800' },
-            { id: 'PAYMENT_CANCELLED', label: '❌ Payment Popup Cancelled / Failed', count: cartCounts.PAYMENT_CANCELLED, color: 'border-red-500/40 text-red-300 bg-red-500/10' },
-            { id: 'PENDING_ONLINE_PAYMENT', label: '⏳ Pending Online Payment', count: cartCounts.PENDING_ONLINE_PAYMENT, color: 'border-amber-500/40 text-amber-300 bg-amber-500/10' },
-            { id: 'ABANDONED_CART', label: '🛒 Left In Cart (Before Checkout)', count: cartCounts.ABANDONED_CART, color: 'border-blue-500/40 text-blue-300 bg-blue-500/10' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setCategoryFilter(tab.id)}
-              className={`px-4 py-2.5 rounded-xl border transition flex items-center space-x-2 font-bold ${
-                categoryFilter === tab.id
-                  ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-2 ring-blue-500/50'
-                  : `${tab.color} hover:bg-ops-700`
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/40 font-mono">
-                {tab.count}
-              </span>
-            </button>
-          ))}
+            { id: 'ALL', label: 'All Lead Sessions', count: cartCounts.ALL, Icon: Layers, iconColor: 'text-gray-400' },
+            { id: 'PAYMENT_CANCELLED', label: 'Payment Popup Cancelled / Failed', count: cartCounts.PAYMENT_CANCELLED, Icon: AlertCircle, iconColor: 'text-red-400' },
+            { id: 'PENDING_ONLINE_PAYMENT', label: 'Pending Online Payment', count: cartCounts.PENDING_ONLINE_PAYMENT, Icon: Clock, iconColor: 'text-amber-400' },
+            { id: 'ABANDONED_CART', label: 'Left In Cart (Before Checkout)', count: cartCounts.ABANDONED_CART, Icon: ShoppingCart, iconColor: 'text-blue-400' },
+          ].map((tab) => {
+            const IconComponent = tab.Icon;
+            const isSelected = categoryFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setCategoryFilter(tab.id)}
+                className={`px-4 py-2.5 rounded-xl border transition flex items-center space-x-2 font-bold text-xs ${
+                  isSelected
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                    : 'bg-ops-800 border-ops-700/80 text-gray-300 hover:bg-ops-700 hover:text-white'
+                }`}
+              >
+                <IconComponent className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : tab.iconColor}`} />
+                <span>{tab.label}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${isSelected ? 'bg-black/30 text-white' : 'bg-ops-900 text-gray-400'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Analytics Stat Cards */}

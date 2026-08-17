@@ -108,6 +108,7 @@ export default function AccountPage() {
       if (phone) queryUrl += `phone=${encodeURIComponent(phone)}&`;
       if (email) queryUrl += `email=${encodeURIComponent(email)}`;
 
+      const res = await axios.get(queryUrl);
       const rawOrders = Array.isArray(res.data) ? res.data : [];
       const sortedOrders = [...rawOrders].sort((a: any, b: any) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;

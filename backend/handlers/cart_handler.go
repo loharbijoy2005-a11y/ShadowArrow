@@ -85,27 +85,92 @@ func GetAbandonedCarts(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	collection := db.GetCollection("abandoned_carts")
+	cartCollection := db.GetCollection("abandoned_carts")
+	orderCollection := db.GetCollection("orders")
 
-	opts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}).SetLimit(50)
-	cursor, err := collection.Find(ctx, bson.M{
-		"items": bson.M{"$not": bson.M{"$size": 0}},
-	}, opts)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch abandoned carts"})
-		return
-	}
-	defer cursor.Close(ctx)
+	seenKeys := make(map[string]bool)
+	var combinedLeads []models.AbandonedCart
 
-	var carts []models.AbandonedCart
-	if err := cursor.All(ctx, &carts); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse abandoned carts"})
-		return
-	}
-
-	if carts == nil {
-		carts = []models.AbandonedCart{}
+	// 1. Fetch unpaid / cancelled / pending online payment orders
+	orderOpts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(50)
+	orderFilter := bson.M{
+		"payment_method": "ONLINE",
+		"$or": []bson.M{
+			{"payment_status": bson.M{"$ne": "PAID"}},
+			{"order_status": "PENDING_PAYMENT"},
+			{"order_status": "CANCELLED"},
+		},
 	}
 
-	c.JSON(http.StatusOK, carts)
+	orderCursor, err := orderCollection.Find(ctx, orderFilter, orderOpts)
+	if err == nil {
+		var pendingOrders []models.Order
+		if err := orderCursor.All(ctx, &pendingOrders); err == nil {
+			for _, ord := range pendingOrders {
+				key := ord.CustomerPhone
+				if key == "" {
+					key = ord.OrderID
+				}
+				if !seenKeys[key] {
+					seenKeys[key] = true
+					var cartItems []models.CartSyncItem
+					for _, it := range ord.Items {
+						cartItems = append(cartItems, models.CartSyncItem{
+							ProductID: it.ProductID,
+							Title:     it.Title,
+							Price:     it.Price,
+							Quantity:  it.Quantity,
+							Size:      it.Size,
+							Image:     it.Image,
+						})
+					}
+					status := "PENDING_ONLINE_PAYMENT"
+					if ord.OrderStatus == "CANCELLED" || ord.PaymentStatus == "CANCELLED" {
+						status = "PAYMENT_CANCELLED"
+					}
+					combinedLeads = append(combinedLeads, models.AbandonedCart{
+						SessionID:     ord.OrderID,
+						CustomerName:  ord.CustomerName,
+						CustomerPhone: ord.CustomerPhone,
+						CustomerEmail: ord.CustomerEmail,
+						Items:         cartItems,
+						TotalAmount:   ord.TotalAmount,
+						Status:        status,
+						UpdatedAt:     ord.CreatedAt,
+					})
+				}
+			}
+		}
+		orderCursor.Close(ctx)
+	}
+
+	// 2. Fetch active abandoned cart sessions from checkout
+	cartOpts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}).SetLimit(50)
+	cartFilter := bson.M{
+		"items":  bson.M{"$not": bson.M{"$size": 0}},
+		"status": bson.M{"$ne": "COMPLETED"},
+	}
+	cartCursor, err := cartCollection.Find(ctx, cartFilter, cartOpts)
+	if err == nil {
+		var activeCarts []models.AbandonedCart
+		if err := cartCursor.All(ctx, &activeCarts); err == nil {
+			for _, ac := range activeCarts {
+				key := ac.CustomerPhone
+				if key == "" {
+					key = ac.SessionID
+				}
+				if !seenKeys[key] {
+					seenKeys[key] = true
+					combinedLeads = append(combinedLeads, ac)
+				}
+			}
+		}
+		cartCursor.Close(ctx)
+	}
+
+	if combinedLeads == nil {
+		combinedLeads = []models.AbandonedCart{}
+	}
+
+	c.JSON(http.StatusOK, combinedLeads)
 }

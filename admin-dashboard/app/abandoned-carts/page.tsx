@@ -151,9 +151,24 @@ export default function AbandonedCartsPage() {
                         <p className="font-bold text-white text-sm">{c.customer_name || 'Guest User'}</p>
                         <p className="text-blue-400 font-bold">{c.customer_phone || 'Phone not provided'}</p>
                         <p className="text-gray-400 text-[11px]">{c.customer_email || 'Email not provided'}</p>
-                        <span className="inline-block px-2 py-0.5 bg-ops-700 text-gray-400 rounded text-[9px]">
-                          ID: {c.session_id ? c.session_id.substring(0, 16) + '...' : 'Unknown'}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1 pt-1">
+                          {c.status === 'PENDING_ONLINE_PAYMENT' ? (
+                            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[10px] font-bold">
+                              ⏳ PENDING ONLINE PAY
+                            </span>
+                          ) : c.status === 'PAYMENT_CANCELLED' ? (
+                            <span className="px-2 py-0.5 bg-red-500/20 text-red-300 border border-red-500/30 rounded text-[10px] font-bold">
+                              ❌ PAY POPUP CANCELLED
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded text-[10px] font-bold">
+                              🛒 ABANDONED CART
+                            </span>
+                          )}
+                          <span className="px-1.5 py-0.5 bg-ops-700 text-gray-400 rounded text-[9px]">
+                            ID: {c.session_id ? c.session_id : 'Unknown'}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Items List */}

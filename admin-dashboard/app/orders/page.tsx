@@ -275,14 +275,14 @@ export default function OrdersAdminPage() {
         {/* Top Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-ops-700">
           <div>
-            <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ORDER FULFILLMENT DESK</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">Calendar date range lookup, 4x6 Thermal batch labels, Txn IDs & real-time MongoDB pipeline</p>
+            <h1 className="text-2xl font-black tracking-tight text-white font-sans">ORDER FULFILLMENT DESK</h1>
+            <p className="text-xs text-gray-400 mt-1 font-sans">Calendar date range lookup, 4x6 Thermal batch labels, Txn IDs & real-time MongoDB pipeline</p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 font-sans">
             <button
               onClick={handlePrintBatchThermal}
               disabled={filteredOrders.length === 0}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-mono font-bold rounded-lg transition shadow"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition shadow"
               title="Print Batch 4x6 Thermal Labels"
             >
               <Printer className="w-4 h-4" />
@@ -292,7 +292,7 @@ export default function OrdersAdminPage() {
             <button
               onClick={handleExportCSV}
               disabled={filteredOrders.length === 0}
-              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-mono font-bold rounded-lg transition shadow"
+              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition shadow"
               title="Export filtered orders manifest to CSV"
             >
               <Download className="w-4 h-4" />
@@ -555,10 +555,11 @@ export default function OrdersAdminPage() {
                       </td>
                       <td className="p-4">
                         <div className="space-y-1">
-                          <span className={`inline-block px-2.5 py-1 rounded text-xs font-mono font-bold ${
+                          <span className={`inline-block px-2.5 py-1 rounded text-xs font-bold ${
                             ord.order_status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                            ord.order_status === 'SHIPPED' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                            ord.order_status === 'CANCELLED' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                            ord.order_status === 'SHIPPED' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' :
+                            ord.order_status === 'PROCESSING' || ord.order_status === 'PACKED' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                            ord.order_status === 'CANCELLED' || ord.order_status === 'REFUNDED' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
                             'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           }`}>
                             {ord.order_status}

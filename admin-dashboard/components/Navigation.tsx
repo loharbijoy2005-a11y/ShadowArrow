@@ -34,7 +34,7 @@ export default function Navigation({ onLogout }: NavigationProps) {
   };
 
   return (
-    <aside className="w-64 bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0 font-mono text-xs">
+    <aside className="w-64 bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0 font-sans text-xs">
       <div className="overflow-y-auto">
         <div className="p-5 border-b border-ops-700 flex items-center justify-between">
           <div className="flex items-center space-x-3">

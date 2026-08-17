@@ -403,11 +403,12 @@ export default function AccountPage() {
                         </div>
 
                         <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold uppercase border ${
+                          <span className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase border ${
                             ord.order_status === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                            ord.order_status === 'SHIPPED' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                            ord.order_status === 'CANCELLED' ? 'bg-red-100 text-red-800 border-red-300' :
-                            'bg-amber-100 text-amber-800 border-amber-300'
+                            ord.order_status === 'SHIPPED' ? 'bg-cyan-100 text-cyan-800 border-cyan-300' :
+                            ord.order_status === 'PROCESSING' || ord.order_status === 'PACKED' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                            ord.order_status === 'CANCELLED' || ord.order_status === 'REFUNDED' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                            'bg-blue-100 text-blue-800 border-blue-300'
                           }`}>
                             {ord.order_status}
                           </span>

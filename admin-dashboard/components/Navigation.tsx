@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, BarChart3, HelpCircle, Users, Lock, LogOut, ShoppingCart, Palette, Tag, Truck, FileText, Settings, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, BarChart3, HelpCircle, Users, Lock, LogOut, ShoppingCart, Palette, Tag, Truck, FileText, Settings, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { useAdminTheme } from '@/context/ThemeContext';
 
 interface NavigationProps {
@@ -12,7 +12,7 @@ interface NavigationProps {
 
 export default function Navigation({ onLogout }: NavigationProps) {
   const pathname = usePathname();
-  const { setIsCustomizerOpen } = useAdminTheme();
+  const { setIsCustomizerOpen, theme, setMode } = useAdminTheme();
 
   const navItems = [
     { name: 'Control Overview', href: '/', icon: LayoutDashboard },
@@ -29,6 +29,10 @@ export default function Navigation({ onLogout }: NavigationProps) {
     { name: 'Sales Analytics', href: '/analytics', icon: BarChart3 },
   ];
 
+  const toggleQuickMode = () => {
+    setMode(theme.mode === 'LIGHT' ? 'DARK' : 'LIGHT');
+  };
+
   return (
     <aside className="w-64 bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0 font-mono text-xs">
       <div className="overflow-y-auto">
@@ -43,13 +47,23 @@ export default function Navigation({ onLogout }: NavigationProps) {
             </div>
           </div>
 
-          <button
-            onClick={() => setIsCustomizerOpen(true)}
-            className="p-1.5 rounded-lg bg-ops-700 hover:bg-ops-600 text-gray-300 transition"
-            title="Customize Theme"
-          >
-            <Palette className="w-3.5 h-3.5 text-blue-400" />
-          </button>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={toggleQuickMode}
+              className="p-1.5 rounded-lg bg-ops-700 hover:bg-ops-600 text-gray-300 transition"
+              title={theme.mode === 'LIGHT' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            >
+              {theme.mode === 'LIGHT' ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+            </button>
+
+            <button
+              onClick={() => setIsCustomizerOpen(true)}
+              className="p-1.5 rounded-lg bg-ops-700 hover:bg-ops-600 text-gray-300 transition"
+              title="Open Theme & Color Customizer Sliders"
+            >
+              <Palette className="w-3.5 h-3.5 text-purple-400" />
+            </button>
+          </div>
         </div>
 
         <nav className="p-3 space-y-1">
@@ -75,6 +89,19 @@ export default function Navigation({ onLogout }: NavigationProps) {
       </div>
 
       <div className="p-3 border-t border-ops-700 space-y-1.5 shrink-0 bg-ops-800">
+        <button
+          onClick={() => setIsCustomizerOpen(true)}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-gray-300 bg-ops-700 hover:bg-ops-600 transition"
+        >
+          <div className="flex items-center space-x-2">
+            <Palette className="w-3.5 h-3.5 text-purple-400" />
+            <span>Theme Sliders</span>
+          </div>
+          <span className="text-[9px] px-1.5 py-0.5 bg-black/40 rounded text-blue-400 font-bold">
+            {theme.mode}
+          </span>
+        </button>
+
         <button
           onClick={onLogout}
           className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition"

@@ -19,6 +19,14 @@ func GetDefaultThemeSettings() models.SiteThemeSettings {
 		SupportEmail:       "support.shadowarrow@gmail.com",
 		SupportPhone:       "+91 9002376609",
 		CurrencySymbol:     "₹",
+		
+		AccentHue:          217,
+		BgDarkness:         96,
+		GlowIntensity:      70,
+		BuyNowHue:          142,
+		AddCartHue:         217,
+		CheckoutHue:        217,
+
 		PrimaryColor:       "#2563eb",
 		BuyNowBtnColor:     "#16a34a",
 		AddCartBtnColor:    "#0f172a",
@@ -76,6 +84,12 @@ func UpdateThemeSettings(c *gin.Context) {
 			"support_email":        payload.SupportEmail,
 			"support_phone":        payload.SupportPhone,
 			"currency_symbol":      payload.CurrencySymbol,
+			"accent_hue":           payload.AccentHue,
+			"bg_darkness":          payload.BgDarkness,
+			"glow_intensity":       payload.GlowIntensity,
+			"buy_now_hue":          payload.BuyNowHue,
+			"add_cart_hue":         payload.AddCartHue,
+			"checkout_hue":         payload.CheckoutHue,
 			"primary_color":        payload.PrimaryColor,
 			"buy_now_btn_color":    payload.BuyNowBtnColor,
 			"add_cart_btn_color":   payload.AddCartBtnColor,
@@ -103,7 +117,7 @@ func UpdateThemeSettings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "Storefront & Admin theme settings updated successfully",
+		"message":  "Storefront & Admin HSL Master theme settings updated successfully",
 		"settings": payload,
 	})
 }

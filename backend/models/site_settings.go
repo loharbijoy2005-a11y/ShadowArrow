@@ -13,7 +13,14 @@ type SiteThemeSettings struct {
 	SupportPhone       string             `json:"support_phone" bson:"support_phone"`
 	CurrencySymbol     string             `json:"currency_symbol" bson:"currency_symbol"`
 	
-	// Granular Theme Colors
+	// Enterprise Master HSL & Slider Controls
+	AccentHue          int                `json:"accent_hue" bson:"accent_hue"`                   // 0-360°
+	BgDarkness         int                `json:"bg_darkness" bson:"bg_darkness"`                 // 0-100%
+	GlowIntensity      int                `json:"glow_intensity" bson:"glow_intensity"`           // 0-100%
+	BuyNowHue          int                `json:"buy_now_hue" bson:"buy_now_hue"`                 // 0-360°
+	AddCartHue         int                `json:"add_cart_hue" bson:"add_cart_hue"`               // 0-360°
+	CheckoutHue        int                `json:"checkout_hue" bson:"checkout_hue"`               // 0-360°
+
 	PrimaryColor       string             `json:"primary_color" bson:"primary_color"`
 	BuyNowBtnColor     string             `json:"buy_now_btn_color" bson:"buy_now_btn_color"`
 	AddCartBtnColor    string             `json:"add_cart_btn_color" bson:"add_cart_btn_color"`

@@ -3,17 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #2563eb;
-  --color-buy-now: #16a34a;
-  --color-add-cart: #0f172a;
-  --color-navbar-bg: #0f172a;
+  --accent-hue: 217;
+  --bg-darkness: 96%;
+  --glow-intensity: 0.7;
+  --buy-now-hue: 142;
+  --add-cart-hue: 217;
+  --checkout-hue: 217;
+
+  --color-primary: hsl(var(--accent-hue, 217), 85%, 55%);
+  --color-buy-now: hsl(var(--buy-now-hue, 142), 85%, 42%);
+  --color-add-cart: hsl(var(--add-cart-hue, 217), 75%, 22%);
+  --color-navbar-bg: hsl(var(--accent-hue, 217), 30%, calc(100% - var(--bg-darkness, 96%) + 10%));
   --color-navbar-text: #ffffff;
-  --color-bg: #020617;
-  --color-card-bg: #0f172a;
-  --color-checkout-bg: #020617;
-  --color-checkout-card: #0f172a;
-  --color-checkout-btn: #2563eb;
-  --color-footer-bg: #0f172a;
+  --color-bg: hsl(var(--accent-hue, 217), 25%, calc(100% - var(--bg-darkness, 96%)));
+  --color-card-bg: hsl(var(--accent-hue, 217), 30%, calc(100% - var(--bg-darkness, 96%) + 8%));
+  --color-checkout-bg: hsl(var(--accent-hue, 217), 25%, calc(100% - var(--bg-darkness, 96%)));
+  --color-checkout-card: hsl(var(--accent-hue, 217), 30%, calc(100% - var(--bg-darkness, 96%) + 8%));
+  --color-checkout-btn: hsl(var(--checkout-hue, 217), 85%, 55%);
+  --color-footer-bg: hsl(var(--accent-hue, 217), 30%, calc(100% - var(--bg-darkness, 96%) + 5%));
   --color-footer-text: #94a3b8;
   --color-text-primary: #ffffff;
   --color-text-secondary: #94a3b8;

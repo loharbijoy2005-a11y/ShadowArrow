@@ -18,6 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <script src="/theme-loader.js" />
+      </head>
       <body className="bg-slate-50 min-h-screen flex flex-col font-sans transition-colors">
         <ThemeProvider>
           <CartProvider>

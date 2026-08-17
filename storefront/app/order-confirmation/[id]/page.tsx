@@ -107,8 +107,23 @@ export default function OrderConfirmationPage() {
               ))}
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-between items-center font-mono">
-              <span className="text-gray-600 font-sans">Payment Method ({order.payment_method})</span>
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 font-mono">
+              <div>
+                <p className="text-gray-600 font-sans text-xs">
+                  Payment Method:{' '}
+                  <strong className={order.payment_method === 'COD' ? 'text-emerald-700 font-bold' : 'text-blue-700 font-bold'}>
+                    {order.payment_method === 'COD' ? 'Cash on Delivery (COD)' : 'ONLINE'}
+                  </strong>
+                </p>
+                {order.payment_method !== 'COD' && order.razorpay_payment_id && (
+                  <p className="text-[11px] text-slate-600 font-mono mt-1 flex items-center space-x-1.5">
+                    <span>Txn ID:</span>
+                    <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-300 font-mono select-all">
+                      {order.razorpay_payment_id}
+                    </span>
+                  </p>
+                )}
+              </div>
               <span className="text-lg font-bold text-slate-900">₹{order.total_amount ? order.total_amount.toFixed(2) : '0.00'}</span>
             </div>
           </div>

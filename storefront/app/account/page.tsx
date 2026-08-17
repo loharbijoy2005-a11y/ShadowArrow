@@ -465,8 +465,19 @@ export default function AccountPage() {
                       {/* Order Footer Info & Buttons */}
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-slate-100 text-xs font-mono">
                         <div>
-                          <p className="text-slate-600">Total Payable ({ord.payment_method}): <strong className="text-slate-900 text-base">₹{ord.total_amount?.toFixed(2)}</strong></p>
-                          <p className="text-slate-500 text-[11px]">Shipping Address: {ord.shipping_address}</p>
+                          <p className="text-slate-600 font-mono">
+                            {ord.payment_method === 'COD' ? 'Total Payable (COD)' : 'Total Paid (ONLINE)'}:{' '}
+                            <strong className="text-slate-900 text-base font-bold">₹{ord.total_amount?.toFixed(2)}</strong>
+                          </p>
+                          {ord.payment_method !== 'COD' && ord.razorpay_payment_id && (
+                            <p className="text-slate-600 text-[11px] font-mono mt-0.5">
+                              Txn ID:{' '}
+                              <strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-mono select-all">
+                                {ord.razorpay_payment_id}
+                              </strong>
+                            </p>
+                          )}
+                          <p className="text-slate-500 text-[11px] mt-0.5">Shipping Address: {ord.shipping_address}</p>
                         </div>
 
                         <div className="flex items-center space-x-3">

@@ -226,8 +226,18 @@ export default function TrackOrderPage() {
               </div>
               <div className="sm:text-right">
                 <p className="text-[10px] font-bold text-slate-500 uppercase font-mono">Payment Mode & Total</p>
-                <p className="font-mono font-bold text-slate-900 text-sm mt-0.5">₹{order.total_amount?.toFixed(2)} ({order.payment_method})</p>
-                <p className="text-slate-500 font-mono text-[11px]">Payment Status: <strong className="text-emerald-700 uppercase">{order.payment_status}</strong></p>
+                <p className="font-mono font-bold text-slate-900 text-sm mt-0.5">
+                  ₹{order.total_amount?.toFixed(2)}{' '}
+                  <span className={`text-xs px-2 py-0.5 rounded ${order.payment_method === 'COD' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
+                    {order.payment_method === 'COD' ? 'COD' : 'ONLINE'}
+                  </span>
+                </p>
+                {order.payment_method !== 'COD' && order.razorpay_payment_id && (
+                  <p className="text-slate-600 font-mono text-[11px] mt-0.5">
+                    Txn ID: <strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-mono select-all">{order.razorpay_payment_id}</strong>
+                  </p>
+                )}
+                <p className="text-slate-500 font-mono text-[11px] mt-0.5">Payment Status: <strong className="text-emerald-700 uppercase">{order.payment_status}</strong></p>
               </div>
             </div>
 

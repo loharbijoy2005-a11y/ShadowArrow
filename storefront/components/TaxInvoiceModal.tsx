@@ -126,7 +126,15 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
             <div className="text-right space-y-0.5 font-mono text-[11px]">
               <p><span className="text-slate-500">Invoice No:</span> <span className="font-bold text-slate-900">INV-{order.order_id}</span></p>
               <p><span className="text-slate-500">Invoice Date:</span> <span>{new Date(order.created_at || Date.now()).toLocaleDateString()}</span></p>
-              <p><span className="text-slate-500">Payment Mode:</span> <span className="uppercase font-bold text-blue-600">{order.payment_method}</span></p>
+              <p>
+                <span className="text-slate-500">Payment Mode:</span>{' '}
+                <span className={`uppercase font-bold ${order.payment_method === 'COD' ? 'text-emerald-700' : 'text-blue-600'}`}>
+                  {order.payment_method === 'COD' ? 'COD' : 'ONLINE'}
+                </span>
+              </p>
+              {order.payment_method !== 'COD' && order.razorpay_payment_id && (
+                <p><span className="text-slate-500">Txn ID:</span> <span className="font-bold text-slate-900">{order.razorpay_payment_id}</span></p>
+              )}
               <p><span className="text-slate-500">Payment Status:</span> <span className="uppercase font-bold text-emerald-600">{order.payment_status}</span></p>
             </div>
           </div>

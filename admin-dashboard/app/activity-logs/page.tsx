@@ -81,8 +81,8 @@ export default function ActivityLogsAdminPage() {
 
   const handleToggleStatus = (staffId: string) => {
     const targetUser = staffList.find(s => s.id === staffId);
-    const nextStatus = targetUser?.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    const updatedStaff = staffList.map(s => s.id === staffId ? { ...s, status: nextStatus } : s);
+    const nextStatus: 'ACTIVE' | 'SUSPENDED' = targetUser?.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const updatedStaff: AdminUser[] = staffList.map(s => s.id === staffId ? { ...s, status: nextStatus } : s);
 
     const newLog: AuditLog = {
       id: Date.now().toString(),

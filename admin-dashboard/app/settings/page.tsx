@@ -7,6 +7,18 @@ import { Settings, Shield, Key, Save, CheckCircle2, Lock, Smartphone, Database, 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+// Popular E-Commerce Color Swatches for 1-click selection
+const QUICK_COLOR_SWATCHES = [
+  { name: 'Modern Black', hex: '#0f172a' },
+  { name: 'Royal Blue', hex: '#2563eb' },
+  { name: 'Emerald Green', hex: '#10b981' },
+  { name: 'Crimson Red', hex: '#ef4444' },
+  { name: 'Vibrant Orange', hex: '#f97316' },
+  { name: 'Amber Gold', hex: '#f59e0b' },
+  { name: 'Cyber Purple', hex: '#8b5cf6' },
+  { name: 'Pure White', hex: '#ffffff' },
+];
+
 // Helper: Calculate high-contrast text color (black or white) based on background hex
 function getContrastColor(hexColor: string): string {
   if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
@@ -106,7 +118,7 @@ export default function SettingsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [previewTab, setPreviewTab] = useState<'CATALOG' | 'CHECKOUT' | 'ADMIN'>('CATALOG');
+  const [previewTab, setPreviewTab] = useState<'CATALOG' | 'CHECKOUT'>('CATALOG');
 
   // Store General Profile
   const [storeName, setStoreName] = useState('SHADOW ARROW');
@@ -239,6 +251,57 @@ export default function SettingsAdminPage() {
     }
   };
 
+  // Reusable Component for Visual Color Picker + Quick Swatches
+  const RenderColorControl = (
+    label: string,
+    value: string,
+    onChange: (val: string) => void,
+    description?: string
+  ) => (
+    <div className="p-3.5 bg-ops-900 border border-ops-700 rounded-xl space-y-2 font-mono">
+      <div className="flex justify-between items-center">
+        <div>
+          <label className="block text-gray-200 font-bold uppercase text-[11px]">{label}</label>
+          {description && <p className="text-[9px] text-gray-400">{description}</p>}
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-ops-700" style={{ backgroundColor: value, color: getContrastColor(value) }}>
+          {value}
+        </span>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-10 h-10 rounded-lg border-0 bg-transparent cursor-pointer shrink-0"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
+      {/* Quick-Click Swatch Pills */}
+      <div className="pt-1.5 flex flex-wrap gap-1">
+        {QUICK_COLOR_SWATCHES.map((swatch) => (
+          <button
+            key={swatch.name}
+            type="button"
+            onClick={() => onChange(swatch.hex)}
+            className={`w-5 h-5 rounded-full border transition hover:scale-110 ${
+              value.toLowerCase() === swatch.hex.toLowerCase() ? 'ring-2 ring-blue-500 border-white' : 'border-ops-700'
+            }`}
+            style={{ backgroundColor: swatch.hex }}
+            title={`Select ${swatch.name} (${swatch.hex})`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen bg-ops-900 text-gray-100 font-sans">
       <Navigation onLogout={() => { localStorage.removeItem('ops_admin_token'); window.location.href = '/'; }} />
@@ -250,14 +313,14 @@ export default function SettingsAdminPage() {
           <div>
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded border border-blue-500/20 font-bold uppercase">
-                MODULE 12 • SYSTEM CONFIGURATIONS & GRANULAR THEME ENGINE
+                MODULE 12 • VISUAL COLOR PICKER & THEME ENGINE
               </span>
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white mt-1">
-              Storefront & Admin Live Theme Engine
+              Visual Theme & Color Customizer
             </h1>
             <p className="text-xs text-gray-400 mt-0.5">
-              Granular section color sliders, high-contrast text safety, and real-time multi-view mirror canvas
+              Click color swatches or drag HTML5 pickers to customize buttons, background & checkout with live preview
             </p>
           </div>
 
@@ -265,7 +328,7 @@ export default function SettingsAdminPage() {
             {savedSuccess && (
               <div className="flex items-center space-x-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold animate-pulse">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Theme Live & Saved to MongoDB</span>
+                <span>Theme Saved & Pushed to Live Website</span>
               </div>
             )}
             <button
@@ -283,7 +346,7 @@ export default function SettingsAdminPage() {
         <div className="bg-ops-800 border border-ops-700 rounded-2xl p-4 space-y-3 shadow-xl">
           <div className="flex items-center space-x-2">
             <Palette className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-bold text-white uppercase">⚡ 1-Click Master Theme Presets</span>
+            <span className="text-xs font-bold text-white uppercase">⚡ 1-Click Quick Theme Swatches</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {PRESET_THEMES.map((preset) => (
@@ -308,18 +371,18 @@ export default function SettingsAdminPage() {
         {/* Main Grid: Controls Left + Live Preview Canvas Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT: Granular Section Color Controls (7 Cols) */}
+          {/* LEFT: Sectioned Visual Swatches & Pickers (7 Cols) */}
           <form onSubmit={handleSave} className="lg:col-span-7 space-y-6">
             
             {/* Store Profile */}
             <div className="bg-ops-800 border border-ops-700 rounded-2xl p-5 space-y-4 shadow-xl">
               <div className="flex items-center space-x-2 border-b border-ops-700 pb-3">
                 <Globe className="w-4 h-4 text-blue-400" />
-                <h2 className="text-xs font-bold text-white uppercase">General Store Profile</h2>
+                <h2 className="text-xs font-bold text-white uppercase">Store Profile & Currency</h2>
               </div>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block text-gray-400 uppercase text-[10px] font-bold mb-1">Store Name</label>
+                  <label className="block text-gray-400 uppercase text-[10px] font-bold mb-1">Store Brand Name</label>
                   <input
                     type="text"
                     value={storeName}
@@ -339,7 +402,7 @@ export default function SettingsAdminPage() {
               </div>
             </div>
 
-            {/* Granular Section Pickers */}
+            {/* Section Color Controls */}
             <div className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-6 shadow-xl">
               
               {/* SECTION 1: Action Buttons */}
@@ -349,45 +412,8 @@ export default function SettingsAdminPage() {
                   <h3 className="text-xs font-bold text-white uppercase">1. Storefront Action Buttons</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  
-                  {/* Buy Now Button */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Buy Now Button Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={buyNowBtnColor}
-                        onChange={(e) => setBuyNowBtnColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={buyNowBtnColor}
-                        onChange={(e) => setBuyNowBtnColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Add to Cart Button Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={addCartBtnColor}
-                        onChange={(e) => setAddCartBtnColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={addCartBtnColor}
-                        onChange={(e) => setAddCartBtnColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
+                  {RenderColorControl('Buy Now Button Color', buyNowBtnColor, setBuyNowBtnColor, 'Primary checkout button')}
+                  {RenderColorControl('Add to Cart Button Color', addCartBtnColor, setAddCartBtnColor, 'Cart drawer & catalog button')}
                 </div>
               </div>
 
@@ -395,48 +421,11 @@ export default function SettingsAdminPage() {
               <div className="space-y-3 border-b border-ops-700 pb-5">
                 <div className="flex items-center space-x-2">
                   <Layout className="w-4 h-4 text-blue-400" />
-                  <h3 className="text-xs font-bold text-white uppercase">2. Navbar & Header Customizer</h3>
+                  <h3 className="text-xs font-bold text-white uppercase">2. Navbar & Header Styling</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  
-                  {/* Navbar BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Navbar Background Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={navbarBgColor}
-                        onChange={(e) => setNavbarBgColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={navbarBgColor}
-                        onChange={(e) => setNavbarBgColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Navbar Link Text */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Navbar Link & Text Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={navbarTextColor}
-                        onChange={(e) => setNavbarTextColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={navbarTextColor}
-                        onChange={(e) => setNavbarTextColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
+                  {RenderColorControl('Navbar Background Color', navbarBgColor, setNavbarBgColor, 'Top header background')}
+                  {RenderColorControl('Navbar Link & Text Color', navbarTextColor, setNavbarTextColor, 'Brand logo & menu links')}
                 </div>
               </div>
 
@@ -447,45 +436,8 @@ export default function SettingsAdminPage() {
                   <h3 className="text-xs font-bold text-white uppercase">3. Website Page & Card Backgrounds</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  
-                  {/* Website Main BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Main Website Background</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={bgColor}
-                        onChange={(e) => setBgColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={bgColor}
-                        onChange={(e) => setBgColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Product Card Container BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Product Card Container BG</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={cardBgColor}
-                        onChange={(e) => setCardBgColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={cardBgColor}
-                        onChange={(e) => setCardBgColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
+                  {RenderColorControl('Main Website Background', bgColor, setBgColor, 'Body background for homepage')}
+                  {RenderColorControl('Product Card Container BG', cardBgColor, setCardBgColor, 'Catalog product card background')}
                 </div>
               </div>
 
@@ -496,64 +448,9 @@ export default function SettingsAdminPage() {
                   <h3 className="text-xs font-bold text-white uppercase">4. Checkout Page Specific Colors</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  
-                  {/* Checkout Page BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Checkout Page BG</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={checkoutBgColor}
-                        onChange={(e) => setCheckoutBgColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={checkoutBgColor}
-                        onChange={(e) => setCheckoutBgColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Checkout Card BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Checkout Card BG</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={checkoutCardColor}
-                        onChange={(e) => setCheckoutCardColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={checkoutCardColor}
-                        onChange={(e) => setCheckoutCardColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Place Order Button */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Place Order Button</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={checkoutBtnColor}
-                        onChange={(e) => setCheckoutBtnColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={checkoutBtnColor}
-                        onChange={(e) => setCheckoutBtnColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
+                  {RenderColorControl('Checkout Page BG', checkoutBgColor, setCheckoutBgColor, 'Checkout background')}
+                  {RenderColorControl('Checkout Card BG', checkoutCardColor, setCheckoutCardColor, 'Address & summary container')}
+                  {RenderColorControl('Place Order Button', checkoutBtnColor, setCheckoutBtnColor, 'Pay & order trigger button')}
                 </div>
               </div>
 
@@ -561,48 +458,11 @@ export default function SettingsAdminPage() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Globe className="w-4 h-4 text-blue-400" />
-                  <h3 className="text-xs font-bold text-white uppercase">5. Headings, Text & Footer Colors</h3>
+                  <h3 className="text-xs font-bold text-white uppercase">5. Headings & Footer Colors</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  
-                  {/* Primary Text */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Headings & Main Text Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={textPrimaryColor}
-                        onChange={(e) => setTextPrimaryColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={textPrimaryColor}
-                        onChange={(e) => setTextPrimaryColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Footer BG */}
-                  <div className="p-3 bg-ops-900 border border-ops-700 rounded-xl space-y-2">
-                    <label className="block text-gray-300 font-bold uppercase text-[10px]">Footer Background Color</label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="color"
-                        value={footerBgColor}
-                        onChange={(e) => setFooterBgColor(e.target.value)}
-                        className="w-9 h-9 rounded-lg border-0 bg-transparent cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={footerBgColor}
-                        onChange={(e) => setFooterBgColor(e.target.value)}
-                        className="flex-1 bg-ops-800 border border-ops-700 rounded-lg p-2 text-white font-bold uppercase text-xs"
-                      />
-                    </div>
-                  </div>
-
+                  {RenderColorControl('Headings & Main Text Color', textPrimaryColor, setTextPrimaryColor, 'Main title text color')}
+                  {RenderColorControl('Footer Background Color', footerBgColor, setFooterBgColor, 'Bottom footer container')}
                 </div>
               </div>
 

@@ -20,6 +20,14 @@ type UpdateTicketStatusPayload struct {
 	Status string `json:"status" binding:"required"`
 }
 
+type ReplyTicketPayload struct {
+	Sender     string `json:"sender" binding:"required"` // "customer" or "admin"
+	SenderName string `json:"sender_name"`
+	Message    string `json:"message" binding:"required"`
+	MediaURL   string `json:"media_url"`
+	MediaType  string `json:"media_type"` // "image" or "video"
+}
+
 func generateTicketID() string {
 	return fmt.Sprintf("TICK-%d", rand.Intn(9000)+1000)
 }
@@ -34,14 +42,28 @@ func CreateTicket(c *gin.Context) {
 		return
 	}
 
+	now := time.Now()
 	ticket.TicketID = generateTicketID()
-	ticket.CreatedAt = time.Now()
+	ticket.CreatedAt = now
+	ticket.UpdatedAt = now
 	if ticket.Status == "" {
 		ticket.Status = "OPEN"
 	}
 	if ticket.Priority == "" {
 		ticket.Priority = "HIGH"
 	}
+
+	// Initialize message thread with initial issue
+	initialMsg := models.TicketMessage{
+		ID:         primitive.NewObjectID().Hex(),
+		Sender:     "customer",
+		SenderName: "Customer",
+		Message:    ticket.IssueText,
+		MediaURL:   ticket.ImageURL,
+		MediaType:  "image",
+		CreatedAt:  now,
+	}
+	ticket.Messages = []models.TicketMessage{initialMsg}
 
 	collection := db.GetCollection("support_tickets")
 	result, err := collection.InsertOne(ctx, ticket)
@@ -64,7 +86,7 @@ func GetTickets(c *gin.Context) {
 	defer cancel()
 
 	collection := db.GetCollection("support_tickets")
-	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}})
+	opts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}, {Key: "created_at", Value: -1}})
 
 	cursor, err := collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
@@ -84,6 +106,158 @@ func GetTickets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tickets)
+}
+
+func GetCustomerTickets(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contact := c.Query("contact")
+	if contact == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer contact query parameter is required"})
+		return
+	}
+
+	collection := db.GetCollection("support_tickets")
+	filter := bson.M{
+		"$or": []bson.M{
+			{"customer_phone": contact},
+			{"customer_email": contact},
+		},
+	}
+	opts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}, {Key: "created_at", Value: -1}})
+
+	cursor, err := collection.Find(ctx, filter, opts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch customer tickets"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var allTickets []models.SupportTicket
+	if err = cursor.All(ctx, &allTickets); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode tickets"})
+		return
+	}
+
+	// Filter out closed tickets older than 7 days
+	sevenDaysAgo := time.Now().Add(-7 * 24 * time.Hour)
+	var visibleTickets []models.SupportTicket
+	for _, t := range allTickets {
+		if t.Status == "CLOSED" && t.ClosedAt != nil && t.ClosedAt.Before(sevenDaysAgo) {
+			continue // Auto-archived after 7 days
+		}
+		visibleTickets = append(visibleTickets, t)
+	}
+
+	if visibleTickets == nil {
+		visibleTickets = []models.SupportTicket{}
+	}
+
+	c.JSON(http.StatusOK, visibleTickets)
+}
+
+func GetTicketByID(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ticketIDParam := c.Param("id")
+	collection := db.GetCollection("support_tickets")
+
+	var filter bson.M
+	if objID, err := primitive.ObjectIDFromHex(ticketIDParam); err == nil {
+		filter = bson.M{"_id": objID}
+	} else {
+		filter = bson.M{"ticket_id": ticketIDParam}
+	}
+
+	var ticket models.SupportTicket
+	err := collection.FindOne(ctx, filter).Decode(&ticket)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, ticket)
+}
+
+func ReplyToTicket(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ticketIDParam := c.Param("id")
+	var payload ReplyTicketPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	collection := db.GetCollection("support_tickets")
+
+	var filter bson.M
+	if objID, err := primitive.ObjectIDFromHex(ticketIDParam); err == nil {
+		filter = bson.M{"_id": objID}
+	} else {
+		filter = bson.M{"ticket_id": ticketIDParam}
+	}
+
+	var existingTicket models.SupportTicket
+	err := collection.FindOne(ctx, filter).Decode(&existingTicket)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found"})
+		return
+	}
+
+	// Lock messaging if ticket is CLOSED
+	if existingTicket.Status == "CLOSED" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "This support ticket is CLOSED. Closed tickets do not accept new messages."})
+		return
+	}
+
+	senderName := payload.SenderName
+	if senderName == "" {
+		if payload.Sender == "admin" {
+			senderName = "Support Team"
+		} else {
+			senderName = "Customer"
+		}
+	}
+
+	newMsg := models.TicketMessage{
+		ID:         primitive.NewObjectID().Hex(),
+		Sender:     payload.Sender,
+		SenderName: senderName,
+		Message:    payload.Message,
+		MediaURL:   payload.MediaURL,
+		MediaType:  payload.MediaType,
+		CreatedAt:  time.Now(),
+	}
+
+	newStatus := existingTicket.Status
+	if payload.Sender == "admin" && existingTicket.Status == "OPEN" {
+		newStatus = "IN_PROGRESS"
+	}
+
+	update := bson.M{
+		"$push": bson.M{"messages": newMsg},
+		"$set": bson.M{
+			"status":     newStatus,
+			"updated_at": time.Now(),
+		},
+	}
+
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to post message reply"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Reply sent successfully",
+		"ticket_id": existingTicket.TicketID,
+		"new_message": newMsg,
+		"status": newStatus,
+	})
 }
 
 func UpdateTicketStatus(c *gin.Context) {
@@ -106,10 +280,18 @@ func UpdateTicketStatus(c *gin.Context) {
 		filter = bson.M{"ticket_id": ticketIDParam}
 	}
 
+	now := time.Now()
+	setFields := bson.M{
+		"status":     payload.Status,
+		"updated_at": now,
+	}
+
+	if payload.Status == "CLOSED" {
+		setFields["closed_at"] = now
+	}
+
 	update := bson.M{
-		"$set": bson.M{
-			"status": payload.Status,
-		},
+		"$set": setFields,
 	}
 
 	result, err := collection.UpdateOne(ctx, filter, update)

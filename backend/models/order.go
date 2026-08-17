@@ -36,5 +36,7 @@ type Order struct {
 	TrackingNumber       string             `json:"tracking_number" bson:"tracking_number"`
 	ShiprocketOrderID    int                `json:"shiprocket_order_id" bson:"shiprocket_order_id"`
 	ShiprocketShipmentID int                `json:"shiprocket_shipment_id" bson:"shiprocket_shipment_id"`
+	CouponCode           string             `json:"coupon_code,omitempty" bson:"coupon_code,omitempty"`
+	DiscountAmount       float64            `json:"discount_amount,omitempty" bson:"discount_amount,omitempty"`
 	CreatedAt            time.Time          `json:"created_at" bson:"created_at"`
 }

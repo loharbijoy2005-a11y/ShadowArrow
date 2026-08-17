@@ -83,7 +83,13 @@ func main() {
 		// Support Ticket & Cart Sync Routes (Strict Ticket Creation Rate Limit)
 		v1.POST("/tickets/create", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
 		v1.POST("/support/tickets", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
+		v1.GET("/user/tickets", handlers.GetCustomerTickets)
+		v1.GET("/tickets/:id", handlers.GetTicketByID)
+		v1.POST("/tickets/:id/reply", handlers.ReplyToTicket)
 		v1.POST("/cart/sync", handlers.SyncCart)
+
+		// Coupon Code Validation Route
+		v1.POST("/coupons/validate", handlers.ValidateCoupon)
 
 		// AI Chat Proxy Route (Rate Limited to Prevent Prompt Token Abuse)
 		v1.POST("/ai/chat", middleware.RateLimiterMiddleware("ai_chat", 20, time.Minute), handlers.AIChatProxy(cfg))
@@ -106,8 +112,16 @@ func main() {
 			admin.GET("/analytics", handlers.GetAnalytics)
 			admin.GET("/customers", handlers.GetAdminCustomers)
 			admin.GET("/abandoned-carts", handlers.GetAbandonedCarts)
+
 			admin.GET("/tickets", handlers.GetTickets)
 			admin.PUT("/tickets/:id/status", handlers.UpdateTicketStatus)
+			admin.POST("/tickets/:id/reply", handlers.ReplyToTicket)
+
+			admin.GET("/coupons", handlers.GetCoupons)
+			admin.POST("/coupons", handlers.CreateCoupon)
+			admin.PUT("/coupons/:id/status", handlers.ToggleCouponStatus)
+			admin.DELETE("/coupons/:id", handlers.DeleteCoupon)
+
 			admin.POST("/cms/banners", handlers.SaveBanners)
 		}
 	}

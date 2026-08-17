@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
-import { HelpCircle, RefreshCw, CheckCircle2, Clock, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { HelpCircle, RefreshCw, CheckCircle2, Clock, Image as ImageIcon, ExternalLink, MessageSquare, Send, X, Lock, Upload, Camera, Video, CreditCard, ShieldCheck } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -13,8 +13,15 @@ export default function TicketsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Chat Drawer State
+  const [activeTicket, setActiveTicket] = useState<any | null>(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [replyMedia, setReplyMedia] = useState('');
+  const [replyMediaType, setReplyMediaType] = useState<'image' | 'video'>('image');
+  const [replying, setReplying] = useState(false);
+
   useEffect(() => {
-    const savedToken = localStorage.getItem('ops_admin_token');
+    const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
     if (savedToken) {
       setToken(savedToken);
       fetchTickets(savedToken);
@@ -30,6 +37,15 @@ export default function TicketsAdminPage() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setTickets(res.data || []);
+
+      // If drawer is open, refresh active ticket details
+      if (activeTicket) {
+        const id = activeTicket.ticket_id || activeTicket.id || activeTicket._id;
+        const detailRes = await axios.get(`${API_URL}/api/v1/tickets/${id}`);
+        if (detailRes.data) {
+          setActiveTicket(detailRes.data);
+        }
+      }
     } catch (err) {
       console.error('Failed to fetch support tickets', err);
     } finally {
@@ -50,33 +66,103 @@ export default function TicketsAdminPage() {
     }
   };
 
+  const handleOpenChatDrawer = async (ticket: any) => {
+    setActiveTicket(ticket);
+    const id = ticket.ticket_id || ticket.id || ticket._id;
+    try {
+      const res = await axios.get(`${API_URL}/api/v1/tickets/${id}`);
+      if (res.data) {
+        setActiveTicket(res.data);
+      }
+    } catch (e) {
+      console.warn('Failed to load full ticket history', e);
+    }
+  };
+
+  const handleSendAdminReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyMessage.trim() || !activeTicket) return;
+
+    setReplying(true);
+    const id = activeTicket.ticket_id || activeTicket.id || activeTicket._id;
+    try {
+      await axios.post(
+        `${API_URL}/api/v1/admin/tickets/${id}/reply`,
+        {
+          sender: 'admin',
+          sender_name: 'Support Operations',
+          message: replyMessage.trim(),
+          media_url: replyMedia,
+          media_type: replyMediaType,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setReplyMessage('');
+      setReplyMedia('');
+
+      const detailRes = await axios.get(`${API_URL}/api/v1/tickets/${id}`);
+      if (detailRes.data) {
+        setActiveTicket(detailRes.data);
+      }
+      if (token) fetchTickets(token);
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to send admin reply');
+    } finally {
+      setReplying(false);
+    }
+  };
+
+  const applyQuickPreset = (presetText: string) => {
+    setReplyMessage(presetText);
+  };
+
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      alert('File size must be less than 3MB');
+      return;
+    }
+
+    const isVid = file.type.startsWith('video/');
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReplyMedia(reader.result as string);
+      setReplyMediaType(isVid ? 'video' : 'image');
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="flex min-h-screen bg-ops-900 text-gray-100 font-sans">
       <Navigation onLogout={() => { localStorage.removeItem('ops_admin_token'); window.location.href = '/'; }} />
 
-      <main className="flex-1 p-8 space-y-8 overflow-y-auto">
+      <main className="flex-1 p-8 space-y-8 overflow-y-auto font-mono">
         <header className="flex justify-between items-center pb-6 border-b border-ops-700">
           <div>
-            <h1 className="text-2xl font-mono font-bold tracking-tight text-white uppercase">CUSTOMER SUPPORT TICKETS DESK</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">Priority issue logs, defect screenshots & resolution status</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white uppercase">CUSTOMER SUPPORT TICKETS DESK</h1>
+            <p className="text-xs text-gray-400 mt-1">Real-time 2-way chat thread, defect proof inspector & status management</p>
           </div>
           <button
             onClick={() => token && fetchTickets(token)}
-            className="p-2 bg-ops-800 border border-ops-700 rounded-lg text-gray-300 hover:text-white"
+            className="p-2.5 bg-ops-800 border border-ops-700 rounded-xl text-gray-300 hover:text-white flex items-center space-x-2 text-xs font-bold"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Desk</span>
           </button>
         </header>
 
-        {/* Tickets Grid / Table */}
-        <div className="bg-ops-800 border border-ops-700 rounded-xl overflow-hidden shadow-xl">
-          <table className="w-full text-left border-collapse text-sm">
+        {/* Tickets Table */}
+        <div className="bg-ops-800 border border-ops-700 rounded-2xl overflow-hidden shadow-xl">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-ops-900/80 border-b border-ops-700 text-gray-400 text-xs font-mono uppercase">
+              <tr className="bg-ops-900/80 border-b border-ops-700 text-gray-400 text-xs uppercase font-bold">
                 <th className="p-4">Ticket ID & Date</th>
                 <th className="p-4">Customer Contact</th>
-                <th className="p-4">Category & Issue Description</th>
-                <th className="p-4">Proof Screenshot</th>
+                <th className="p-4">Category & Initial Issue</th>
+                <th className="p-4">Thread Messages</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -91,6 +177,7 @@ export default function TicketsAdminPage() {
               ) : (
                 tickets.map((t) => {
                   const id = t.ticket_id || t.id || t._id;
+                  const msgCount = (t.messages || []).length;
                   return (
                     <tr key={id} className="hover:bg-ops-700/50 transition">
                       <td className="p-4 font-mono">
@@ -102,31 +189,25 @@ export default function TicketsAdminPage() {
                       <td className="p-4 font-mono text-xs">
                         <p className="font-bold text-white">{t.customer_phone || t.customer_email || 'Anonymous'}</p>
                       </td>
-                      <td className="p-4 max-w-sm">
+                      <td className="p-4 max-w-xs">
                         <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold rounded uppercase">
                           {t.category || 'Support Inquiry'}
                         </span>
-                        <p className="text-xs text-gray-300 mt-1 leading-relaxed whitespace-pre-line">
+                        <p className="text-xs text-gray-300 mt-1 line-clamp-2 leading-relaxed">
                           {t.issue_text}
                         </p>
                       </td>
                       <td className="p-4">
-                        {t.image_url ? (
-                          <button
-                            onClick={() => setSelectedImage(t.image_url)}
-                            className="flex items-center space-x-2 p-1.5 bg-ops-900 border border-ops-700 rounded-lg hover:border-blue-500 transition text-xs text-blue-400"
-                          >
-                            <img src={t.image_url} alt="Proof" className="w-8 h-8 object-cover rounded" />
-                            <span className="font-mono text-[10px]">Inspect</span>
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-gray-500 font-mono italic">No attachment</span>
-                        )}
+                        <span className="px-2.5 py-1 bg-ops-900 border border-ops-700 rounded-lg text-gray-300 text-[11px] font-bold flex items-center space-x-1.5 w-fit">
+                          <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+                          <span>{msgCount} Message{msgCount !== 1 ? 's' : ''}</span>
+                        </span>
                       </td>
                       <td className="p-4 font-mono text-xs">
                         <span className={`px-2.5 py-1 rounded font-bold uppercase ${
                           t.status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
                           t.status === 'IN_PROGRESS' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                          t.status === 'CLOSED' ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30' :
                           'bg-red-500/20 text-red-400 border border-red-500/30'
                         }`}>
                           {t.status}
@@ -134,22 +215,13 @@ export default function TicketsAdminPage() {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
-                          {t.status !== 'RESOLVED' && (
-                            <button
-                              onClick={() => handleUpdateStatus(id, 'RESOLVED')}
-                              className="px-3 py-1.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-600 hover:text-white transition text-xs font-mono font-bold uppercase"
-                            >
-                              Mark Resolved
-                            </button>
-                          )}
-                          {t.status === 'OPEN' && (
-                            <button
-                              onClick={() => handleUpdateStatus(id, 'IN_PROGRESS')}
-                              className="px-3 py-1.5 bg-amber-600/20 text-amber-400 border border-amber-500/30 rounded-lg hover:bg-amber-600 hover:text-white transition text-xs font-mono font-bold uppercase"
-                            >
-                              In Progress
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleOpenChatDrawer(t)}
+                            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition flex items-center space-x-1.5 shadow-md"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Open Chat Thread</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -160,6 +232,171 @@ export default function TicketsAdminPage() {
           </table>
         </div>
       </main>
+
+      {/* SLIDE-OVER CHAT DRAWER */}
+      {activeTicket && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-xl bg-ops-800 border-l border-ops-700 h-full flex flex-col p-6 space-y-4 shadow-2xl text-xs font-mono">
+            
+            {/* Drawer Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-ops-700 shrink-0">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-base font-black text-blue-400">#{activeTicket.ticket_id}</span>
+                  <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded uppercase">
+                    {activeTicket.category}
+                  </span>
+                </div>
+                <p className="text-gray-300 font-bold mt-1">Customer: {activeTicket.customer_phone || activeTicket.customer_email || 'Guest'}</p>
+                <p className="text-[10px] text-gray-500">Created: {new Date(activeTicket.created_at).toLocaleString()}</p>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                {/* Status Dropdown */}
+                <select
+                  value={activeTicket.status}
+                  onChange={(e) => {
+                    handleUpdateStatus(activeTicket.ticket_id || activeTicket.id, e.target.value);
+                    setActiveTicket({ ...activeTicket, status: e.target.value });
+                  }}
+                  className="bg-ops-900 border border-ops-700 rounded-xl p-2 text-white font-bold uppercase focus:outline-none"
+                >
+                  <option value="OPEN">OPEN</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="RESOLVED">RESOLVED</option>
+                  <option value="CLOSED">CLOSED</option>
+                </select>
+
+                <button onClick={() => setActiveTicket(null)} className="p-1.5 text-gray-400 hover:text-white rounded-lg bg-ops-700">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Action Presets Bar */}
+            <div className="space-y-1.5 shrink-0 bg-ops-900/70 p-3 rounded-2xl border border-ops-700/50">
+              <span className="text-[10px] text-gray-400 uppercase font-bold block">⚡ Quick Admin Action Presets</span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => applyQuickPreset('Hi! Please reply with a clear photo screenshot of your defect/payment receipt.')}
+                  className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-blue-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
+                >
+                  <Camera className="w-3 h-3" />
+                  <span>Request Photo Proof</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => applyQuickPreset('Hi! Please reply with a short unboxing video clip showing the defect/damaged item.')}
+                  className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-purple-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
+                >
+                  <Video className="w-3 h-3" />
+                  <span>Request Video Proof</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => applyQuickPreset('Hi! Please share a screenshot of the payment transaction from your bank/UPI app.')}
+                  className="px-2.5 py-1.5 bg-ops-700 hover:bg-ops-600 text-emerald-300 rounded-lg text-[10px] font-bold border border-ops-600 flex items-center space-x-1"
+                >
+                  <CreditCard className="w-3 h-3" />
+                  <span>Request Payment Proof</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleUpdateStatus(activeTicket.ticket_id || activeTicket.id, 'CLOSED');
+                    setActiveTicket({ ...activeTicket, status: 'CLOSED' });
+                  }}
+                  className="px-2.5 py-1.5 bg-red-900/40 hover:bg-red-800/60 text-red-300 rounded-lg text-[10px] font-bold border border-red-800/50 flex items-center space-x-1"
+                >
+                  <Lock className="w-3 h-3" />
+                  <span>Mark Ticket Closed</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Thread Messages Scroll Area */}
+            <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-ops-900/80 rounded-2xl border border-ops-700">
+              {(activeTicket.messages || []).map((msg: any, idx: number) => {
+                const isAdmin = msg.sender === 'admin';
+                return (
+                  <div
+                    key={idx}
+                    className={`flex flex-col max-w-[85%] ${isAdmin ? 'ml-auto items-end' : 'mr-auto items-start'}`}
+                  >
+                    <span className="text-[10px] text-gray-500 mb-1">
+                      {msg.sender_name || (isAdmin ? 'Support Admin' : 'Customer')} • {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <div
+                      className={`p-3.5 rounded-2xl leading-relaxed space-y-2 font-sans ${
+                        isAdmin ? 'bg-blue-600 text-white rounded-br-none' : 'bg-ops-700 text-gray-100 rounded-bl-none border border-ops-600'
+                      }`}
+                    >
+                      <p className="whitespace-pre-line text-xs">{msg.message}</p>
+
+                      {msg.media_url && (
+                        <div className="pt-1">
+                          {msg.media_type === 'video' ? (
+                            <video src={msg.media_url} controls className="max-w-full max-h-48 rounded-xl border border-ops-600" />
+                          ) : (
+                            <img src={msg.media_url} alt="Attachment" className="max-w-full max-h-48 object-cover rounded-xl border border-ops-600" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Reply Input Form */}
+            {activeTicket.status !== 'CLOSED' ? (
+              <form onSubmit={handleSendAdminReply} className="shrink-0 space-y-2 pt-1">
+                {replyMedia && (
+                  <div className="p-2 bg-ops-900 rounded-xl flex items-center justify-between text-xs border border-ops-700">
+                    <span className="text-[11px] text-emerald-400 font-bold">Attachment Attached</span>
+                    <button type="button" onClick={() => setReplyMedia('')} className="text-gray-400 hover:text-red-400">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <label className="p-3 bg-ops-700 hover:bg-ops-600 text-gray-300 rounded-xl cursor-pointer transition shrink-0" title="Attach Media">
+                    <Upload className="w-4 h-4" />
+                    <input type="file" accept="image/*,video/*" onChange={handleMediaUpload} className="hidden" />
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    value={replyMessage}
+                    onChange={(e) => setReplyMessage(e.target.value)}
+                    placeholder="Type official admin response..."
+                    className="flex-1 px-4 py-3 bg-ops-900 border border-ops-700 rounded-xl text-white focus:outline-none focus:border-blue-500"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={replying}
+                    className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl uppercase tracking-wider flex items-center space-x-1 shrink-0"
+                  >
+                    {replying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-3 bg-ops-900 text-gray-400 rounded-xl text-center text-xs">
+                🔒 Ticket is CLOSED. Re-open status above to send further admin messages.
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Image Inspection Modal */}
       {selectedImage && (

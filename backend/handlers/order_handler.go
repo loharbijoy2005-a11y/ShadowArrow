@@ -98,6 +98,13 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
+		if order.DiscountAmount > 0 {
+			verifiedTotal = verifiedTotal - order.DiscountAmount
+			if verifiedTotal < 0 {
+				verifiedTotal = 0
+			}
+		}
+
 		order.OrderID = generateReadableOrderID()
 		order.CreatedAt = time.Now()
 		order.TotalAmount = verifiedTotal
@@ -148,7 +155,26 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 
 		order.ID = result.InsertedID.(primitive.ObjectID)
 
-		// 2. Atomically decrement stock in MongoDB upon successful order creation
+		// 2. Mark abandoned cart sessions as COMPLETED for this customer
+		go func(phone, email string) {
+			bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer bgCancel()
+			cartCol := db.GetCollection("abandoned_carts")
+			filter := bson.M{"$or": []bson.M{{"customer_phone": phone}, {"customer_email": email}}}
+			_, _ = cartCol.UpdateMany(bgCtx, filter, bson.M{"$set": bson.M{"status": "COMPLETED"}})
+		}(order.CustomerPhone, order.CustomerEmail)
+
+		// 3. Increment coupon usage count if coupon was used
+		if order.CouponCode != "" {
+			go func(code string) {
+				bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer bgCancel()
+				coupCol := db.GetCollection("coupons")
+				_, _ = coupCol.UpdateOne(bgCtx, bson.M{"code": strings.ToUpper(code)}, bson.M{"$inc": bson.M{"used_count": 1}})
+			}(order.CouponCode)
+		}
+
+		// 4. Atomically decrement stock in MongoDB upon successful order creation
 		for _, item := range order.Items {
 			if item.ProductID != "" {
 				if objID, err := primitive.ObjectIDFromHex(item.ProductID); err == nil {

@@ -82,13 +82,31 @@ export default function CouponsAdminPage() {
     }
   };
 
-  const toggleCouponStatus = (id: string) => {
-    setCoupons(coupons.map(c => c.id === id ? { ...c, active: !c.active } : c));
+  const toggleCouponStatus = async (id: string) => {
+    setCoupons(coupons.map(c => (c.id === id || c._id === id || c.code === id) ? { ...c, active: !c.active } : c));
+    if (token) {
+      try {
+        await axios.put(`${API_URL}/api/v1/admin/coupons/${id}/status`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.warn('Failed to update status on backend', err);
+      }
+    }
   };
 
-  const deleteCoupon = (id: string) => {
+  const deleteCoupon = async (id: string) => {
     if (confirm('Are you sure you want to delete this coupon?')) {
-      setCoupons(coupons.filter(c => c.id !== id));
+      setCoupons(coupons.filter(c => c.id !== id && c._id !== id && c.code !== id));
+      if (token) {
+        try {
+          await axios.delete(`${API_URL}/api/v1/admin/coupons/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (err) {
+          console.warn('Failed to delete coupon on backend', err);
+        }
+      }
     }
   };
 

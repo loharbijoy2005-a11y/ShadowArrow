@@ -41,6 +41,15 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
+  // Coupon State
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
   // Animated Payment Failure / Cancellation Modal State
   const [paymentErrorModal, setPaymentErrorModal] = useState<{
     isOpen: boolean;
@@ -214,6 +223,37 @@ export default function CheckoutPage() {
     triggerPlaceOrder();
   };
 
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await axios.post(`${API_URL}/api/v1/coupons/validate`, {
+        code: couponInput.trim(),
+        cart_total: subtotal,
+      });
+      if (res.data && res.data.valid) {
+        setAppliedCoupon({
+          code: res.data.code,
+          discountAmount: res.data.discount_amount || 0,
+        });
+        setCouponInput('');
+      }
+    } catch (err: any) {
+      setCouponError(err.response?.data?.error || 'Invalid or expired coupon code');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
+
+  const finalPayable = Math.max(0, subtotal - (appliedCoupon ? appliedCoupon.discountAmount : 0));
+
   const triggerPlaceOrder = async (overrideMethod?: 'ONLINE' | 'COD') => {
     const activeMethod = overrideMethod || paymentMethod;
     if (!validateCheckoutForm()) return;
@@ -236,7 +276,9 @@ export default function CheckoutPage() {
       customer_email: customerEmail.trim(),
       shipping_address: fullAddress,
       items: orderItems,
-      total_amount: subtotal,
+      total_amount: finalPayable,
+      coupon_code: appliedCoupon ? appliedCoupon.code : '',
+      discount_amount: appliedCoupon ? appliedCoupon.discountAmount : 0,
       payment_method: activeMethod,
     };
 
@@ -278,7 +320,7 @@ export default function CheckoutPage() {
       if (scriptLoaded && typeof window !== 'undefined' && (window as any).Razorpay) {
         const options: any = {
           key: RAZORPAY_KEY,
-          amount: Math.round(subtotal * 100),
+          amount: Math.round(finalPayable * 100),
           currency: 'INR',
           name: 'SHADOW ARROW',
           description: `Order #${orderId}`,
@@ -595,11 +637,59 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* Coupon Code Section */}
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <label className="block text-slate-700 font-bold uppercase text-xs font-mono">Apply Coupon Code</label>
+
+              {appliedCoupon ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-mono font-bold text-emerald-800 uppercase">🎟️ {appliedCoupon.code}</span>
+                    <p className="text-[11px] text-emerald-600 font-semibold">Discount: -₹{appliedCoupon.discountAmount.toFixed(2)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-xs font-bold text-red-600 hover:text-red-800 font-mono"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Enter Coupon Code"
+                    className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono font-bold uppercase text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <button
+                    type="submit"
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition font-mono disabled:opacity-50"
+                  >
+                    {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                  </button>
+                </form>
+              )}
+
+              {couponError && (
+                <p className="text-[11px] text-red-600 font-mono font-semibold">{couponError}</p>
+              )}
+            </div>
+
             <div className="space-y-2 border-t border-slate-200 pt-4 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Items Subtotal</span>
                 <span className="font-mono text-slate-900">₹{subtotal.toFixed(2)}</span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-emerald-600 font-bold">
+                  <span>Coupon Discount ({appliedCoupon.code})</span>
+                  <span className="font-mono">-₹{appliedCoupon.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-600">
                 <span>Shipping Fee</span>
                 <span className="text-emerald-600 font-bold uppercase font-mono">FREE</span>
@@ -610,7 +700,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
                 <span>Total Payable</span>
-                <span className="font-mono text-slate-900">₹{subtotal.toFixed(2)}</span>
+                <span className="font-mono text-slate-900">₹{finalPayable.toFixed(2)}</span>
               </div>
             </div>
 
@@ -624,7 +714,7 @@ export default function CheckoutPage() {
               defaultText={
                 paymentMethod === 'COD'
                   ? 'PLACE ORDER (COD)'
-                  : `PROCEED TO PAY ₹${subtotal.toFixed(2)}`
+                  : `PROCEED TO PAY ₹${finalPayable.toFixed(2)}`
               }
             />
           </div>

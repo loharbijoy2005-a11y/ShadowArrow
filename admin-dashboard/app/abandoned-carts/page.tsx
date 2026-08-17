@@ -43,25 +43,30 @@ export default function AbandonedCartsPage() {
     window.location.href = '/';
   };
 
+  const getLeadStatusType = (c: any) => {
+    const s = (c.status || '').toUpperCase();
+    if (s === 'PAYMENT_CANCELLED' || s === 'PAYMENT_FAILED') {
+      return 'PAYMENT_CANCELLED';
+    }
+    if (s === 'PENDING_ONLINE_PAYMENT' || s === 'PENDING_PAYMENT') {
+      return 'PENDING_ONLINE_PAYMENT';
+    }
+    return 'ABANDONED_CART';
+  };
+
   const totalAbandonedValue = carts.reduce((acc, c) => acc + (c.total_amount || 0), 0);
   const totalCartItems = carts.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0);
 
   const cartCounts = {
     ALL: carts.length,
-    PAYMENT_CANCELLED: carts.filter(c => c.status === 'PAYMENT_CANCELLED' || c.status === 'PAYMENT_FAILED').length,
-    PENDING_ONLINE_PAYMENT: carts.filter(c => c.status === 'PENDING_ONLINE_PAYMENT').length,
-    ABANDONED_CART: carts.filter(c => c.status !== 'PAYMENT_CANCELLED' && c.status !== 'PAYMENT_FAILED' && c.status !== 'PENDING_ONLINE_PAYMENT').length,
+    PAYMENT_CANCELLED: carts.filter(c => getLeadStatusType(c) === 'PAYMENT_CANCELLED').length,
+    PENDING_ONLINE_PAYMENT: carts.filter(c => getLeadStatusType(c) === 'PENDING_ONLINE_PAYMENT').length,
+    ABANDONED_CART: carts.filter(c => getLeadStatusType(c) === 'ABANDONED_CART').length,
   };
 
   const filteredCarts = carts.filter(c => {
-    if (categoryFilter === 'PAYMENT_CANCELLED') {
-      return c.status === 'PAYMENT_CANCELLED' || c.status === 'PAYMENT_FAILED';
-    } else if (categoryFilter === 'PENDING_ONLINE_PAYMENT') {
-      return c.status === 'PENDING_ONLINE_PAYMENT';
-    } else if (categoryFilter === 'ABANDONED_CART') {
-      return c.status !== 'PAYMENT_CANCELLED' && c.status !== 'PAYMENT_FAILED' && c.status !== 'PENDING_ONLINE_PAYMENT';
-    }
-    return true;
+    if (categoryFilter === 'ALL') return true;
+    return getLeadStatusType(c) === categoryFilter;
   });
 
   const getWhatsAppLink = (phone: string, name: string, items: any[]) => {

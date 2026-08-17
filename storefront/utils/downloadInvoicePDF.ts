@@ -35,50 +35,50 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
 
   const itemsRows = (order.items || []).map((it: any, idx: number) => `
     <tr>
-      <td style="text-align: center; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">${idx + 1}</td>
-      <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #0f172a;">
+      <td style="text-align: center; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">${idx + 1}</td>
+      <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">
         ${it.title} ${it.size ? `(Size: ${it.size})` : ''}
       </td>
-      <td style="text-align: center; padding: 6px; border: 1px solid #cbd5e1; color: #475569;">61091000</td>
-      <td style="text-align: center; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">${it.quantity}</td>
+      <td style="text-align: center; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">61091000</td>
+      <td style="text-align: center; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">${it.quantity}</td>
       <td style="text-align: center; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #1d4ed8;">
         ${it.warranty || '6 Months Brand Warranty'}
       </td>
-      <td style="text-align: right; padding: 6px; border: 1px solid #cbd5e1;">₹${(it.price / 1.18).toFixed(2)}</td>
-      <td style="text-align: center; padding: 6px; border: 1px solid #cbd5e1; color: #475569;">18%</td>
-      <td style="text-align: right; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #0f172a;">
+      <td style="text-align: right; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">₹${(it.price / 1.18).toFixed(2)}</td>
+      <td style="text-align: center; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">18%</td>
+      <td style="text-align: right; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; color: #000000;">
         ₹${(it.price * it.quantity).toFixed(2)}
       </td>
     </tr>
   `).join('');
 
-  // 100% html2canvas Compatible Container (In-viewport fixed render, no CSS grid collapsing)
+  // Create temporary container layer with top z-index and explicit #ffffff background for html2canvas
   const htmlContainer = document.createElement('div');
+  htmlContainer.id = 'pdf-direct-download-target';
   htmlContainer.style.position = 'fixed';
   htmlContainer.style.left = '0';
   htmlContainer.style.top = '0';
   htmlContainer.style.width = '794px';
-  htmlContainer.style.zIndex = '-9999';
-  htmlContainer.style.opacity = '1';
-  htmlContainer.style.visibility = 'visible';
+  htmlContainer.style.zIndex = '999999';
   htmlContainer.style.background = '#ffffff';
+  htmlContainer.style.color = '#000000';
   htmlContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
   htmlContainer.innerHTML = `
-    <div style="padding: 24px; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; font-size: 11px; line-height: 1.4; background: #ffffff;">
+    <div style="padding: 24px; border: 2px solid #000000; border-radius: 8px; color: #000000; font-size: 11px; line-height: 1.4; background: #ffffff;">
       
       <!-- Header Bar (Clean, No QR Code) -->
-      <table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 12px; font-family: monospace;">
+      <table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #000000; padding-bottom: 10px; margin-bottom: 12px; font-family: monospace;">
         <tr>
           <td style="vertical-align: top; text-align: left;">
-            <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">SHADOW ARROW</div>
-            <div style="font-size: 9.5px; font-weight: 700; color: #475569; text-transform: uppercase;">OFFICIAL GST TAX INVOICE / BILL OF SUPPLY</div>
-            <div style="font-size: 9px; color: #64748b; margin-top: 2px;">Original for Recipient</div>
+            <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #000000;">SHADOW ARROW</div>
+            <div style="font-size: 9.5px; font-weight: 700; color: #000000; text-transform: uppercase;">OFFICIAL GST TAX INVOICE / BILL OF SUPPLY</div>
+            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Original for Recipient</div>
           </td>
           <td style="vertical-align: top; text-align: right; font-size: 10px;">
-            <div style="font-weight: bold; color: #0f172a;">REGISTERED SELLER GSTIN</div>
+            <div style="font-weight: bold; color: #000000;">REGISTERED SELLER GSTIN</div>
             <div style="font-weight: bold; color: #1d4ed8; font-size: 13px;">19BVKPL6301H1ZH</div>
-            <div style="color: #64748b; font-size: 9px;">support.shadowarrow@gmail.com</div>
+            <div style="color: #475569; font-size: 9px;">support.shadowarrow@gmail.com</div>
           </td>
         </tr>
       </table>
@@ -87,24 +87,24 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
       <table style="width: 100%; border-spacing: 0; margin-bottom: 12px; font-family: monospace; font-size: 10.5px;">
         <tr>
           <td style="width: 50%; vertical-align: top; padding-right: 6px;">
-            <div style="background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <div style="font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Sold By (Registered Seller)</div>
-              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #0f172a;">SHADOW ARROW (Bijoy Lohar)</div>
-              <div style="font-size: 9.5px; color: #475569; margin-top: 2px; line-height: 1.3;">
+            <div style="background: #f8fafc; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; color: #000000;">
+              <div style="font-size: 8px; font-weight: 700; color: #475569; text-transform: uppercase;">Sold By (Registered Seller)</div>
+              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #000000;">SHADOW ARROW (Bijoy Lohar)</div>
+              <div style="font-size: 9.5px; color: #000000; margin-top: 2px; line-height: 1.3;">
                 C/O BINOD LOHAR, DAPANJURI ROAD, BHARA, Dapanjuri, District: Bankura, West Bengal - 722157
               </div>
-              <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">State Code: 19 (West Bengal)</div>
+              <div style="font-size: 9.5px; color: #000000; margin-top: 2px;">State Code: 19 (West Bengal)</div>
             </div>
           </td>
           <td style="width: 50%; vertical-align: top; padding-left: 6px;">
-            <div style="background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; line-height: 1.5;">
-              <div>Invoice No: <strong style="color: #0f172a;">INV-SA-${order.order_id}</strong></div>
+            <div style="background: #f8fafc; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; text-align: right; line-height: 1.5; color: #000000;">
+              <div>Invoice No: <strong style="color: #000000;">INV-SA-${order.order_id}</strong></div>
               <div>Invoice Date: <strong>${invoiceDate}</strong></div>
               <div>Order ID: <strong style="color: #1d4ed8;">#${order.order_id}</strong></div>
-              <div>Payment Mode: <strong style="text-transform: uppercase;">${order.payment_method === 'COD' ? 'CASH ON DELIVERY (COD)' : 'PREPAID (ONLINE)'}</strong></div>
+              <div>Payment Mode: <strong style="text-transform: uppercase; color: #000000;">${order.payment_method === 'COD' ? 'CASH ON DELIVERY (COD)' : 'PREPAID (ONLINE)'}</strong></div>
               ${order.razorpay_payment_id ? `<div>Txn ID: <strong>${order.razorpay_payment_id}</strong></div>` : ''}
-              <div style="border-top: 1px border #cbd5e1; margin-top: 4px; padding-top: 4px;">
-                Shipper / Courier: <strong style="color: #0f172a;">${courierPartner}</strong> | AWB: <strong style="color: #1d4ed8;">${awbNumber}</strong>
+              <div style="border-top: 1px solid #94a3b8; margin-top: 4px; padding-top: 4px;">
+                Shipper / Courier: <strong style="color: #000000;">${courierPartner}</strong> | AWB: <strong style="color: #1d4ed8;">${awbNumber}</strong>
               </div>
             </div>
           </td>
@@ -115,18 +115,18 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
       <table style="width: 100%; border-spacing: 0; margin-bottom: 12px; font-family: monospace; font-size: 10.5px;">
         <tr>
           <td style="width: 50%; vertical-align: top; padding-right: 6px;">
-            <div style="background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <div style="font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Billing Address (Bill To / Buyer)</div>
-              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #0f172a;">${order.customer_name}</div>
+            <div style="background: #f8fafc; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; color: #000000;">
+              <div style="font-size: 8px; font-weight: 700; color: #475569; text-transform: uppercase;">Billing Address (Bill To / Buyer)</div>
+              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #000000;">${order.customer_name}</div>
               <div>Mob: ${order.customer_phone}</div>
               <div>${order.customer_email || ''}</div>
               <div style="margin-top: 2px; line-height: 1.3;">${order.shipping_address}</div>
             </div>
           </td>
           <td style="width: 50%; vertical-align: top; padding-left: 6px;">
-            <div style="background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <div style="font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Shipping Address (Ship To / Destination)</div>
-              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #0f172a;">${order.customer_name}</div>
+            <div style="background: #f8fafc; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; color: #000000;">
+              <div style="font-size: 8px; font-weight: 700; color: #475569; text-transform: uppercase;">Shipping Address (Ship To / Destination)</div>
+              <div style="font-weight: bold; font-size: 11px; margin-top: 2px; color: #000000;">${order.customer_name}</div>
               <div>Mob: ${order.customer_phone}</div>
               <div>${order.customer_email || ''}</div>
               <div style="margin-top: 2px; line-height: 1.3;">${order.shipping_address}</div>
@@ -136,9 +136,9 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
       </table>
 
       <!-- Item Table with Warranty Period Column -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-family: monospace; font-size: 10px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-family: monospace; font-size: 10px; color: #000000;">
         <thead>
-          <tr style="background: #f1f5f9; text-transform: uppercase; font-weight: bold; color: #0f172a;">
+          <tr style="background: #e2e8f0; text-transform: uppercase; font-weight: bold; color: #000000;">
             <th style="padding: 6px; border: 1px solid #cbd5e1; width: 25px; text-align: center;">#</th>
             <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: left;">Product Description</th>
             <th style="padding: 6px; border: 1px solid #cbd5e1; width: 60px; text-align: center;">HSN</th>
@@ -155,31 +155,31 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
       </table>
 
       <!-- Totals & Tax Breakdown Table -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-family: monospace;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-family: monospace; color: #000000;">
         <tr>
           <td style="vertical-align: top; max-width: 320px;">
             <div style="font-weight: bold; color: #047857; font-size: 10px; margin-bottom: 2px;">
               ✓ GST VERIFIED OFFICIAL TAX INVOICE
             </div>
-            <div style="font-size: 9px; color: #64748b; line-height: 1.3;">
+            <div style="font-size: 9px; color: #475569; line-height: 1.3;">
               Supply calculated under 18% Total GST (9% CGST + 9% SGST). Official merchant tax receipt.
             </div>
             <div style="font-size: 9.5px; font-weight: bold; margin-top: 6px;">
-              Amount in Words: <span style="font-style: italic; color: #0f172a;">${amountInWords}</span>
+              Amount in Words: <span style="font-style: italic; color: #000000;">${amountInWords}</span>
             </div>
           </td>
           <td style="vertical-align: top; text-align: right;">
-            <div style="width: 220px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; display: inline-block; text-align: left;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #475569;">
+            <div style="width: 220px; background: #f8fafc; border: 1px solid #94a3b8; padding: 8px; border-radius: 6px; display: inline-block; text-align: left; color: #000000;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #000000;">
                 <span>Taxable Base Value:</span><span>₹${taxableBase}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #475569;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #000000;">
                 <span>CGST (9%):</span><span>₹${cgst}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #475569;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #000000;">
                 <span>SGST (9%):</span><span>₹${sgst}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; color: #0f172a; border-top: 1px solid #cbd5e1; padding-top: 4px; margin-top: 4px;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; color: #000000; border-top: 1px solid #cbd5e1; padding-top: 4px; margin-top: 4px;">
                 <span>GRAND TOTAL:</span><span style="color: #1d4ed8;">₹${totalAmount.toFixed(2)}</span>
               </div>
             </div>
@@ -188,14 +188,14 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
       </table>
 
       <!-- Footer Terms & Disclaimer Table -->
-      <table style="width: 100%; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 8.5px; color: #64748b; font-family: monospace;">
+      <table style="width: 100%; border-top: 1px solid #94a3b8; padding-top: 8px; font-size: 8.5px; color: #475569; font-family: monospace;">
         <tr>
           <td style="vertical-align: top; text-align: left;">
-            <div style="font-weight: bold; color: #334155;">Returns & Warranty Policy Note:</div>
+            <div style="font-weight: bold; color: #000000;">Returns & Warranty Policy Note:</div>
             <div>7-Day Easy Return Policy across India. Brand warranty claims require this invoice.</div>
           </td>
           <td style="vertical-align: top; text-align: right;">
-            <div style="font-weight: bold; color: #0f172a;">For SHADOW ARROW</div>
+            <div style="font-weight: bold; color: #000000;">For SHADOW ARROW</div>
             <div style="font-style: italic;">Computer Generated Tax Invoice</div>
             <div style="font-weight: bold;">NO SIGNATURE REQUIRED</div>
           </td>
@@ -219,8 +219,7 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
         scale: 2,
         useCORS: true,
         logging: false,
-        scrollX: 0,
-        scrollY: 0,
+        backgroundColor: '#ffffff',
         windowWidth: 800,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -231,6 +230,8 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
   } catch (err) {
     console.error('Direct PDF download error:', err);
   } finally {
-    document.body.removeChild(htmlContainer);
+    if (document.body.contains(htmlContainer)) {
+      document.body.removeChild(htmlContainer);
+    }
   }
 }

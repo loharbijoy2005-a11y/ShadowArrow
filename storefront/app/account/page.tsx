@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-import TaxInvoiceModal from '@/components/TaxInvoiceModal';
-import ThermalInvoiceModal from '@/components/ThermalInvoiceModal';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import { User, Package, MapPin, LogOut, Plus, Trash2, Edit3, PhoneCall, FileText, Loader2, RefreshCw, Smartphone, Copy, Check, Truck, Printer } from 'lucide-react';
+import { User, Package, MapPin, LogOut, Plus, Trash2, Edit3, PhoneCall, FileText, Loader2, RefreshCw, Smartphone, Copy, Check, Truck, Download } from 'lucide-react';
 import axios from 'axios';
+import { downloadDirectTaxInvoicePDF } from '@/utils/downloadInvoicePDF';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -28,8 +27,7 @@ export default function AccountPage() {
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any>(null);
-  const [selectedThermalOrder, setSelectedThermalOrder] = useState<any>(null);
+  const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
   const [copiedAwb, setCopiedAwb] = useState<string | null>(null);
 
   // Phone Edit Manager State
@@ -490,19 +488,25 @@ export default function AccountPage() {
 
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => setSelectedThermalOrder(ord)}
-                            className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl flex items-center space-x-1.5 transition text-xs"
-                            title="4x6 Thermal Label"
+                            onClick={async () => {
+                              const ordId = ord.order_id || ord.id || ord._id;
+                              setDownloadingPdfId(ordId);
+                              try {
+                                await downloadDirectTaxInvoicePDF(ord);
+                              } finally {
+                                setDownloadingPdfId(null);
+                              }
+                            }}
+                            disabled={downloadingPdfId === (ord.order_id || ord.id || ord._id)}
+                            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold rounded-xl flex items-center space-x-2 transition text-xs shadow-sm"
+                            title="Download A4 GST Tax Invoice PDF Directly"
                           >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>Thermal Label</span>
-                          </button>
-                          <button
-                            onClick={() => setSelectedInvoiceOrder(ord)}
-                            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-900 font-bold rounded-xl flex items-center space-x-1.5 transition text-xs"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-slate-700" />
-                            <span>Tax Invoice</span>
+                            <Download className="w-4 h-4 text-blue-400" />
+                            <span>
+                              {downloadingPdfId === (ord.order_id || ord.id || ord._id)
+                                ? 'Downloading Invoice PDF...'
+                                : 'Download Tax Invoice PDF'}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -604,13 +608,7 @@ export default function AccountPage() {
         )}
       </main>
 
-      {/* Tax Invoice Modal Trigger */}
-      {selectedInvoiceOrder && (
-        <TaxInvoiceModal
-          order={selectedInvoiceOrder}
-          onClose={() => setSelectedInvoiceOrder(null)}
-        />
-      )}
+
 
       {/* Address Edit/Add Modal */}
       {showAddrModal && (
@@ -703,16 +701,6 @@ export default function AccountPage() {
           </div>
         </div>
       )}
-      {/* GST Tax Invoice Modal */}
-      {selectedInvoiceOrder && (
-        <TaxInvoiceModal order={selectedInvoiceOrder} onClose={() => setSelectedInvoiceOrder(null)} />
-      )}
-
-      {/* Thermal Invoice Modal (4x6) */}
-      {selectedThermalOrder && (
-        <ThermalInvoiceModal order={selectedThermalOrder} onClose={() => setSelectedThermalOrder(null)} />
-      )}
-
       {/* Mobile Bottom Navigation Bar */}
       <MobileBottomNav onToggleAI={() => {}} />
     </div>

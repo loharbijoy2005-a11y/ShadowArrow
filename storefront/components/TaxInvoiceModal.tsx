@@ -183,13 +183,10 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
               <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider font-mono">OFFICIAL GST TAX INVOICE / BILL OF SUPPLY</p>
               <p className="text-[10px] text-slate-500 font-mono">Original for Recipient</p>
             </div>
-            <div className="flex items-center space-x-3 text-right">
-              {renderQRCodeSVG()}
-              <div className="font-mono text-[10px]">
-                <p className="font-bold text-slate-900">SELLER GSTIN</p>
-                <p className="font-bold text-blue-700 text-xs">19BVKPL6301H1ZH</p>
-                <p className="text-slate-500">support.shadowarrow@gmail.com</p>
-              </div>
+            <div className="text-right font-mono text-[10px]">
+              <p className="font-bold text-slate-900">SELLER GSTIN</p>
+              <p className="font-bold text-blue-700 text-xs">19BVKPL6301H1ZH</p>
+              <p className="text-slate-500">support.shadowarrow@gmail.com</p>
             </div>
           </div>
 
@@ -239,7 +236,7 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
             </div>
           </div>
 
-          {/* Professional Line Item Table */}
+          {/* Professional Line Item Table with Warranty */}
           <table className="w-full text-left border-collapse border border-slate-300 text-[11px] font-mono">
             <thead>
               <tr className="bg-slate-100 text-slate-800 font-bold uppercase border-b border-slate-300">
@@ -247,6 +244,7 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
                 <th className="p-2 border-r border-slate-300">Product Description</th>
                 <th className="p-2 border-r border-slate-300 text-center">HSN</th>
                 <th className="p-2 border-r border-slate-300 text-center">Qty</th>
+                <th className="p-2 border-r border-slate-300 text-center">Warranty Period</th>
                 <th className="p-2 border-r border-slate-300 text-right">Taxable Rate</th>
                 <th className="p-2 border-r border-slate-300 text-center">GST</th>
                 <th className="p-2 text-right">Total Amount (₹)</th>
@@ -261,6 +259,9 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
                   </td>
                   <td className="p-2 border-r border-slate-200 text-center text-slate-600">61091000</td>
                   <td className="p-2 border-r border-slate-200 text-center font-bold">{it.quantity}</td>
+                  <td className="p-2 border-r border-slate-200 text-center font-bold text-blue-700">
+                    {it.warranty || '6 Months Brand Warranty'}
+                  </td>
                   <td className="p-2 border-r border-slate-200 text-right">₹{(it.price / 1.18).toFixed(2)}</td>
                   <td className="p-2 border-r border-slate-200 text-center text-slate-600">18%</td>
                   <td className="p-2 text-right font-bold text-slate-900">₹{(it.price * it.quantity).toFixed(2)}</td>

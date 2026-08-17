@@ -59,11 +59,7 @@ export default function TruckOrderButton({
         </>
       ) : (
         <>
-          {isCOD ? (
-            <Truck className="w-5 h-5 text-white" />
-          ) : (
-            <CreditCard className="w-5 h-5 text-white" />
-          )}
+          <Truck className="w-5 h-5 text-white shrink-0" />
           <span>{defaultText}</span>
         </>
       )}

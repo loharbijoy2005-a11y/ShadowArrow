@@ -436,11 +436,30 @@ func GetAdminOrders(c *gin.Context) {
 	defer cancel()
 
 	status := c.Query("status")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
 	collection := db.GetCollection("orders")
 
 	filter := bson.M{}
 	if status != "" && status != "ALL" {
 		filter["order_status"] = status
+	}
+
+	if startDateStr != "" || endDateStr != "" {
+		dateFilter := bson.M{}
+		if startDateStr != "" {
+			if tStart, err := time.Parse("2006-01-02", startDateStr); err == nil {
+				dateFilter["$gte"] = tStart
+			}
+		}
+		if endDateStr != "" {
+			if tEnd, err := time.Parse("2006-01-02", endDateStr); err == nil {
+				dateFilter["$lte"] = tEnd.Add(24*time.Hour - time.Second)
+			}
+		}
+		if len(dateFilter) > 0 {
+			filter["created_at"] = dateFilter
+		}
 	}
 
 	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}})

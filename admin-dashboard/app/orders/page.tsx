@@ -1,10 +1,8 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import InvoiceModal from '@/components/InvoiceModal';
 import axios from 'axios';
-import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check } from 'lucide-react';
+import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -26,6 +24,12 @@ export default function OrdersAdminPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any>(null);
+
+  // Date Range & Search Filtering States
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [datePreset, setDatePreset] = useState('ALL');
   
   // Status Edit Modal State
   const [editingOrder, setEditingOrder] = useState<any>(null);
@@ -43,18 +47,19 @@ export default function OrdersAdminPage() {
     const savedToken = localStorage.getItem('ops_admin_token');
     if (savedToken) {
       setToken(savedToken);
-      fetchOrders(savedToken, statusFilter);
+      fetchOrders(savedToken, statusFilter, startDate, endDate);
     } else {
       window.location.href = '/';
     }
-  }, [statusFilter]);
+  }, [statusFilter, startDate, endDate]);
 
-  const fetchOrders = async (authToken: string, status: string) => {
+  const fetchOrders = async (authToken: string, status: string, start?: string, end?: string) => {
     setLoading(true);
     try {
-      const url = status === 'ALL' 
-        ? `${API_URL}/api/v1/admin/orders` 
-        : `${API_URL}/api/v1/admin/orders?status=${status}`;
+      let url = `${API_URL}/api/v1/admin/orders?status=${encodeURIComponent(status)}`;
+      if (start) url += `&start_date=${encodeURIComponent(start)}`;
+      if (end) url += `&end_date=${encodeURIComponent(end)}`;
+
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -70,6 +75,105 @@ export default function OrdersAdminPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDatePreset = (preset: string) => {
+    setDatePreset(preset);
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    if (preset === 'TODAY') {
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (preset === 'YESTERDAY') {
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      const yStr = y.toISOString().split('T')[0];
+      setStartDate(yStr);
+      setEndDate(yStr);
+    } else if (preset === 'LAST7') {
+      const d7 = new Date(now);
+      d7.setDate(d7.getDate() - 7);
+      setStartDate(d7.toISOString().split('T')[0]);
+      setEndDate(todayStr);
+    } else if (preset === 'THIS_MONTH') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      setStartDate(firstDay.toISOString().split('T')[0]);
+      setEndDate(todayStr);
+    } else {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  // Client-side Filtered Orders Computation
+  const filteredOrders = orders.filter((ord) => {
+    if (statusFilter !== 'ALL' && ord.order_status !== statusFilter) {
+      return false;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchID = (ord.order_id || '').toLowerCase().includes(q);
+      const matchName = (ord.customer_name || '').toLowerCase().includes(q);
+      const matchPhone = (ord.customer_phone || '').toLowerCase().includes(q);
+      const matchAddress = (ord.shipping_address || '').toLowerCase().includes(q);
+      const matchTxn = (ord.razorpay_payment_id || '').toLowerCase().includes(q);
+      const matchItem = ord.items && ord.items.some((it: any) => (it.title || '').toLowerCase().includes(q));
+
+      if (!matchID && !matchName && !matchPhone && !matchAddress && !matchTxn && !matchItem) {
+        return false;
+      }
+    }
+
+    if (startDate || endDate) {
+      const ordDate = ord.created_at ? new Date(ord.created_at) : null;
+      if (!ordDate || isNaN(ordDate.getTime())) return false;
+
+      if (startDate) {
+        const sDate = new Date(startDate);
+        sDate.setHours(0, 0, 0, 0);
+        if (ordDate < sDate) return false;
+      }
+
+      if (endDate) {
+        const eDate = new Date(endDate);
+        eDate.setHours(23, 59, 59, 999);
+        if (ordDate > eDate) return false;
+      }
+    }
+
+    return true;
+  });
+
+  const filteredTotalValue = filteredOrders.reduce((acc, o) => acc + (o.total_amount || 0), 0);
+
+  const handleExportCSV = () => {
+    if (filteredOrders.length === 0) return;
+    const headers = ['Order ID', 'Date & Time', 'Customer Name', 'Phone', 'Email', 'Shipping Address', 'Payment Method', 'Txn ID', 'Order Status', 'Courier', 'AWB', 'Total Amount (INR)'];
+    const rows = filteredOrders.map(o => [
+      `"${o.order_id || ''}"`,
+      `"${new Date(o.created_at || Date.now()).toLocaleString('en-IN')}"`,
+      `"${(o.customer_name || '').replace(/"/g, '""')}"`,
+      `"${o.customer_phone || ''}"`,
+      `"${o.customer_email || ''}"`,
+      `"${(o.shipping_address || '').replace(/"/g, '""')}"`,
+      `"${o.payment_method || ''}"`,
+      `"${o.razorpay_payment_id || ''}"`,
+      `"${o.order_status || ''}"`,
+      `"${o.courier_partner || o.courier_name || ''}"`,
+      `"${o.awb_number || o.tracking_number || ''}"`,
+      `"${o.total_amount || 0}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `shadow_arrow_orders_export_${startDate || 'all'}_to_${endDate || 'today'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleUpdateStatusSubmit = async (e: React.FormEvent) => {
@@ -96,7 +200,7 @@ export default function OrdersAdminPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEditingOrder(null);
-      if (token) fetchOrders(token, statusFilter);
+      if (token) fetchOrders(token, statusFilter, startDate, endDate);
     } catch (err) {
       alert('Failed to update order details in MongoDB');
     } finally {
@@ -108,34 +212,166 @@ export default function OrdersAdminPage() {
     <div className="flex min-h-screen bg-ops-900 text-gray-100 font-sans">
       <Navigation onLogout={() => { localStorage.removeItem('ops_admin_token'); window.location.href = '/'; }} />
 
-      <main className="flex-1 p-8 space-y-8 overflow-y-auto">
-        <header className="flex justify-between items-center pb-6 border-b border-ops-700">
+      <main className="flex-1 p-8 space-y-6 overflow-y-auto">
+        
+        {/* Top Header */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-ops-700">
           <div>
             <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ORDER FULFILLMENT DESK</h1>
-            <p className="text-xs text-gray-400 font-mono mt-1">Customer dispatch queue, Razorpay Txn IDs, AWB tracking pipeline & real-time MongoDB sync</p>
+            <p className="text-xs text-gray-400 font-mono mt-1">Calendar date range lookup, dispatch manifests, Txn IDs & real-time MongoDB pipeline</p>
           </div>
           <div className="flex items-center space-x-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-ops-800 border border-ops-700 rounded-lg px-3 py-2 text-xs font-mono text-gray-200 focus:outline-none focus:border-blue-500"
-            >
-              <option value="ALL">All Lifecycle Statuses</option>
-              <option value="CONFIRMED">CONFIRMED</option>
-              <option value="PROCESSING">PROCESSING</option>
-              <option value="SHIPPED">SHIPPED</option>
-              <option value="DELIVERED">DELIVERED</option>
-              <option value="CANCELLED">CANCELLED</option>
-              <option value="REFUNDED">REFUNDED</option>
-            </select>
             <button
-              onClick={() => token && fetchOrders(token, statusFilter)}
-              className="p-2 bg-ops-800 border border-ops-700 rounded-lg text-gray-300 hover:text-white"
+              onClick={handleExportCSV}
+              disabled={filteredOrders.length === 0}
+              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-mono font-bold rounded-lg transition shadow"
+              title="Export filtered orders manifest to CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV Manifest</span>
+            </button>
+            <button
+              onClick={() => token && fetchOrders(token, statusFilter, startDate, endDate)}
+              className="p-2 bg-ops-800 border border-ops-700 rounded-lg text-gray-300 hover:text-white transition"
+              title="Refresh Orders"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </header>
+
+        {/* Date & Time Calendar Control Bar */}
+        <div className="bg-ops-800 border border-ops-700 rounded-2xl p-5 shadow-xl space-y-4 font-mono text-xs">
+          
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            
+            {/* Search Input Bar */}
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Order ID, Phone, Customer Name, Txn ID, or Item..."
+                className="w-full bg-ops-900 border border-ops-700 rounded-xl pl-9 pr-8 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-xs"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3 text-gray-400 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Quick Date Presets */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] text-gray-400 font-bold uppercase mr-1">Date Presets:</span>
+              {[
+                { label: 'All Time', value: 'ALL' },
+                { label: 'Today', value: 'TODAY' },
+                { label: 'Yesterday', value: 'YESTERDAY' },
+                { label: 'Last 7 Days', value: 'LAST7' },
+                { label: 'This Month', value: 'THIS_MONTH' },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => handleDatePreset(p.value)}
+                  className={`px-3 py-1.5 rounded-lg border transition font-bold text-[11px] ${
+                    datePreset === p.value
+                      ? 'bg-blue-600 text-white border-blue-500'
+                      : 'bg-ops-900 text-gray-300 border-ops-700 hover:bg-ops-700'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Calendar Picker Inputs & Status Filter */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-3 border-t border-ops-700/60 items-center">
+            
+            <div>
+              <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1 flex items-center space-x-1">
+                <Calendar className="w-3 h-3 text-blue-400" />
+                <span>From Date (Calendar)</span>
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => { setStartDate(e.target.value); setDatePreset('CUSTOM'); }}
+                className="w-full bg-ops-900 border border-ops-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1 flex items-center space-x-1">
+                <Calendar className="w-3 h-3 text-purple-400" />
+                <span>To Date (Calendar)</span>
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => { setEndDate(e.target.value); setDatePreset('CUSTOM'); }}
+                className="w-full bg-ops-900 border border-ops-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1">Lifecycle Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-ops-900 border border-ops-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-bold"
+              >
+                <option value="ALL">All Lifecycle Statuses</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="PROCESSING">PROCESSING</option>
+                <option value="SHIPPED">SHIPPED</option>
+                <option value="DELIVERED">DELIVERED</option>
+                <option value="CANCELLED">CANCELLED</option>
+                <option value="REFUNDED">REFUNDED</option>
+              </select>
+            </div>
+
+            <div className="flex items-end space-x-2 pt-4 sm:pt-0">
+              {(startDate || endDate || searchQuery || statusFilter !== 'ALL') && (
+                <button
+                  type="button"
+                  onClick={() => { setStartDate(''); setEndDate(''); setSearchQuery(''); setStatusFilter('ALL'); setDatePreset('ALL'); }}
+                  className="w-full p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear All Filters</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Live Filter Summary Banner */}
+        <div className="p-4 bg-ops-800/80 border border-ops-700 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-mono text-xs">
+          <div className="flex items-center space-x-2 text-gray-300">
+            <CalendarDays className="w-4 h-4 text-blue-400" />
+            <span>
+              Date Range:{' '}
+              <strong className="text-white font-bold">
+                {startDate ? new Date(startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Beginning'}
+                {' → '}
+                {endDate ? new Date(endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Present'}
+              </strong>
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold">
+              📦 Orders Found: <strong className="text-white">{filteredOrders.length}</strong>
+            </span>
+            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full font-bold">
+              💰 Filtered Sales: <strong className="text-white">₹{filteredTotalValue.toFixed(2)}</strong>
+            </span>
+          </div>
+        </div>
 
         {/* Customer Orders Table */}
         <div className="bg-ops-800 border border-ops-700 rounded-xl overflow-hidden shadow-xl">
@@ -151,14 +387,14 @@ export default function OrdersAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ops-700">
-              {orders.length === 0 ? (
+              {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
-                    {loading ? 'Fetching orders from database...' : 'No orders matched the current filter.'}
+                    {loading ? 'Fetching orders from database...' : 'No orders matched the current date/search filter.'}
                   </td>
                 </tr>
               ) : (
-                orders.map((ord) => {
+                filteredOrders.map((ord) => {
                   const id = ord.order_id || ord.id || ord._id;
                   const courier = ord.courier_partner || ord.courier_name;
                   const awb = ord.awb_number || ord.tracking_number;

@@ -19,13 +19,19 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
           if (theme.buy_now_btn_color) root.style.setProperty('--color-buy-now', theme.buy_now_btn_color);
           if (theme.add_cart_btn_color) root.style.setProperty('--color-add-cart', theme.add_cart_btn_color);
           if (theme.navbar_bg_color) root.style.setProperty('--color-navbar-bg', theme.navbar_bg_color);
+          if (theme.navbar_text_color) root.style.setProperty('--color-navbar-text', theme.navbar_text_color);
           if (theme.bg_color) root.style.setProperty('--color-bg', theme.bg_color);
           if (theme.card_bg_color) root.style.setProperty('--color-card-bg', theme.card_bg_color);
+          if (theme.checkout_bg_color) root.style.setProperty('--color-checkout-bg', theme.checkout_bg_color);
+          if (theme.checkout_card_color) root.style.setProperty('--color-checkout-card', theme.checkout_card_color);
+          if (theme.checkout_btn_color) root.style.setProperty('--color-checkout-btn', theme.checkout_btn_color);
+          if (theme.footer_bg_color) root.style.setProperty('--color-footer-bg', theme.footer_bg_color);
+          if (theme.footer_text_color) root.style.setProperty('--color-footer-text', theme.footer_text_color);
           if (theme.text_primary_color) root.style.setProperty('--color-text-primary', theme.text_primary_color);
           if (theme.text_secondary_color) root.style.setProperty('--color-text-secondary', theme.text_secondary_color);
         }
       } catch (err) {
-        console.warn('Failed to load dynamic theme, using default CSS variables', err);
+        console.warn('Failed to load dynamic theme settings', err);
       } finally {
         setThemeLoaded(true);
       }

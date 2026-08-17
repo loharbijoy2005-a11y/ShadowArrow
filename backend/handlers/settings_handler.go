@@ -23,10 +23,18 @@ func GetDefaultThemeSettings() models.SiteThemeSettings {
 		BuyNowBtnColor:     "#16a34a",
 		AddCartBtnColor:    "#0f172a",
 		NavbarBgColor:      "#0f172a",
+		NavbarTextColor:    "#ffffff",
 		BgColor:            "#020617",
 		CardBgColor:        "#0f172a",
+		CheckoutBgColor:    "#020617",
+		CheckoutCardColor:  "#0f172a",
+		CheckoutBtnColor:   "#2563eb",
+		FooterBgColor:      "#0f172a",
+		FooterTextColor:    "#94a3b8",
 		TextPrimaryColor:   "#ffffff",
 		TextSecondaryColor: "#94a3b8",
+		AdminBgColor:       "#0b0f19",
+		AdminAccentColor:   "#2563eb",
 		UpdatedAt:          time.Now(),
 	}
 }
@@ -72,10 +80,18 @@ func UpdateThemeSettings(c *gin.Context) {
 			"buy_now_btn_color":    payload.BuyNowBtnColor,
 			"add_cart_btn_color":   payload.AddCartBtnColor,
 			"navbar_bg_color":      payload.NavbarBgColor,
+			"navbar_text_color":    payload.NavbarTextColor,
 			"bg_color":             payload.BgColor,
 			"card_bg_color":        payload.CardBgColor,
+			"checkout_bg_color":    payload.CheckoutBgColor,
+			"checkout_card_color":  payload.CheckoutCardColor,
+			"checkout_btn_color":   payload.CheckoutBtnColor,
+			"footer_bg_color":      payload.FooterBgColor,
+			"footer_text_color":    payload.FooterTextColor,
 			"text_primary_color":   payload.TextPrimaryColor,
 			"text_secondary_color": payload.TextSecondaryColor,
+			"admin_bg_color":       payload.AdminBgColor,
+			"admin_accent_color":   payload.AdminAccentColor,
 			"updated_at":           payload.UpdatedAt,
 		},
 	}
@@ -87,7 +103,7 @@ func UpdateThemeSettings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "Storefront theme & settings updated successfully",
+		"message":  "Storefront & Admin theme settings updated successfully",
 		"settings": payload,
 	})
 }

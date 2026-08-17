@@ -3,13 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --color-primary: #2563eb;
+  --color-buy-now: #16a34a;
+  --color-add-cart: #0f172a;
+  --color-navbar-bg: #0f172a;
+  --color-navbar-text: #ffffff;
+  --color-bg: #020617;
+  --color-card-bg: #0f172a;
+  --color-checkout-bg: #020617;
+  --color-checkout-card: #0f172a;
+  --color-checkout-btn: #2563eb;
+  --color-footer-bg: #0f172a;
+  --color-footer-text: #94a3b8;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #94a3b8;
 }
 
 html, body {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: var(--color-bg, #020617) !important;
+  color: var(--color-text-primary, #ffffff) !important;
   min-height: 100vh;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -168,8 +180,8 @@ html, body {
 .flashing-buy-now {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  background-color: var(--color-buy-now, #16a34a) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   animation: buyNowBluePulse 2.5s infinite ease-in-out;
   transition: all 0.2s ease;
 }

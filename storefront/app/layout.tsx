@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { CartProvider } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
+import FloatingCartBar from '@/components/FloatingCartBar';
 import Footer from '@/components/Footer';
 import TrackOrderBubbleModal from '@/components/TrackOrderBubbleModal';
 import ThemeProvider from '@/components/ThemeProvider';
@@ -27,6 +28,7 @@ export default function RootLayout({
             <div className="flex-1 flex flex-col">
               {children}
             </div>
+            <FloatingCartBar />
             <CartDrawer />
             <TrackOrderBubbleModal />
             <Footer />

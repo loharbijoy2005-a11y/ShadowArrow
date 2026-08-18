@@ -41,7 +41,48 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
   const awbNumber = order.awb_number || order.tracking_number || 'Handed to Courier';
 
   const handlePrint = () => {
-    window.print();
+    const element = document.getElementById('tax-invoice-printable');
+    if (!element) return;
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>SHADOW_ARROW_TAX_INVOICE_${order.order_id}</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            @page { size: A4 portrait; margin: 8mm; }
+            body { font-family: monospace, sans-serif; background: #ffffff; color: #000000; padding: 10px; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 190mm; margin: 0 auto;">
+            ${element.outerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   const handleDownloadPDF = async () => {
@@ -50,7 +91,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
 
     setDownloading(true);
     try {
-      // Dynamic import to avoid SSR 'self is not defined' error during Next.js build
+      // Dynamic import to avoid SSR build errors
       // @ts-ignore
       const html2pdf = (await import('html2pdf.js')).default;
       const opt: any = {
@@ -61,9 +102,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
           scale: 2,
           useCORS: true,
           logging: false,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: 800,
+          backgroundColor: '#ffffff',
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
@@ -71,7 +110,8 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
 
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
-      console.error('PDF export failed:', err);
+      console.error('PDF export failed, falling back to clean print driver:', err);
+      handlePrint();
     } finally {
       setDownloading(false);
     }
@@ -80,40 +120,27 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 font-sans">
       
-      {/* Strict CSS Print Engine Rules for 100% Exact 1-Page A4 PDF Output */}
+      {/* CSS Print Engine Fallback Rules */}
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
             margin: 6mm 8mm 6mm 8mm;
           }
-          html, body {
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            overflow: hidden !important;
-          }
-          body * {
-            visibility: hidden !important;
-          }
-          #tax-invoice-printable, #tax-invoice-printable * {
-            visibility: visible !important;
+          body > *:not(#tax-invoice-printable) {
+            display: none !important;
           }
           #tax-invoice-printable {
+            display: block !important;
+            visibility: visible !important;
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
             max-width: 190mm !important;
             margin: 0 auto !important;
-            padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-            page-break-after: avoid !important;
-            break-after: avoid !important;
           }
           .no-print {
             display: none !important;

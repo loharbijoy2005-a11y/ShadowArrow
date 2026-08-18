@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Mail, HelpCircle, MessageSquare, X, ArrowRight, Bell } from 'lucide-react';
 import SupportWidgetModal from '@/components/SupportWidgetModal';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
+import FAQSection from '@/components/FAQSection';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -142,9 +143,12 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* FAQ Accordion Section */}
+        <FAQSection />
+
+        {/* Bottom Bar with Copyright */}
         <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">
-          <p>SHADOW ARROW Prime Marketplace</p>
+          <p>© {new Date().getFullYear()} SHADOW ARROW Inc. All rights reserved. Registered Trademark & Government GST Verified Marketplace (GSTIN: 19BVKPL6301H1ZH).</p>
           <p>Support: support.shadowarrow@gmail.com</p>
         </div>
       </div>

@@ -7,20 +7,22 @@ interface GSTBadgeTooltipProps {
   gstin?: string;
   className?: string;
   children?: React.ReactNode;
+  enableHover?: boolean;
 }
 
 export default function GSTBadgeTooltip({
   gstin = '19BVKPL6301H1ZH',
   className = '',
   children,
+  enableHover = true,
 }: GSTBadgeTooltipProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className="relative inline-block"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => enableHover && setIsHovered(true)}
+      onMouseLeave={() => enableHover && setIsHovered(false)}
     >
       {/* Trigger element */}
       <div className="cursor-pointer">
@@ -34,9 +36,9 @@ export default function GSTBadgeTooltip({
         )}
       </div>
 
-      {/* Hover Popup Card */}
-      {isHovered && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 sm:w-96 z-50 bg-slate-900/95 backdrop-blur-xl border border-blue-500/40 rounded-2xl p-4 shadow-2xl text-slate-100 font-sans text-xs animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
+      {/* Hover Popup Card (Only opens when enabled) */}
+      {isHovered && enableHover && (
+        <div className="absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-3 w-72 sm:w-96 z-50 bg-slate-900/95 backdrop-blur-xl border border-blue-500/40 rounded-2xl p-4 shadow-2xl text-slate-100 font-sans text-xs animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
           
           {/* Arrow Tail */}
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-8 border-transparent border-t-slate-900" />

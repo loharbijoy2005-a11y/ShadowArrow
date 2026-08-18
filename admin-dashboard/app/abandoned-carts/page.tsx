@@ -31,8 +31,13 @@ export default function AbandonedCartsPage() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setCarts(res.data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch abandoned carts', err);
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('ops_admin_token');
+        localStorage.removeItem('admin_token');
+        window.location.href = '/';
+      }
     } finally {
       setLoading(false);
     }

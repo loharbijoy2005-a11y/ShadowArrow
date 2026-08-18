@@ -32,8 +32,12 @@ export default function CustomersAdminPage() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setCustomers(res.data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch customers registry', err);
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('ops_admin_token');
+        window.location.href = '/';
+      }
     } finally {
       setLoading(false);
     }

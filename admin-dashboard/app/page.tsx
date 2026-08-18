@@ -51,8 +51,12 @@ export default function AdminPage() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setAnalytics(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load analytics', err);
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('ops_admin_token');
+        setToken(null);
+      }
     }
   };
 

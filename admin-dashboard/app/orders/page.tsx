@@ -77,8 +77,12 @@ export default function OrdersAdminPage() {
         return timeB - timeA; // Strict newest orders first at top of list
       });
       setOrders(sortedOrders);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch admin orders', err);
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('ops_admin_token');
+        window.location.href = '/';
+      }
     } finally {
       setLoading(false);
     }

@@ -49,8 +49,13 @@ export default function TicketsAdminPage() {
           setActiveTicket(detailRes.data);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch support tickets', err);
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('ops_admin_token');
+        localStorage.removeItem('admin_token');
+        window.location.href = '/';
+      }
     } finally {
       setLoading(false);
     }

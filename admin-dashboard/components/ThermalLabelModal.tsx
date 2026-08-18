@@ -57,7 +57,7 @@ export default function ThermalLabelModal({ orders, onClose }: ThermalLabelModal
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 font-mono">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 font-mono animate-origin-expand">
       
       {/* Strict Multi-Page 4x6 Thermal CSS Overrides */}
       <style jsx global>{`

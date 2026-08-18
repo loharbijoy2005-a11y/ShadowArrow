@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -22,10 +22,9 @@ import {
   Sun,
   Moon,
   Monitor,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/ThemeContext';
+import { logAdminAction } from '@/lib/auditLogger';
 
 interface NavigationProps {
   onLogout: () => void;
@@ -34,7 +33,6 @@ interface NavigationProps {
 export default function Navigation({ onLogout }: NavigationProps) {
   const pathname = usePathname();
   const { setIsCustomizerOpen, theme, setMode } = useAdminTheme();
-  const [collapsed, setCollapsed] = useState(false);
 
   const navItems = [
     { name: 'Control Overview', href: '/', icon: LayoutDashboard },
@@ -43,7 +41,6 @@ export default function Navigation({ onLogout }: NavigationProps) {
     { name: 'Customer Directory', href: '/customers', icon: Users },
     { name: 'Abandoned Carts', href: '/abandoned-carts', icon: ShoppingCart },
     { name: 'Support & Returns', href: '/tickets', icon: HelpCircle },
-    { name: 'Live Device Inspector', href: '/device-preview', icon: Monitor },
     { name: 'Coupons & Promos', href: '/coupons', icon: Tag },
     { name: 'Logistics & Shipping', href: '/shipping', icon: Truck },
     { name: 'Store CMS', href: '/cms', icon: FileText },
@@ -53,41 +50,32 @@ export default function Navigation({ onLogout }: NavigationProps) {
   ];
 
   const toggleQuickMode = () => {
-    setMode(theme.mode === 'LIGHT' ? 'DARK' : 'LIGHT');
+    const nextMode = theme.mode === 'LIGHT' ? 'DARK' : 'LIGHT';
+    setMode(nextMode);
+    logAdminAction('Toggled Admin Theme Mode', `Mode set to ${nextMode}`);
   };
 
   return (
-    <aside
-      className={`bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0 font-sans text-xs transition-all duration-300 z-30 ${
-        collapsed ? 'w-20' : 'w-64'
-      }`}
-    >
-      <div className="overflow-y-auto">
-        {/* Header Bar */}
-        <div className="p-4 border-b border-ops-700 flex items-center justify-between">
-          <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="p-2 bg-blue-600/20 text-blue-400 rounded-xl shrink-0 border border-blue-500/30">
-              <Lock className="w-4 h-4" />
-            </div>
-            {!collapsed && (
-              <div className="truncate animate-in fade-in duration-200">
-                <h1 className="font-bold text-sm tracking-wider uppercase text-white">Ops Control</h1>
-                <p className="text-[9px] text-gray-400 font-mono">SHADOW ARROW v2.4</p>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-xl bg-ops-700 hover:bg-ops-600 text-gray-300 transition shrink-0"
-            title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+    <aside className="w-16 bg-ops-800 border-r border-ops-700 flex flex-col justify-between h-screen sticky top-0 font-sans text-xs shrink-0 z-40 shadow-2xl">
+      
+      {/* Top Header Icon */}
+      <div className="overflow-y-auto overflow-x-hidden flex-1 py-4 space-y-4">
+        
+        <div className="flex justify-center pb-3 border-b border-ops-700/80">
+          <Link
+            href="/"
+            className="p-2.5 bg-blue-600/20 text-blue-400 rounded-2xl border border-blue-500/40 hover:scale-110 transition-transform shadow-md group relative"
+            title="Admin Panel"
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+            <Lock className="w-5 h-5 text-blue-400" />
+            <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
+              Admin Panel v2.4
+            </div>
+          </Link>
         </div>
 
-        {/* Navigation Items List */}
-        <nav className="p-2.5 space-y-1">
+        {/* Clean Icon Navigation Buttons Only */}
+        <nav className="flex flex-col items-center space-y-2 px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -95,83 +83,85 @@ export default function Navigation({ onLogout }: NavigationProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                title={collapsed ? item.name : undefined}
-                className={`group relative flex items-center ${
-                  collapsed ? 'justify-center px-0 py-3' : 'space-x-3 px-3.5 py-2.5'
-                } rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 ${
+                onClick={() => logAdminAction(`Navigated to ${item.name}`, `Path: ${item.href}`)}
+                className={`group relative p-3 rounded-2xl transition-all duration-200 active:scale-90 flex items-center justify-center ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]'
-                    : 'text-gray-400 hover:bg-ops-700 hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/40 scale-105'
+                    : 'text-gray-400 hover:bg-ops-700 hover:text-white hover:scale-105'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-                  isActive ? 'text-white scale-110' : 'text-gray-400 group-hover:scale-110 group-hover:text-blue-400'
+                <Icon className={`w-5 h-5 transition-transform duration-200 ${
+                  isActive ? 'scale-110 text-white' : 'group-hover:scale-110 group-hover:text-blue-400'
                 }`} />
 
-                {!collapsed && (
-                  <span className="truncate animate-in fade-in duration-150">{item.name}</span>
-                )}
-
-                {/* Hover Tooltip for Collapsed Sidebar */}
-                {collapsed && (
-                  <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
-                    {item.name}
-                  </div>
-                )}
+                {/* Hover Tooltip Card */}
+                <div className="absolute left-full ml-3 px-3 py-1.5 bg-slate-900/95 text-white text-xs font-mono font-bold rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50 border border-slate-700/80 backdrop-blur-md">
+                  <span>{item.name}</span>
+                </div>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* Footer Controls */}
-      <div className="p-3 border-t border-ops-700 space-y-1.5 shrink-0 bg-ops-800">
-        {!collapsed ? (
-          <>
-            <div className="flex items-center space-x-1.5">
-              <button
-                onClick={toggleQuickMode}
-                className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-xl text-xs font-bold text-gray-300 bg-ops-700 hover:bg-ops-600 transition"
-              >
-                {theme.mode === 'LIGHT' ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
-                <span>{theme.mode === 'LIGHT' ? 'Dark Mode' : 'Light Mode'}</span>
-              </button>
-
-              <button
-                onClick={() => setIsCustomizerOpen(true)}
-                className="p-2 rounded-xl bg-ops-700 hover:bg-ops-600 text-purple-400 transition"
-                title="Theme Customizer"
-              >
-                <Palette className="w-4 h-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Lock Admin Session</span>
-            </button>
-          </>
-        ) : (
-          <div className="flex flex-col items-center space-y-2 py-1">
-            <button
-              onClick={toggleQuickMode}
-              className="p-2 rounded-xl bg-ops-700 hover:bg-ops-600 text-gray-300 transition"
-              title="Toggle Theme"
-            >
-              {theme.mode === 'LIGHT' ? <Moon className="w-4 h-4 text-blue-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
-            </button>
-            <button
-              onClick={onLogout}
-              className="p-2 rounded-xl bg-ops-700 hover:bg-red-500/20 text-red-400 transition"
-              title="Lock Admin Session"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+      {/* Bottom Controls Bar (Device Inspector, Palette, Theme Toggle, Lock) */}
+      <div className="p-2 border-t border-ops-700 flex flex-col items-center space-y-2.5 shrink-0 bg-ops-800">
+        
+        {/* Device Preview Inspector Button */}
+        <Link
+          href="/device-preview"
+          onClick={() => logAdminAction('Opened Live Device Inspector', 'Path: /device-preview')}
+          className={`group relative p-2.5 rounded-xl transition-all duration-200 active:scale-95 border ${
+            pathname === '/device-preview'
+              ? 'bg-blue-600 text-white border-blue-500 shadow-md'
+              : 'bg-ops-700 text-emerald-400 hover:bg-ops-600 border-ops-600'
+          }`}
+        >
+          <Monitor className="w-4 h-4" />
+          <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
+            Live Storefront Device Inspector
           </div>
-        )}
+        </Link>
+
+        {/* Theme Palette Sliders Button */}
+        <button
+          onClick={() => {
+            setIsCustomizerOpen(true);
+            logAdminAction('Opened Theme Color Sliders', 'Customizer Modal');
+          }}
+          className="group relative p-2.5 rounded-xl bg-ops-700 hover:bg-ops-600 text-purple-400 border border-ops-600 transition active:scale-95"
+        >
+          <Palette className="w-4 h-4" />
+          <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
+            Color Palette Sliders ({theme.mode})
+          </div>
+        </button>
+
+        {/* Light/Dark Mode Switch */}
+        <button
+          onClick={toggleQuickMode}
+          className="group relative p-2.5 rounded-xl bg-ops-700 hover:bg-ops-600 text-gray-300 border border-ops-600 transition active:scale-95"
+        >
+          {theme.mode === 'LIGHT' ? <Moon className="w-4 h-4 text-blue-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
+          <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
+            Toggle {theme.mode === 'LIGHT' ? 'Dark' : 'Light'} Mode
+          </div>
+        </button>
+
+        {/* Lock Admin Session */}
+        <button
+          onClick={() => {
+            logAdminAction('Locked Admin Session', 'Gateway Logout');
+            onLogout();
+          }}
+          className="group relative p-2.5 rounded-xl bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 transition active:scale-95"
+        >
+          <LogOut className="w-4 h-4" />
+          <div className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-mono rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 border border-slate-700">
+            Lock Admin Session
+          </div>
+        </button>
+
       </div>
     </aside>
   );

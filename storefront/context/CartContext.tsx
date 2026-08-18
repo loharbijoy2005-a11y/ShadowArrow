@@ -13,9 +13,17 @@ export interface CartItem {
   category: string;
 }
 
+export interface CartToastInfo {
+  id: string;
+  title: string;
+  image: string;
+  price: number;
+  size?: string;
+}
+
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'id'>) => void;
+  addToCart: (item: Omit<CartItem, 'id'>, triggerEl?: HTMLElement) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   clearCart: () => void;
@@ -23,14 +31,61 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   subtotal: number;
   totalCount: number;
+  toast: CartToastInfo | null;
+  setToast: (toast: CartToastInfo | null) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export const runFlyToCartAnimation = (startElement: HTMLElement | null, imageSrc: string) => {
+  if (!startElement || typeof document === 'undefined') return;
+
+  const rect = startElement.getBoundingClientRect();
+  const startX = rect.left + rect.width / 2;
+  const startY = rect.top + rect.height / 2;
+
+  const flyer = document.createElement('img');
+  flyer.src = imageSrc || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800';
+  flyer.style.position = 'fixed';
+  flyer.style.left = `${startX - 20}px`;
+  flyer.style.top = `${startY - 20}px`;
+  flyer.style.width = '40px';
+  flyer.style.height = '40px';
+  flyer.style.borderRadius = '50%';
+  flyer.style.objectFit = 'cover';
+  flyer.style.zIndex = '99999';
+  flyer.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+  flyer.style.pointerEvents = 'none';
+  flyer.style.border = '2px solid #3b82f6';
+  flyer.style.boxShadow = '0 0 12px rgba(59, 130, 246, 0.7)';
+
+  document.body.appendChild(flyer);
+
+  requestAnimationFrame(() => {
+    // Target position: bottom-right area where floating cart or bottom nav is
+    const destX = window.innerWidth - 60;
+    const destY = window.innerHeight - 60;
+
+    flyer.style.left = `${destX}px`;
+    flyer.style.top = `${destY}px`;
+    flyer.style.width = '10px';
+    flyer.style.height = '10px';
+    flyer.style.opacity = '0.2';
+    flyer.style.transform = 'scale(0.2) rotate(360deg)';
+  });
+
+  setTimeout(() => {
+    if (flyer.parentNode) {
+      document.body.removeChild(flyer);
+    }
+  }, 800);
+};
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
+  const [toast, setToast] = useState<CartToastInfo | null>(null);
 
   useEffect(() => {
     // Generate or retrieve persistent session ID
@@ -96,7 +151,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cart, sessionId]);
 
-  const addToCart = (item: Omit<CartItem, 'id'>) => {
+  const addToCart = (item: Omit<CartItem, 'id'>, triggerEl?: HTMLElement) => {
     setCart((prev) => {
       const existingIdx = prev.findIndex(
         (i) => i.product_id === item.product_id && i.size === item.size
@@ -112,7 +167,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       };
       return [...prev, newItem];
     });
-    setIsCartOpen(true);
+
+    if (triggerEl) {
+      runFlyToCartAnimation(triggerEl, item.image);
+    }
+
+    setToast({
+      id: `${item.product_id}-${Date.now()}`,
+      title: item.title,
+      image: item.image,
+      price: item.price,
+      size: item.size,
+    });
   };
 
   const removeFromCart = (id: string) => {
@@ -152,6 +218,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setIsCartOpen,
         subtotal,
         totalCount,
+        toast,
+        setToast,
       }}
     >
       {children}

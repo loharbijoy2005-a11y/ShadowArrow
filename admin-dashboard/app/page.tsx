@@ -68,8 +68,8 @@ export default function AdminPage() {
             <div className="inline-flex p-3 bg-blue-600/20 text-blue-400 rounded-xl mb-2">
               <Lock className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-mono font-bold text-white tracking-wider">OPS CONTROL GATEWAY</h1>
-            <p className="text-xs text-gray-400 font-mono">Restricted Access • Master Security Clearance Required</p>
+            <h1 className="text-2xl font-mono font-bold text-white tracking-wider">ADMIN PORTAL GATEWAY</h1>
+            <p className="text-xs text-gray-400 font-mono">Restricted Access • Security Clearance Required</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -98,7 +98,7 @@ export default function AdminPage() {
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg text-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{loading ? 'Authenticating...' : 'Authenticate Gateway'}</span>
+              <span>{loading ? 'Authenticating...' : 'Authenticate'}</span>
             </button>
           </form>
           
@@ -117,12 +117,12 @@ export default function AdminPage() {
       <main className="flex-1 p-8 space-y-8 overflow-y-auto">
         <header className="flex justify-between items-center pb-6 border-b border-ops-700">
           <div>
-            <h1 className="text-2xl font-mono font-bold tracking-tight text-white">OPS CONTROL OVERVIEW</h1>
+            <h1 className="text-2xl font-mono font-bold tracking-tight text-white">DASHBOARD OVERVIEW</h1>
             <p className="text-xs text-gray-400 font-mono mt-1">Real-time fulfillment metrics & inventory monitor</p>
           </div>
           <div className="flex items-center space-x-3 bg-ops-800 border border-ops-700 px-4 py-2 rounded-lg">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-mono text-emerald-400 font-medium">Gateway Active</span>
+            <span className="text-xs font-mono text-emerald-400 font-medium">Session Active</span>
           </div>
         </header>
 

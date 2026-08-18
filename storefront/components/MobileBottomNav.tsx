@@ -55,17 +55,6 @@ export default function MobileBottomNav({ onToggleAI }: MobileBottomNavProps) {
           <span>Cart</span>
         </button>
 
-        {/* Track Order */}
-        <Link
-          href="/track-order"
-          className={`flex flex-col items-center space-y-1 transition ${
-            pathname === '/track-order' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <Truck className="w-5 h-5" />
-          <span>Track Order</span>
-        </Link>
-
         {/* User Account */}
         <Link
           href="/account"

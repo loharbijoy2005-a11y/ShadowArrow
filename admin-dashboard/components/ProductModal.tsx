@@ -128,7 +128,7 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-origin-expand">
       <div className="bg-ops-800 text-gray-100 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-ops-700 p-6 shadow-2xl">
         <div className="flex justify-between items-center pb-4 border-b border-ops-700">
           <h2 className="text-lg font-bold text-white uppercase tracking-wider">

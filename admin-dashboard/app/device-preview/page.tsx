@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Smartphone, Tablet, Laptop, RefreshCw, ExternalLink, RotateCw, Monitor, Shield, Sparkles } from 'lucide-react';
 
-const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3000';
+const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'https://www.shadowarrow.in';
 
 type DeviceType = 'mobile' | 'tablet' | 'laptop';
 

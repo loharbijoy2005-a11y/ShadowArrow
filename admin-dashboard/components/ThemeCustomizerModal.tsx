@@ -39,7 +39,7 @@ export default function ThemeCustomizerModal() {
   if (!isCustomizerOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-origin-expand">
       <div className="bg-ops-800 border border-ops-700 max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto font-mono text-xs text-gray-100">
         
         {/* Modal Header */}

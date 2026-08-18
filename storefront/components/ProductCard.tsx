@@ -20,6 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation();
     if (isOutOfStock) return;
 
+    const btn = e.currentTarget as HTMLElement;
     const defaultSize = product.category === 'Apparel' ? 'L' : product.category === 'Footwear' ? 'UK 9' : '';
     addToCart({
       product_id: id,
@@ -29,7 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       size: defaultSize,
       image: product.images && product.images[0] ? product.images[0] : 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
       category: product.category,
-    });
+    }, btn);
 
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -62,7 +63,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col space-y-1 z-10">
+          <div className="absolute top-3 left-3 flex flex-col space-y-1.5 z-10">
             <span className="px-2.5 py-1 bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-mono font-bold rounded-full uppercase tracking-wider">
               {product.category}
             </span>
@@ -72,7 +73,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             ) : (
               discountPercent > 0 && (
-                <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-mono font-bold rounded-full">
+                <span className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-sans font-black rounded-lg shadow-md uppercase tracking-wider">
                   -{discountPercent}% OFF
                 </span>
               )

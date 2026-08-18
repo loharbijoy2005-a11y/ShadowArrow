@@ -70,9 +70,10 @@ export default function ProductDetailPage() {
 
   const isOutOfStock = product ? product.stock <= 0 : false;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e?: React.MouseEvent) => {
     if (!product || isOutOfStock) return;
     const prodId = product.id || product._id || product.slug;
+    const btn = e?.currentTarget as HTMLElement | undefined;
     addToCart({
       product_id: prodId,
       title: product.title,
@@ -81,7 +82,7 @@ export default function ProductDetailPage() {
       size: selectedSize,
       image: selectedImage,
       category: product.category,
-    });
+    }, btn);
   };
 
   const handleBuyNow = () => {
@@ -270,7 +271,7 @@ export default function ProductDetailPage() {
             {/* Action Buttons - Disabled when isOutOfStock */}
             <div className="grid grid-cols-2 gap-4 pt-4">
               <button
-                onClick={handleAddToCart}
+                onClick={(e) => handleAddToCart(e)}
                 disabled={isOutOfStock}
                 className={`py-4 border rounded-2xl flex items-center justify-center space-x-2 font-bold text-xs uppercase tracking-wider transition shadow-md ${
                   isOutOfStock

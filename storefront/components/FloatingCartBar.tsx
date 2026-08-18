@@ -10,7 +10,7 @@ export default function FloatingCartBar() {
   if (totalCount === 0 || isCartOpen) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 font-sans animate-in fade-in slide-in-from-bottom-6 duration-300">
+    <div className="fixed bottom-20 md:bottom-8 right-4 sm:right-8 z-40 font-sans animate-in fade-in slide-in-from-bottom-6 duration-300">
       <button
         onClick={() => setIsCartOpen(true)}
         className="bg-slate-900/95 hover:bg-black text-white px-5 py-3 rounded-full shadow-2xl border border-blue-500/40 backdrop-blur-xl flex items-center space-x-4 transition-all duration-300 hover:scale-105 active:scale-95 group"

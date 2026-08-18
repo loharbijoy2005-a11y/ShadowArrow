@@ -199,7 +199,7 @@ export default function SettingsAdminPage() {
           <div>
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded border border-blue-500/20 font-bold uppercase">
-                ENTERPRISE MASTER THEME ENGINE
+                GLOBAL THEME ENGINE
               </span>
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white mt-1 uppercase">

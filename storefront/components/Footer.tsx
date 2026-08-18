@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Mail, HelpCircle, MessageSquare, X, ArrowRight, Bell } from 'lucide-react';
 import SupportWidgetModal from '@/components/SupportWidgetModal';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
-import FAQSection from '@/components/FAQSection';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -139,12 +138,13 @@ export default function Footer() {
               <li><Link href="/policies/terms" className="hover:text-white transition">Terms of Service</Link></li>
               <li><Link href="/policies/shipping" className="hover:text-white transition">Shipping & Delivery Policy</Link></li>
               <li><Link href="/policies/returns" className="hover:text-white transition">Return & Refund Policy</Link></li>
+              <li><Link href="/policies/faq" className="hover:text-white text-blue-400 font-bold transition flex items-center space-x-1.5">
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Frequently Asked Questions (FAQ)</span>
+              </Link></li>
             </ul>
           </div>
         </div>
-
-        {/* FAQ Accordion Section */}
-        <FAQSection />
 
         {/* Bottom Bar with Copyright */}
         <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">

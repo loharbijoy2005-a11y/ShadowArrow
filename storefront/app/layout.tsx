@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { CartProvider } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 import FloatingCartBar from '@/components/FloatingCartBar';
+import CartToast from '@/components/CartToast';
 import Footer from '@/components/Footer';
 import TrackOrderBubbleModal from '@/components/TrackOrderBubbleModal';
 import ThemeProvider from '@/components/ThemeProvider';
@@ -29,6 +30,7 @@ export default function RootLayout({
               {children}
             </div>
             <FloatingCartBar />
+            <CartToast />
             <CartDrawer />
             <TrackOrderBubbleModal />
             <Footer />

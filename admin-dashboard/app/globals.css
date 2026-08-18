@@ -127,3 +127,20 @@ html.light-mode .fixed.inset-0.bg-black\/70 {
   background: #cbd5e1;
   border-radius: 3px;
 }
+
+/* ========================================================
+   MODAL ORIGIN PORTAL-EXPAND TRANSITIONS
+   ======================================================== */
+@keyframes origin-expand {
+  from {
+    clip-path: circle(0% at var(--click-x, 50vw) var(--click-y, 50vh));
+  }
+  to {
+    clip-path: circle(150% at var(--click-x, 50vw) var(--click-y, 50vh));
+  }
+}
+
+.animate-origin-expand {
+  animation: origin-expand 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: clip-path;
+}

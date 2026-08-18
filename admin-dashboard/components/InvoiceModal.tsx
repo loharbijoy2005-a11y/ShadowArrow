@@ -118,7 +118,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 font-sans">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 font-sans animate-origin-expand">
       
       {/* CSS Print Engine Fallback Rules */}
       <style jsx global>{`

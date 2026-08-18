@@ -51,6 +51,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (typeof document !== 'undefined') {
+        const root = document.documentElement;
+        root.style.setProperty('--click-x', `${e.clientX}px`);
+        root.style.setProperty('--click-y', `${e.clientY}px`);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('click', handleGlobalClick);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('click', handleGlobalClick);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('admin_theme_config', JSON.stringify(theme));
     applyThemeToDOM(theme);
   }, [theme]);

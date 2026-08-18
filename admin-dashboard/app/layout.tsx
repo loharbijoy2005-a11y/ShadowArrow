@@ -4,8 +4,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import ThemeCustomizerModal from '@/components/ThemeCustomizerModal';
 
 export const metadata: Metadata = {
-  title: 'Ops Control Gateway | SHADOW ARROW Admin',
-  description: 'Enterprise Fulfillment & Logistics Administration Console',
+  title: 'Admin Dashboard | SHADOW ARROW',
+  description: 'Store Fulfillment & Logistics Management Dashboard',
 };
 
 export default function RootLayout({
@@ -17,7 +17,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-ops-900 text-gray-100 antialiased font-sans transition-colors duration-300">
         <ThemeProvider>
-          {children}
+          <div className="animate-in fade-in zoom-in-95 duration-300 min-h-screen">
+            {children}
+          </div>
           <ThemeCustomizerModal />
         </ThemeProvider>
       </body>

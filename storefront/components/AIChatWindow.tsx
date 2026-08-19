@@ -1,19 +1,44 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, X, Bot, User, RefreshCw, Upload } from 'lucide-react';
+import { Send, X, Bot, User, RefreshCw, Upload, MessageSquarePlus } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Generate a unique session ID per browser tab so each user has their own chat context
-const SESSION_ID = typeof window !== 'undefined'
-  ? (sessionStorage.getItem('sa_chat_session') || (() => {
-      const id = `sf_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-      sessionStorage.setItem('sa_chat_session', id);
-      return id;
-    })())
-  : 'storefront_user_session';
+// Unique session per browser tab
+const SESSION_ID =
+  typeof window !== 'undefined'
+    ? sessionStorage.getItem('sa_chat_session') ||
+      (() => {
+        const id = `sf_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        sessionStorage.setItem('sa_chat_session', id);
+        return id;
+      })()
+    : 'storefront_user_session';
+
+// Detect language from user input and tell the AI to respond in same language
+function detectLanguage(text: string): string {
+  if (/[\u0980-\u09FF]/.test(text)) return 'bn'; // Bangla
+  if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi / Devanagari
+  if (/[\u0600-\u06FF]/.test(text)) return 'ur'; // Urdu / Arabic script
+  return 'en';
+}
+
+// Strip markdown asterisks from AI responses so raw ** never shows in chat
+function cleanText(text: string): string {
+  return text
+    .replace(/\*\*\*(.*?)\*\*\*/gs, '$1')
+    .replace(/\*\*(.*?)\*\*/gs, '$1')
+    .replace(/\*(.*?)\*/gs, '$1')
+    .replace(/\*+/g, '');
+}
+
+const SUPPORT_KEYWORDS = [
+  'broken', 'damaged', 'wrong item', 'return', 'refund',
+  'delivery issue', 'delay', 'issue', 'problem', 'not received',
+  'missing', 'complaint', 'exchange', 'lost', 'torn', 'defective',
+];
 
 interface AIChatWindowProps {
   isOpen: boolean;
@@ -24,8 +49,8 @@ interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
-  isTicketForm?: boolean;
-  ticketData?: any;
+  showTicketCTA?: boolean;
+  relatedIssue?: string;
 }
 
 export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
@@ -33,22 +58,20 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     {
       id: '1',
       sender: 'ai',
-      text: "Hi there! Welcome to SHADOW ARROW. How can I help you find the perfect fit, style, or order today?",
+      text: "Hey! I'm Shadow AI ó your personal stylist and support assistant ??\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns ó I got you!",
     },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput]     = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef         = useRef<HTMLDivElement>(null);
 
-  // Inline Ticket Form state
-  const [ticketContact, setTicketContact] = useState('');
-  const [ticketDesc, setTicketDesc] = useState('');
-  const [ticketImg, setTicketImg] = useState('');
-  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [activeTicketMsgId, setActiveTicketMsgId] = useState<string | null>(null);
+  const [ticketContact, setTicketContact]           = useState('');
+  const [ticketImg, setTicketImg]                   = useState('');
+  const [submittingTicket, setSubmittingTicket]     = useState(false);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   useEffect(() => {
     if (isOpen) scrollToBottom();
@@ -66,44 +89,37 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     setInput('');
     setLoading(true);
 
-    const lower = userText.toLowerCase();
-    const isSupportIssue = ["broken", "damaged", "wrong item", "return", "refund", "delivery issue", "delay", "issue"].some(k => lower.includes(k));
-
-    if (isSupportIssue) {
-      setTimeout(() => {
-        const ticketMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          sender: 'ai',
-          text: "I'm so sorry to hear that! You can log a priority support ticket right here with proof photo attachment:",
-          isTicketForm: true,
-        };
-        setMessages((prev) => [...prev, ticketMsg]);
-        setTicketDesc(userText);
-        setLoading(false);
-      }, 300);
-      return;
-    }
+    const lang      = detectLanguage(userText);
+    const isSupport = SUPPORT_KEYWORDS.some((k) => userText.toLowerCase().includes(k));
 
     try {
       const res = await axios.post(`${API_URL}/api/v1/ai/chat`, {
-        message: userText,
+        message:    userText,
         session_id: SESSION_ID,
+        language:   lang,
       });
 
-      // Support both `response` and `reply` keys from the AI microservice
       const reply =
         res.data?.response ||
         res.data?.reply ||
-        "SHADOW ARROW oversized fits are designed for ultimate urban comfort! What style can I help you pair?";
-      const aiMsg: Message = { id: (Date.now() + 1).toString(), sender: 'ai', text: reply };
+        "I'm here to help! Could you tell me a bit more so I can sort this out for you?";
+
+      const aiMsg: Message = {
+        id:            (Date.now() + 1).toString(),
+        sender:        'ai',
+        text:          cleanText(reply),
+        showTicketCTA: isSupport,
+        relatedIssue:  isSupport ? userText : undefined,
+      };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
-      // Log the real error so devs can debug ‚Äî check browser console
-      console.error('[AI Chat] Request failed:', err?.response?.status, err?.response?.data || err?.message);
+      console.error('[Shadow AI] Request failed:', err?.response?.status, err?.response?.data || err?.message);
       const fallbackMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'ai',
-        text: "I can help with styling advice, sizing, or tracking your order! Feel free to ask any question or share your Order ID.",
+        id:            (Date.now() + 1).toString(),
+        sender:        'ai',
+        text:          "Hmm, having a bit of trouble connecting right now. Hang on a sec and try again ó or let me know what you need and I'll do my best! ??",
+        showTicketCTA: isSupport,
+        relatedIssue:  isSupport ? userText : undefined,
       };
       setMessages((prev) => [...prev, fallbackMsg]);
     } finally {
@@ -114,66 +130,62 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
   const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert('File size must be under 3MB');
-      return;
-    }
+    if (file.size > 3 * 1024 * 1024) { alert('File size must be under 3MB'); return; }
     const reader = new FileReader();
     reader.onloadend = () => setTicketImg(reader.result as string);
     reader.readAsDataURL(file);
   };
 
-  const handleInlineTicketSubmit = async (e: React.FormEvent) => {
+  const handleAutoTicket = async (e: React.FormEvent, issueText: string) => {
     e.preventDefault();
-    if (!ticketContact.trim() || !ticketDesc.trim()) return;
-
+    if (!ticketContact.trim()) return;
     setSubmittingTicket(true);
     try {
+      const isEmail = ticketContact.includes('@');
       const payload = {
-        customer_phone: ticketContact.trim(),
-        customer_email: ticketContact.includes('@') ? ticketContact.trim() : '',
-        category: 'Customer Support Inquiry',
-        issue_text: ticketDesc.trim(),
-        image_url: ticketImg,
-        status: 'OPEN',
-        priority: 'HIGH',
+        customer_phone: isEmail ? '' : ticketContact.trim(),
+        customer_email: isEmail ? ticketContact.trim() : '',
+        category:       'Customer Support Inquiry',
+        issue_text:     issueText || 'Support request via Shadow AI chat',
+        image_url:      ticketImg,
+        status:         'OPEN',
+        priority:       'HIGH',
       };
-
-      const res = await axios.post(`${API_URL}/api/v1/support/tickets`, payload);
+      const res    = await axios.post(`${API_URL}/api/v1/support/tickets`, payload);
       const ticket = res.data?.ticket || res.data;
 
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now().toString(),
+          id:     Date.now().toString(),
           sender: 'ai',
-          text: `‚úÖ Support ticket logged! Reference ID: #${ticket.ticket_id || 'TICK-REGISTERED'}. Our customer care team will get back to your contact (${ticketContact}) shortly.`,
+          text:   `Done! I've raised a priority support ticket for you.\n\nTicket ID: #${ticket.ticket_id || 'TICK-REGISTERED'}\n\nOur team will reach out to you at ${ticketContact} very soon. Hang tight!`,
         },
       ]);
-      setTicketDesc('');
+      setActiveTicketMsgId(null);
       setTicketContact('');
       setTicketImg('');
-    } catch (err) {
-      alert('Failed to log ticket. Please try again.');
+    } catch {
+      alert('Could not create ticket right now. Please try again in a moment.');
     } finally {
       setSubmittingTicket(false);
     }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col h-[520px]">
-      
+    <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col h-[540px]">
+
       {/* Header */}
       <div className="bg-slate-950 p-4 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-lg">
+            <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-sm leading-none text-white">SHADOW ARROW Stylist</h3>
+            <h3 className="font-bold text-sm leading-none text-white tracking-wide">Shadow AI</h3>
             <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-              <span>Online ‚Ä¢ Fashion & Support</span>
+              <span>Online ∑ Fashion &amp; Support</span>
             </span>
           </div>
         </div>
@@ -185,73 +197,90 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900 text-xs">
         {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex items-start space-x-2 ${
-              m.sender === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            {m.sender === 'ai' && (
-              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 mt-1">
-                <Bot className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <div
-              className={`max-w-[85%] rounded-2xl p-3 shadow-xs font-sans leading-relaxed ${
-                m.sender === 'user'
-                  ? 'bg-blue-600 text-white rounded-tr-none'
-                  : 'bg-slate-800 text-slate-100 border border-slate-700/80 rounded-tl-none whitespace-pre-line'
-              }`}
-            >
-              <p>{m.text}</p>
+          <div key={m.id}>
+            <div className={`flex items-start space-x-2 ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
 
-              {/* Inline Ticket Form */}
-              {m.isTicketForm && (
-                <form onSubmit={handleInlineTicketSubmit} className="mt-3 pt-3 border-t border-slate-700 space-y-2 text-xs">
-                  <input
-                    type="text"
-                    required
-                    value={ticketContact}
-                    onChange={(e) => setTicketContact(e.target.value)}
-                    placeholder="Enter phone or email"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-[11px]"
-                  />
-                  <textarea
-                    required
-                    rows={2}
-                    value={ticketDesc}
-                    onChange={(e) => setTicketDesc(e.target.value)}
-                    placeholder="Describe issue..."
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-[11px]"
-                  />
-                  <div className="flex items-center space-x-2">
-                    <label className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-slate-950 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-[10px] cursor-pointer">
-                      <Upload className="w-3.5 h-3.5 text-blue-400" />
-                      <span>{ticketImg ? 'Photo Attached' : 'Upload Damage Photo'}</span>
-                      <input type="file" accept="image/*" onChange={handleImageFile} className="hidden" />
-                    </label>
-                    <button
-                      type="submit"
-                      disabled={submittingTicket}
-                      className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] uppercase rounded-lg shadow"
-                    >
-                      {submittingTicket ? 'Submitting...' : 'Create Ticket'}
-                    </button>
-                  </div>
-                </form>
+              {m.sender === 'ai' && (
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shrink-0 mt-1 shadow">
+                  <Bot className="w-3.5 h-3.5" />
+                </div>
+              )}
+
+              <div className={`max-w-[85%] rounded-2xl p-3 font-sans leading-relaxed ${
+                m.sender === 'user'
+                  ? 'bg-blue-600 text-white rounded-tr-none shadow'
+                  : 'bg-slate-800 text-slate-100 border border-slate-700/60 rounded-tl-none whitespace-pre-line shadow'
+              }`}>
+                {m.text}
+              </div>
+
+              {m.sender === 'user' && (
+                <div className="w-6 h-6 rounded-full bg-slate-600 text-white flex items-center justify-center shrink-0 mt-1 shadow">
+                  <User className="w-3.5 h-3.5" />
+                </div>
               )}
             </div>
-            {m.sender === 'user' && (
-              <div className="w-6 h-6 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0 mt-1">
-                <User className="w-3.5 h-3.5" />
+
+            {/* Ticket CTA ó shows after AI tries to help, gives user option to escalate */}
+            {m.sender === 'ai' && m.showTicketCTA && activeTicketMsgId !== m.id && (
+              <div className="ml-8 mt-2">
+                <button
+                  onClick={() => setActiveTicketMsgId(m.id)}
+                  className="flex items-center space-x-1.5 text-[10px] text-blue-400 hover:text-blue-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-1.5 rounded-full transition"
+                >
+                  <MessageSquarePlus className="w-3 h-3" />
+                  <span>Still not resolved? Raise a ticket instantly</span>
+                </button>
               </div>
+            )}
+
+            {/* Auto-ticket form ó minimal one-field form */}
+            {m.sender === 'ai' && activeTicketMsgId === m.id && (
+              <form
+                onSubmit={(e) => handleAutoTicket(e, m.relatedIssue || '')}
+                className="ml-8 mt-2 bg-slate-800 border border-slate-700 rounded-xl p-3 space-y-2 text-[11px]"
+              >
+                <p className="text-slate-300 font-medium">
+                  Drop your phone or email and I'll create the ticket right now ??
+                </p>
+                <input
+                  type="text"
+                  required
+                  value={ticketContact}
+                  onChange={(e) => setTicketContact(e.target.value)}
+                  placeholder="Phone number or email address"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <label className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-950 border border-slate-700 hover:bg-slate-900 rounded-lg text-slate-300 text-[10px] cursor-pointer w-full transition">
+                  <Upload className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span>{ticketImg ? '?? Photo attached!' : 'Attach damage photo (optional)'}</span>
+                  <input type="file" accept="image/*" onChange={handleImageFile} className="hidden" />
+                </label>
+                <div className="flex space-x-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTicketMsgId(null); setTicketContact(''); setTicketImg(''); }}
+                    className="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-[10px] transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingTicket || !ticketContact.trim()}
+                    className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg transition"
+                  >
+                    {submittingTicket ? 'CreatingÖ' : '?? Raise Ticket'}
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         ))}
+
         {loading && (
-          <div className="flex items-center space-x-2 text-slate-400 italic">
+          <div className="flex items-center space-x-2 ml-8 text-slate-400 italic">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            <span>Stylist is typing...</span>
+            <span>Shadow AI is typingÖ</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -259,17 +288,21 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
 
       {/* Quick Prompts */}
       <div className="px-3 py-2 bg-slate-950 border-t border-slate-800 flex space-x-1.5 overflow-x-auto text-[10px]">
-        <button
-          onClick={() => setInput("What size fit should I get?")}
-          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition"
-        >
-          üëï Sizing & Fit Advice
+        <button onClick={() => setInput('What size should I order?')}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
+          ?? Sizing Help
         </button>
-        <button
-          onClick={() => setInput("I received a damaged item")}
-          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition"
-        >
-          ‚ö†Ô∏è Report Damaged Item
+        <button onClick={() => setInput('I received a damaged item')}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
+          ?? Damaged Item
+        </button>
+        <button onClick={() => setInput('I want to return my order')}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
+          ?? Return Order
+        </button>
+        <button onClick={() => setInput('Track my order')}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
+          ?? Track Order
         </button>
       </div>
 
@@ -279,13 +312,13 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about styles, sizing, or report issues..."
-          className="flex-1 px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Ask Shadow AI anythingÖ"
+          className="flex-1 px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 transition active:scale-95"
+          className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-40 transition active:scale-95 shadow"
         >
           <Send className="w-4 h-4" />
         </button>

@@ -1,0 +1,20 @@
+services:
+  # Shadow Arrow AI Stylist Microservice
+  # Standalone Python/FastAPI service — deployed independently from the main Go backend.
+  - type: web
+    name: shadow-arrow-ai-service
+    env: python
+    # Root dir IS the repo root (all files are at repo root level — flat structure)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Your Google Gemini API key — set this in the Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false
+      # Gemini model to use
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash
+      # Full URL of the Go backend so the AI service can look up orders and products
+      # e.g. https://shadow-arrow-backend.onrender.com
+      - key: BACKEND_URL
+        sync: false

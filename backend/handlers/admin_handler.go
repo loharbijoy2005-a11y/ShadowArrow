@@ -28,7 +28,7 @@ func AdminLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		if payload.Passcode != cfg.AdminMasterPass && payload.Passcode != "admin123" {
+		if payload.Passcode != cfg.AdminMasterPass {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid master passkey"})
 			return
 		}

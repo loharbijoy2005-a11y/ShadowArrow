@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
-import { Users, Search, Phone, Mail, UserCheck, ShieldCheck, MapPin, ShoppingBag, RefreshCw, X, Award, ExternalLink } from 'lucide-react';
+import { Users, Search, Phone, Mail, UserCheck, ShieldCheck, MapPin, ShoppingBag, RefreshCw, X, Award, ExternalLink, Coins, ArrowUpDown } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -13,6 +13,7 @@ export default function CustomersAdminPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [authFilter, setAuthFilter] = useState('ALL');
+  const [sortOption, setSortOption] = useState<'COINS' | 'SPENT'>('COINS');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   useEffect(() => {
@@ -48,18 +49,25 @@ export default function CustomersAdminPage() {
     window.location.href = '/';
   };
 
-  // Filter logic
-  const filteredCustomers = customers.filter((c) => {
-    const matchesSearch =
-      (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.phone || '').toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter and sort logic
+  const filteredCustomers = customers
+    .filter((c) => {
+      const matchesSearch =
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.phone || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (authFilter === 'ALL') return matchesSearch;
-    if (authFilter === 'GOOGLE') return matchesSearch && (c.auth_type || '').includes('Google');
-    if (authFilter === 'PHONE') return matchesSearch && (c.auth_type || '').includes('Phone');
-    return matchesSearch;
-  });
+      if (authFilter === 'ALL') return matchesSearch;
+      if (authFilter === 'GOOGLE') return matchesSearch && (c.auth_type || '').includes('Google');
+      if (authFilter === 'PHONE') return matchesSearch && (c.auth_type || '').includes('Phone');
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortOption === 'COINS') {
+        return (b.coin_balance || 0) - (a.coin_balance || 0);
+      }
+      return (b.total_spent || 0) - (a.total_spent || 0);
+    });
 
   // Calculate statistics
   const totalCustomers = customers.length;
@@ -161,6 +169,15 @@ export default function CustomersAdminPage() {
               >
                 Phone Login ({phoneUsers})
               </button>
+
+              <button
+                onClick={() => setSortOption(sortOption === 'COINS' ? 'SPENT' : 'COINS')}
+                className="px-4 py-2 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-300 font-bold hover:bg-amber-500/20 transition flex items-center space-x-1.5"
+                title="Toggle Sorting Priority"
+              >
+                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                <span>Rank: {sortOption === 'COINS' ? 'Highest ArrowCoins' : 'Highest Spend'}</span>
+              </button>
             </div>
           </div>
 
@@ -183,6 +200,7 @@ export default function CustomersAdminPage() {
                       <th className="px-6 py-4">Email Address</th>
                       <th className="px-6 py-4">Mobile Number</th>
                       <th className="px-6 py-4">Account Method</th>
+                      <th className="px-6 py-4 text-center">ArrowCoins</th>
                       <th className="px-6 py-4 text-center">Received / Delivered</th>
                       <th className="px-6 py-4 text-center">Cancelled</th>
                       <th className="px-6 py-4 text-center">Trust Rating</th>
@@ -238,6 +256,14 @@ export default function CustomersAdminPage() {
                           >
                             <ShieldCheck className="w-3 h-3" />
                             <span>{c.auth_type || 'Registered'}</span>
+                          </span>
+                        </td>
+
+                        {/* ArrowCoins Balance */}
+                        <td className="px-6 py-4 text-center">
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-lg font-bold">
+                            <Coins className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>{c.coin_balance || 0} Coins</span>
                           </span>
                         </td>
 

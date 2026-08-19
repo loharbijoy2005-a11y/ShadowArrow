@@ -91,7 +91,6 @@ export default function Footer() {
             <p className="text-xs text-slate-400 leading-relaxed">
               Streetwear and technical lifestyle apparel engineered for extreme comfort, boxy silhouettes, and high-density cotton construction.
             </p>
-            <GSTBadgeTooltip />
           </div>
 
           {/* Catalog Categories */}
@@ -134,10 +133,11 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Compliance & Policies</h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link href="/policies/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+              <li><Link href="/policies/privacy" className="hover:text-white transition">Privacy Policy & Right to Erasure</Link></li>
               <li><Link href="/policies/terms" className="hover:text-white transition">Terms of Service</Link></li>
               <li><Link href="/policies/shipping" className="hover:text-white transition">Shipping & Delivery Policy</Link></li>
               <li><Link href="/policies/returns" className="hover:text-white transition">Return & Refund Policy</Link></li>
+              <li><Link href="/account" className="hover:text-white text-amber-400 font-bold transition">ArrowCoins Rewards & Passbook</Link></li>
               <li><Link href="/policies/faq" className="hover:text-white text-blue-400 font-bold transition flex items-center space-x-1.5">
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>Frequently Asked Questions (FAQ)</span>
@@ -148,7 +148,7 @@ export default function Footer() {
 
         {/* Bottom Bar with Copyright */}
         <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">
-          <p>© {new Date().getFullYear()} SHADOW ARROW Inc. All rights reserved. Registered Trademark & Government GST Verified Marketplace (GSTIN: 19BVKPL6301H1ZH).</p>
+          <p>© {new Date().getFullYear()} SHADOW ARROW Inc. All rights reserved.</p>
           <p>Support: support.shadowarrow@gmail.com</p>
         </div>
       </div>

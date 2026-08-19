@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PhoneLoginPayload struct {
@@ -102,28 +103,23 @@ func PhoneLogin(c *gin.Context) {
 		return
 	}
 
-	if payload.Phone == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone number required"})
+	cleanP := CleanPhoneDigits(payload.Phone)
+	if cleanP == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
 		return
 	}
 
 	collection := db.GetCollection("users")
 
-	orConditions := []bson.M{
-		{"phone": payload.Phone},
-	}
-	if payload.Email != "" && !c.GetBool("ignore_email") {
-		orConditions = append(orConditions, bson.M{"email": payload.Email})
-	}
-
-	filter := bson.M{"$or": orConditions}
+	// Search STRICTLY by normalized 10-digit phone number
+	phoneRegexFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
 
 	var existing models.UserProfile
-	err := collection.FindOne(ctx, filter).Decode(&existing)
+	err := collection.FindOne(ctx, phoneRegexFilter).Decode(&existing)
 
 	now := time.Now()
 	if err == nil {
-		// Existing user found -> Merge details
+		// Existing phone user found -> Return this single account
 		updateFields := bson.M{
 			"phone":      payload.Phone,
 			"updated_at": now,
@@ -141,7 +137,21 @@ func PhoneLogin(c *gin.Context) {
 		return
 	}
 
-	// New user -> Insert
+	// If phone not found, check if email is provided and already belongs to another user
+	if payload.Email != "" {
+		var emailUser models.UserProfile
+		if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&emailUser); err == nil {
+			// Attach phone ONLY if email user has no phone or matching phone
+			if emailUser.Phone == "" || CleanPhoneDigits(emailUser.Phone) == cleanP {
+				_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": bson.M{"phone": payload.Phone, "updated_at": now}})
+				_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&emailUser)
+				c.JSON(http.StatusOK, emailUser)
+				return
+			}
+		}
+	}
+
+	// New user -> Insert single unique user document
 	newUser := models.UserProfile{
 		Name:      payload.Name,
 		Phone:     payload.Phone,
@@ -266,4 +276,95 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, profile)
+}
+
+type RequestDeletionPayload struct {
+	Email  string `json:"email" binding:"required"`
+	Reason string `json:"reason" binding:"required"`
+}
+
+func RequestAccountDeletion(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var payload RequestDeletionPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	usersCol := db.GetCollection("users")
+	var user models.UserProfile
+	err := usersCol.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User account not found with the provided email"})
+		return
+	}
+
+	// Business Rule: Check if user has active/in-transit orders
+	ordersCol := db.GetCollection("orders")
+	activeOrderFilter := bson.M{
+		"$or": []bson.M{
+			{"customer_email": payload.Email},
+			{"customer_phone": user.Phone},
+		},
+		"order_status": bson.M{"$in": []string{"PENDING_PAYMENT", "CONFIRMED", "PROCESSING", "SHIPPED"}},
+	}
+
+	activeCount, err := ordersCol.CountDocuments(ctx, activeOrderFilter)
+	if err == nil && activeCount > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Cannot submit deletion request while you have active or in-transit order(s). Please wait until delivery is completed.",
+		})
+		return
+	}
+
+	// Update user soft deletion flag
+	now := time.Now()
+	_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{
+		"$set": bson.M{
+			"deletion_requested":    true,
+			"deletion_requested_at": now,
+			"deletion_reason":       payload.Reason,
+			"updated_at":            now,
+		},
+	})
+
+	// Create high-priority Ticket in support ticket system
+	ticketID := generateTicketID()
+	ticketsCol := db.GetCollection("tickets")
+
+	custName := user.Name
+	if custName == "" {
+		custName = "Customer"
+	}
+
+	ticket := models.SupportTicket{
+		ID:            primitive.NewObjectID(),
+		TicketID:      ticketID,
+		CustomerEmail: payload.Email,
+		CustomerPhone: user.Phone,
+		Category:      "ACCOUNT_DELETION",
+		IssueText:     "DPDP/GDPR PRIVACY ERASURE REQUEST - Account Deletion. Reason: " + payload.Reason,
+		Priority:      "HIGH",
+		Status:        "OPEN",
+		CreatedAt:     now,
+		UpdatedAt:     now,
+		Messages: []models.TicketMessage{
+			{
+				ID:         primitive.NewObjectID().Hex(),
+				Sender:     "customer",
+				SenderName: custName,
+				Message:    "User requested account deletion. Reason: " + payload.Reason + ". Verified Email: " + payload.Email,
+				CreatedAt:  now,
+			},
+		},
+	}
+
+	_, _ = ticketsCol.InsertOne(ctx, ticket)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Account deletion request received successfully. Standard DPDP/GDPR processing window is 48 to 72 hours.",
+		"ticket_id": ticketID,
+	})
 }

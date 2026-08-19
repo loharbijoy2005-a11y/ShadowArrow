@@ -143,7 +143,24 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 		if !userObj.ID.IsZero() {
 			currentTier, _ = EvaluateUserTier(ctx, userObj.ID, userObj.Phone, userObj.Email)
 		}
+
+		// Check for custom coins earned overrides on products in cart
+		var customCoinsSum float64
+		for _, item := range order.Items {
+			if item.ProductID != "" {
+				if objID, err := primitive.ObjectIDFromHex(item.ProductID); err == nil {
+					var p models.Product
+					if err := productCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&p); err == nil && p.CustomCoinsEarned != nil && *p.CustomCoinsEarned > 0 {
+						customCoinsSum += (*p.CustomCoinsEarned) * float64(item.Quantity)
+					}
+				}
+			}
+		}
+
 		earnedCoins := CalculateCashbackForOrder(currentTier, verifiedTotal)
+		if customCoinsSum > 0 {
+			earnedCoins = customCoinsSum
+		}
 		order.CoinsEarned = earnedCoins
 
 		order.OrderID = generateReadableOrderID()
@@ -489,16 +506,21 @@ func GetUserOrders(c *gin.Context) {
 
 	collection := db.GetCollection("orders")
 
-	filter := bson.M{}
-	if phone != "" && email != "" {
-		filter["$or"] = []bson.M{
-			{"customer_phone": phone},
-			{"customer_email": email},
-		}
+	cleanDigits := CleanPhoneDigits(phone)
+
+	orConditions := []bson.M{}
+	if cleanDigits != "" && len(cleanDigits) >= 10 {
+		orConditions = append(orConditions, bson.M{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: cleanDigits, Options: "i"}}})
 	} else if phone != "" {
-		filter["customer_phone"] = phone
-	} else {
-		filter["customer_email"] = email
+		orConditions = append(orConditions, bson.M{"customer_phone": phone})
+	}
+	if email != "" {
+		orConditions = append(orConditions, bson.M{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(email), Options: "i"}}})
+	}
+
+	filter := bson.M{}
+	if len(orConditions) > 0 {
+		filter["$or"] = orConditions
 	}
 
 	findOptions := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}})

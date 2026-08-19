@@ -86,9 +86,39 @@ export default function PrivacyPolicyPage() {
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-mono space-y-1">
                 <p className="font-bold text-slate-900 uppercase">SHADOW ARROW Privacy & Grievance Desk</p>
                 <p className="text-slate-500">Registered Entity: SHADOW ARROW Prime Marketplace</p>
-                <p className="text-slate-500">GSTIN: 19BVKPL6301H1ZH</p>
                 <p className="text-blue-600 font-bold">Email: support.shadowarrow@gmail.com</p>
                 <p className="text-slate-500">Address: Dapanjuri Road, Bhara, Bankura, West Bengal - 722157</p>
+              </div>
+            </section>
+
+            {/* Section 5: Account Deletion & Right to Erasure */}
+            <section className="space-y-3 pt-2">
+              <h2 className="text-base font-bold text-slate-900 uppercase font-mono flex items-center space-x-2 border-b border-slate-100 pb-2">
+                <FileText className="w-4 h-4 text-rose-600" />
+                <span>5. Account Deletion & Right to Erasure (DPDP Act & GDPR Compliance)</span>
+              </h2>
+              <p className="text-slate-700 leading-relaxed">
+                In compliance with the Digital Personal Data Protection (DPDP) Act, 2023 of India and General Data Protection Regulation (GDPR), users have the right to request full erasure of their registered account data and profile history.
+              </p>
+              
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs text-slate-700">
+                <p className="font-bold text-slate-900 font-mono uppercase">How to Initiate Account Deletion:</p>
+                <ol className="list-decimal list-inside space-y-1 pl-1">
+                  <li>Log in to your account and navigate to the <strong>User Settings / Profile</strong> section.</li>
+                  <li>Click the discrete options icon (<strong>3 vertical dots</strong>) located at the top-right corner of your profile card.</li>
+                  <li>Select <strong>"Request Account Deletion"</strong> and complete the email verification modal.</li>
+                  <li>Alternatively, send an email from your registered email address to <a href="mailto:support.shadowarrow@gmail.com" className="text-blue-600 underline font-bold">support.shadowarrow@gmail.com</a> with subject <em>"DPDP/GDPR Privacy Erasure Request"</em>.</li>
+                </ol>
+              </div>
+
+              <div className="space-y-2 text-xs text-slate-600">
+                <p><strong>Processing Window & Rules:</strong></p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  <li><strong>Turnaround Time:</strong> All valid erasure requests are reviewed, ticketed, and processed within a <strong>48 to 72 hours window</strong>.</li>
+                  <li><strong>Active Orders Check:</strong> Deletion requests cannot be processed if you have active, pending, or in-transit orders. Please allow all active shipments to be delivered before submitting.</li>
+                  <li><strong>Legal Financial Retention:</strong> Historical tax invoices, transaction logs, and billing details are legally retained for statutory periods mandated under Indian GST and Income Tax acts.</li>
+                  <li><strong>Forfeiture of Rewards:</strong> Account deletion permanently invalidates any unredeemed <strong>ArrowCoins balance</strong> and loyalty tier status.</li>
+                </ul>
               </div>
             </section>
           </div>

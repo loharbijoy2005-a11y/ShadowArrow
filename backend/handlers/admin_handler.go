@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"shadow-arrow-backend/config"
@@ -118,6 +120,7 @@ type AdminCustomerItem struct {
 	Phone           string                `json:"phone"`
 	PhotoURL        string                `json:"photo_url"`
 	AuthType        string                `json:"auth_type"`
+	CoinBalance     float64               `json:"coin_balance"`
 	TotalOrders     int                   `json:"total_orders"`
 	OrdersReceived  int                   `json:"orders_received"`
 	OrdersCancelled int                   `json:"orders_cancelled"`
@@ -181,6 +184,7 @@ func GetAdminCustomers(c *gin.Context) {
 			Phone:           u.Phone,
 			PhotoURL:        u.PhotoURL,
 			AuthType:        authType,
+			CoinBalance:     u.CoinBalance,
 			TotalOrders:     0,
 			OrdersReceived:  0,
 			OrdersCancelled: 0,
@@ -196,7 +200,7 @@ func GetAdminCustomers(c *gin.Context) {
 	for _, o := range orders {
 		matched := false
 		for _, item := range customerMap {
-			if (item.Email != "" && item.Email == o.CustomerEmail) || (item.Phone != "" && item.Phone == o.CustomerPhone) {
+			if (item.Email != "" && strings.EqualFold(item.Email, o.CustomerEmail)) || (item.Phone != "" && (item.Phone == o.CustomerPhone || CleanPhoneDigits(item.Phone) == CleanPhoneDigits(o.CustomerPhone))) {
 				item.TotalOrders++
 				if o.OrderStatus == "CANCELLED" || o.OrderStatus == "REFUNDED" {
 					item.OrdersCancelled++
@@ -242,6 +246,7 @@ func GetAdminCustomers(c *gin.Context) {
 				Email:           o.CustomerEmail,
 				Phone:           o.CustomerPhone,
 				AuthType:        "Guest / Direct Order",
+				CoinBalance:     0,
 				TotalOrders:     1,
 				OrdersReceived:  received,
 				OrdersCancelled: cancelled,
@@ -284,6 +289,14 @@ func GetAdminCustomers(c *gin.Context) {
 
 		customerList = append(customerList, *item)
 	}
+
+	// Sort customers by highest coin balance first, then highest total spent
+	sort.Slice(customerList, func(i, j int) bool {
+		if customerList[i].CoinBalance != customerList[j].CoinBalance {
+			return customerList[i].CoinBalance > customerList[j].CoinBalance
+		}
+		return customerList[i].TotalSpent > customerList[j].TotalSpent
+	})
 
 	c.JSON(http.StatusOK, customerList)
 }

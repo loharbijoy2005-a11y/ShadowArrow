@@ -25,7 +25,9 @@ type Product struct {
 	Stock        int                `json:"stock" bson:"stock"`
 	Description  string             `json:"description" bson:"description"`
 	Specs        ProductSpecs       `json:"specs" bson:"specs"`
-	Sizes        []string           `json:"sizes" bson:"sizes"`
-	Images       []string           `json:"images" bson:"images"`
-	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+	Sizes              []string           `json:"sizes" bson:"sizes"`
+	Images             []string           `json:"images" bson:"images"`
+	CustomCoinsEarned  *float64           `json:"custom_coins_earned,omitempty" bson:"custom_coins_earned,omitempty"`
+	IsHidden           bool               `json:"is_hidden" bson:"is_hidden"`
+	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 }

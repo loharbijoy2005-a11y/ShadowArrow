@@ -84,6 +84,7 @@ func main() {
 		v1.PUT("/user/profile", handlers.UpdateUserProfile)
 		v1.GET("/user/profile", handlers.GetUserProfile)
 		v1.GET("/user/rewards", handlers.GetUserRewards)
+		v1.POST("/user/request-deletion", middleware.RateLimiterMiddleware("deletion_req", 3, 10*time.Minute), handlers.RequestAccountDeletion)
 		v1.GET("/loyalty/config", handlers.AdminGetLoyaltyConfigHandler)
 
 		// Support Ticket & Cart Sync Routes (Strict Ticket Creation Rate Limit)
@@ -141,6 +142,7 @@ func main() {
 			admin.PUT("/loyalty/config", handlers.AdminUpdateLoyaltyConfigHandler)
 			admin.POST("/loyalty/adjust", handlers.AdminManualAdjustCoins)
 			admin.GET("/loyalty/analytics", handlers.AdminGetCoinAnalytics)
+			admin.GET("/loyalty/top-holders", handlers.AdminGetTopCoinHolders)
 		}
 	}
 

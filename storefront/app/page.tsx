@@ -7,9 +7,16 @@ import AIChatWindow from '@/components/AIChatWindow';
 import GalaxyVFXBackground from '@/components/GalaxyVFXBackground';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import axios from 'axios';
-import { SlidersHorizontal, Loader2, Sparkles, Package, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { SlidersHorizontal, Loader2, Sparkles, Package, ChevronLeft, ChevronRight, ArrowRight, LayoutGrid, Shirt, Footprints, Watch } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+const CATEGORY_ITEMS = [
+  { id: 'All', icon: LayoutGrid, title: 'All Drops' },
+  { id: 'Apparel', icon: Shirt, title: 'Apparel' },
+  { id: 'Footwear', icon: Footprints, title: 'Footwear' },
+  { id: 'Accessories', icon: Watch, title: 'Accessories' },
+];
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -103,7 +110,7 @@ export default function HomePage() {
     else setLoadingMore(true);
 
     try {
-      let url = `${API_URL}/api/v1/products?limit=12&page=${pageNum}`;
+      let url = `${API_URL}/api/v1/products?limit=20&page=${pageNum}`;
       if (cat && cat !== 'All') url += `&category=${encodeURIComponent(cat)}`;
       if (sort) url += `&sort=${sort}`;
 
@@ -130,12 +137,16 @@ export default function HomePage() {
     fetchProducts(nextPage, category, sortOrder, false);
   };
 
-  const filteredProducts = products.filter((p) =>
-    searchQuery === ''
-      ? true
-      : p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    if (p.is_hidden && searchQuery.trim() === '') return false;
+    if (searchQuery.trim() === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      p.title.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query) ||
+      (p.description && p.description.toLowerCase().includes(query))
+    );
+  });
 
   const activeSlide = heroSlides[currentSlide] || heroSlides[0] || DEFAULT_HERO_SLIDES[0];
 
@@ -222,22 +233,27 @@ export default function HomePage() {
       {/* Crisp Amazon-Style Product Catalog */}
       <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 bg-slate-50">
         
-        {/* Category Tabs & Filter */}
+        {/* Category Tabs & Filter - Icons Only */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-200">
-          <div className="flex space-x-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
-            {['All', 'Apparel', 'Footwear', 'Accessories'].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                  category === cat
-                    ? 'bg-slate-900 text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="flex space-x-3 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+            {CATEGORY_ITEMS.map((item) => {
+              const IconComp = item.icon;
+              const isActive = category === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCategory(item.id)}
+                  title={item.title}
+                  className={`p-3 rounded-2xl transition-all duration-300 flex items-center justify-center shrink-0 border ${
+                    isActive
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  <IconComp className="w-5 h-5" />
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex items-center space-x-2 text-xs font-medium self-end sm:self-auto">

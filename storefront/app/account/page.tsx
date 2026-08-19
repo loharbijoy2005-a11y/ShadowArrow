@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import { User, Package, MapPin, LogOut, Plus, Trash2, Edit3, PhoneCall, FileText, Loader2, RefreshCw, Smartphone, Copy, Check, Truck, Download } from 'lucide-react';
+import { User, Package, MapPin, LogOut, Plus, Trash2, Edit3, PhoneCall, FileText, Loader2, RefreshCw, Smartphone, Copy, Check, Truck, Download, Coins, Shield, Crown, Gem, MoreVertical, ShieldAlert, AlertTriangle, X, CheckCircle2, Info } from 'lucide-react';
 import axios from 'axios';
 import { downloadDirectTaxInvoicePDF } from '@/utils/downloadInvoicePDF';
 
@@ -23,12 +23,25 @@ interface SavedAddress {
 export default function AccountPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'ORDERS' | 'ADDRESSES'>('ORDERS');
+  const [activeTab, setActiveTab] = useState<'ORDERS' | 'REWARDS' | 'ADDRESSES'>('ORDERS');
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
   const [copiedAwb, setCopiedAwb] = useState<string | null>(null);
+
+  // Rewards Passbook State
+  const [rewardsInfo, setRewardsInfo] = useState<any>(null);
+  const [loadingRewards, setLoadingRewards] = useState(false);
+
+  // Profile Context Menu & Account Deletion State
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const [deletionEmailInput, setDeletionEmailInput] = useState('');
+  const [deletionReasonInput, setDeletionReasonInput] = useState('Privacy Concerns');
+  const [deletionSubmitting, setDeletionSubmitting] = useState(false);
+  const [deletionSuccessMsg, setDeletionSuccessMsg] = useState('');
+  const [deletionErrorMsg, setDeletionErrorMsg] = useState('');
 
   // Phone Edit Manager State
   const [showPhoneEdit, setShowPhoneEdit] = useState(false);
@@ -68,6 +81,7 @@ export default function AccountPage() {
       }
 
       fetchUserOrders(u.phone, u.email);
+      fetchRewardsInfo(u.phone, u.email);
     } catch (e) {
       router.push('/account/login');
     }
@@ -84,7 +98,6 @@ export default function AccountPage() {
         const merged = {
           ...localUser,
           ...res.data,
-          // Preserve photo or name if set locally
           photoURL: localUser.photoURL || res.data.photo_url || res.data.photoURL,
           name: localUser.name || res.data.name,
           email: res.data.email || localUser.email || '',
@@ -95,9 +108,55 @@ export default function AccountPage() {
         setNewPhone(merged.phone || '');
         if (merged.addresses) setAddresses(merged.addresses);
         fetchUserOrders(merged.phone, merged.email);
+        fetchRewardsInfo(merged.phone, merged.email);
       }
     } catch (err) {
       console.warn('MongoDB profile sync note:', err);
+    }
+  };
+
+  const fetchRewardsInfo = async (phone: string, email: string) => {
+    setLoadingRewards(true);
+    try {
+      let queryUrl = `${API_URL}/api/v1/user/rewards?`;
+      if (email) queryUrl += `email=${encodeURIComponent(email)}&`;
+      if (phone) queryUrl += `phone=${encodeURIComponent(phone)}`;
+
+      const res = await axios.get(queryUrl);
+      if (res.data) setRewardsInfo(res.data);
+    } catch (err) {
+      console.warn('Failed to load rewards passbook in profile', err);
+    } finally {
+      setLoadingRewards(false);
+    }
+  };
+
+  const handleRequestDeletionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (deletionEmailInput.trim().toLowerCase() !== (user.email || '').trim().toLowerCase()) {
+      setDeletionErrorMsg('Entered email does not match your registered user account email.');
+      return;
+    }
+
+    setDeletionSubmitting(true);
+    setDeletionErrorMsg('');
+    setDeletionSuccessMsg('');
+
+    try {
+      const res = await axios.post(`${API_URL}/api/v1/user/request-deletion`, {
+        email: deletionEmailInput.trim(),
+        reason: deletionReasonInput,
+      });
+
+      if (res.data) {
+        setDeletionSuccessMsg(res.data.message || 'Account deletion request submitted successfully. Processing window is 48-72 hours.');
+      }
+    } catch (err: any) {
+      setDeletionErrorMsg(err.response?.data?.error || 'Failed to submit account deletion request. Please try again.');
+    } finally {
+      setDeletionSubmitting(false);
     }
   };
 
@@ -298,20 +357,60 @@ export default function AccountPage() {
             </div>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-300 hover:border-red-300 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleLogout}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-300 hover:border-red-300 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+
+            {/* Discrete 3-Dots Context Menu (Deactivate / Request Account Deletion) */}
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl transition"
+                title="Account Options"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-2xl z-30 p-2 text-xs font-mono animate-in fade-in zoom-in-95 space-y-1">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      alert('Account Deactivated. You can log back in anytime to reactivate your session.');
+                    }}
+                    className="w-full text-left px-3 py-2.5 text-slate-700 hover:bg-slate-100 rounded-xl flex items-center space-x-2 font-bold transition"
+                  >
+                    <User className="w-4 h-4 text-slate-500" />
+                    <span>Deactivate Account</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setDeletionEmailInput(user.email || '');
+                      setShowDeletionModal(true);
+                    }}
+                    className="w-full text-left px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-xl flex items-center space-x-2 font-bold transition"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-red-600" />
+                    <span>Request Account Deletion</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Tab Switcher: MY ORDERS vs ADDRESS BOOK */}
-        <div className="flex space-x-3 border-b border-slate-200 pb-4">
+        {/* Tab Switcher: MY ORDERS vs ARROWCOINS REWARDS vs ADDRESS BOOK */}
+        <div className="flex flex-wrap gap-3 border-b border-slate-200 pb-4">
           <button
             onClick={() => setActiveTab('ORDERS')}
-            className={`px-6 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition flex items-center space-x-2 ${
+            className={`px-5 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition flex items-center space-x-2 ${
               activeTab === 'ORDERS'
                 ? 'bg-slate-900 text-white shadow-md'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -322,8 +421,20 @@ export default function AccountPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab('REWARDS')}
+            className={`px-5 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition flex items-center space-x-2 ${
+              activeTab === 'REWARDS'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md'
+                : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50'
+            }`}
+          >
+            <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>ArrowCoins Passbook ({rewardsInfo?.coin_balance || 0})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('ADDRESSES')}
-            className={`px-6 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition flex items-center space-x-2 ${
+            className={`px-5 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition flex items-center space-x-2 ${
               activeTab === 'ADDRESSES'
                 ? 'bg-slate-900 text-white shadow-md'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -699,6 +810,140 @@ export default function AccountPage() {
           </div>
         </div>
       )}
+      {/* Account Deletion Request Modal (DPDP Act & GDPR Compliant) */}
+      {showDeletionModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl text-slate-900 space-y-5 relative animate-in fade-in zoom-in-95">
+            <button
+              onClick={() => {
+                setShowDeletionModal(false);
+                setDeletionErrorMsg('');
+                setDeletionSuccessMsg('');
+              }}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-900 rounded-full hover:bg-slate-100 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-red-100 text-red-600 rounded-2xl border border-red-200">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase font-mono text-slate-900">Request Account Deletion</h3>
+                <p className="text-[11px] text-slate-500 font-mono">DPDP Act 2023 & GDPR Privacy Right to Erasure</p>
+              </div>
+            </div>
+
+            {/* Warning Callout */}
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-950 space-y-2">
+              <div className="flex items-center space-x-2 font-bold uppercase font-mono text-amber-900">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Important Deletion Disclosure</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-slate-700 leading-relaxed text-[11px]">
+                <li>Submitting this request will flag your account profile for permanent erasure.</li>
+                <li>Your earned <strong>ArrowCoins balance</strong> and loyalty tier privileges will be forfeited.</li>
+                <li>Requests cannot be submitted if you have active or in-transit orders.</li>
+                <li>Financial tax records (GST Invoices) are legally retained under Indian taxation laws.</li>
+              </ul>
+            </div>
+
+            {deletionSuccessMsg ? (
+              <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs font-mono space-y-3">
+                <div className="flex items-center space-x-2 text-emerald-800 font-bold text-sm">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>Request Received & Ticketed</span>
+                </div>
+                <p className="text-slate-700 leading-relaxed">{deletionSuccessMsg}</p>
+                <div className="p-3 bg-white rounded-xl border border-emerald-300 font-bold text-slate-900">
+                  Standard Processing Window: 48 to 72 Hours
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDeletionModal(false);
+                    setDeletionSuccessMsg('');
+                  }}
+                  className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs uppercase rounded-xl hover:bg-slate-800 transition"
+                >
+                  Close Window
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleRequestDeletionSubmit} className="space-y-4 text-xs">
+                {deletionErrorMsg && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 font-mono text-xs flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>{deletionErrorMsg}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-slate-800 mb-1 font-bold uppercase font-mono text-[11px]">
+                    Verify Registered Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={deletionEmailInput}
+                    onChange={(e) => setDeletionEmailInput(e.target.value)}
+                    placeholder="Enter your registered account email"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                    Must match your current account email: <strong className="text-slate-900">{user.email || 'None'}</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-slate-800 mb-1 font-bold uppercase font-mono text-[11px]">
+                    Primary Reason for Deletion <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={deletionReasonInput}
+                    onChange={(e) => setDeletionReasonInput(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono"
+                  >
+                    <option value="Privacy Concerns">Privacy Concerns & Data Control</option>
+                    <option value="Duplicate Account">Duplicate Account Created</option>
+                    <option value="Order Issues">Order or Customer Service Issue</option>
+                    <option value="Taking a Break">Taking a Break / No Longer Needed</option>
+                    <option value="Other">Other Reason</option>
+                  </select>
+                </div>
+
+                <div className="flex space-x-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeletionModal(false);
+                      setDeletionErrorMsg('');
+                    }}
+                    className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase font-mono tracking-wider hover:bg-slate-200 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={deletionSubmitting}
+                    className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-bold uppercase font-mono tracking-wider shadow-md transition flex items-center justify-center space-x-2"
+                  >
+                    {deletionSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <span>Submit Deletion Request</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mobile Bottom Navigation Bar */}
       <MobileBottomNav onToggleAI={() => {}} />
     </div>

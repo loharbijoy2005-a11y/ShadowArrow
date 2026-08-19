@@ -29,7 +29,10 @@ type UserProfile struct {
 	Phone       string             `json:"phone" bson:"phone"`
 	PhotoURL    string             `json:"photo_url" bson:"photo_url"`
 	Addresses   []SavedAddress     `json:"addresses" bson:"addresses"`
-	CoinBalance float64            `json:"coin_balance" bson:"coin_balance"`
-	Tier        UserTier           `json:"tier" bson:"tier"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	CoinBalance         float64            `json:"coin_balance" bson:"coin_balance"`
+	Tier                UserTier           `json:"tier" bson:"tier"`
+	DeletionRequested   bool               `json:"deletion_requested" bson:"deletion_requested"`
+	DeletionRequestedAt *time.Time         `json:"deletion_requested_at,omitempty" bson:"deletion_requested_at,omitempty"`
+	DeletionReason      string             `json:"deletion_reason,omitempty" bson:"deletion_reason,omitempty"`
+	UpdatedAt           time.Time          `json:"updated_at" bson:"updated_at"`
 }

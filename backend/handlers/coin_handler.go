@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"time"
 
 	"shadow-arrow-backend/db"
@@ -36,14 +37,28 @@ func GetLoyaltyConfig(ctx context.Context) models.LoyaltyConfig {
 	return cfg
 }
 
+func CleanPhoneDigits(phone string) string {
+	reg := regexp.MustCompile(`\D`)
+	digits := reg.ReplaceAllString(phone, "")
+	if len(digits) >= 10 {
+		return digits[len(digits)-10:]
+	}
+	return digits
+}
+
 func EvaluateUserTier(ctx context.Context, userObjID primitive.ObjectID, userPhone string, userEmail string) (string, int) {
 	ordersCol := db.GetCollection("orders")
 	oneYearAgo := time.Now().AddDate(-1, 0, 0)
 
-	// Filter for delivered orders in last 12 rolling months
+	// Filter for delivered orders in last 12 rolling months using normalized phone matching
 	orConditions := []bson.M{}
 	if userPhone != "" {
-		orConditions = append(orConditions, bson.M{"customer_phone": userPhone})
+		cleanP := CleanPhoneDigits(userPhone)
+		if len(cleanP) >= 10 {
+			orConditions = append(orConditions, bson.M{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}})
+		} else {
+			orConditions = append(orConditions, bson.M{"customer_phone": userPhone})
+		}
 	}
 	if userEmail != "" {
 		orConditions = append(orConditions, bson.M{"customer_email": userEmail})
@@ -66,7 +81,7 @@ func EvaluateUserTier(ctx context.Context, userObjID primitive.ObjectID, userPho
 	deliveredCount := int(count64)
 
 	var tier string
-	if deliveredCount >= 15 {
+	if deliveredCount >= 20 {
 		tier = "DIAMOND"
 	} else if deliveredCount >= 5 {
 		tier = "GOLD"
@@ -93,13 +108,13 @@ func CalculateCashbackForOrder(tier string, orderAmount float64) float64 {
 
 	switch tier {
 	case "DIAMOND":
-		pct = 0.03
+		pct = 0.05 // 5% cashback for Diamond Tier (20+ delivered orders)
 		maxCap = 200.0
 	case "GOLD":
-		pct = 0.02
+		pct = 0.02 // 2% cashback for Gold Tier (5-19 delivered orders)
 		maxCap = 100.0
 	default: // SILVER
-		pct = 0.01
+		pct = 0.01 // 1% cashback for Silver Tier (0-4 delivered orders)
 		maxCap = 50.0
 	}
 
@@ -190,8 +205,8 @@ func GetUserRewards(c *gin.Context) {
 		progressPct = (float64(deliveredCount) / 5.0) * 100.0
 	} else if tier == "GOLD" {
 		nextTier = "DIAMOND"
-		ordersNeededForNextTier = 15 - deliveredCount
-		progressPct = (float64(deliveredCount-5) / 10.0) * 100.0
+		ordersNeededForNextTier = 20 - deliveredCount
+		progressPct = (float64(deliveredCount-5) / 15.0) * 100.0
 	} else {
 		nextTier = "MAX_TIER"
 		ordersNeededForNextTier = 0
@@ -420,4 +435,32 @@ func AdminGetCoinAnalytics(c *gin.Context) {
 		"monthly_expired_coins":  monthlyExpiredCoins,
 		"monthly_redeemed_coins": monthlyRedeemedCoins,
 	})
+}
+
+// AdminGetTopCoinHolders fetches customers sorted by highest ArrowCoins balance
+func AdminGetTopCoinHolders(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	usersCol := db.GetCollection("users")
+	findOpts := options.Find().SetSort(bson.M{"coin_balance": -1}).SetLimit(50)
+
+	cursor, err := usersCol.Find(ctx, bson.M{}, findOpts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch top coin holders"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.UserProfile
+	if err := cursor.All(ctx, &users); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode top coin holders"})
+		return
+	}
+
+	if users == nil {
+		users = []models.UserProfile{}
+	}
+
+	c.JSON(http.StatusOK, users)
 }

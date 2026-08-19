@@ -25,6 +25,12 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
   const [stock, setStock] = useState(product?.stock ?? 10);
   const [description, setDescription] = useState(product?.description || '');
   const [images, setImages] = useState<string[]>(product?.images || ['']);
+  const [customCoinsEarned, setCustomCoinsEarned] = useState<string>(
+    product?.custom_coins_earned !== undefined && product?.custom_coins_earned !== null
+      ? String(product.custom_coins_earned)
+      : ''
+  );
+  const [isHidden, setIsHidden] = useState<boolean>(product?.is_hidden || false);
 
   // Bi-directional automatic price & offer calculation handlers
   const handleComparePriceChange = (val: string) => {
@@ -115,6 +121,8 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
       description,
       images: images.filter(img => img.trim() !== ''),
       sizes,
+      custom_coins_earned: customCoinsEarned !== '' ? parseFloat(customCoinsEarned) : null,
+      is_hidden: isHidden,
       specs: {
         fabric_gsm: fabricGsm,
         material,
@@ -162,7 +170,41 @@ export default function ProductModal({ product, onClose, onSave }: ProductModalP
                 <option value="Apparel">Apparel</option>
                 <option value="Footwear">Footwear</option>
                 <option value="Accessories">Accessories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Eyewear">Eyewear</option>
+                <option value="Activewear">Activewear</option>
+                <option value="Bags">Bags</option>
+                <option value="Watches">Watches</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            <div>
+              <label className="block text-xs font-mono text-amber-400 font-bold uppercase mb-1">
+                🪙 ArrowCoins Earned on Purchase (Optional Override)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={customCoinsEarned}
+                onChange={(e) => setCustomCoinsEarned(e.target.value)}
+                className="w-full bg-ops-900 border border-amber-500/40 rounded p-2 text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-400"
+                placeholder="Auto-calculated tier rate if empty"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2 pt-6">
+              <input
+                type="checkbox"
+                id="isHiddenCheck"
+                checked={isHidden}
+                onChange={(e) => setIsHidden(e.target.checked)}
+                className="w-4 h-4 rounded border-ops-700 bg-ops-900 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="isHiddenCheck" className="text-xs font-mono text-gray-300 cursor-pointer select-none">
+                🔒 Hidden Item (Only visible via Direct Search)
+              </label>
             </div>
           </div>
 

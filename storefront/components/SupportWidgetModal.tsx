@@ -196,7 +196,6 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-black uppercase text-slate-900 font-mono">Customer Help Desk</h2>
-              <p className="text-[11px] text-slate-500 font-mono">2-Way Support Chat & Ticket Status</p>
             </div>
           </div>
           <button onClick={resetAndClose} className="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100">

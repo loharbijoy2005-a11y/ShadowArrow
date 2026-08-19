@@ -55,8 +55,8 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
   // Create temporary container layer with top z-index and explicit #ffffff background for html2canvas
   const htmlContainer = document.createElement('div');
   htmlContainer.id = 'pdf-direct-download-target';
-  htmlContainer.style.position = 'fixed';
-  htmlContainer.style.left = '0';
+  htmlContainer.style.position = 'absolute';
+  htmlContainer.style.left = '-9999px';
   htmlContainer.style.top = '0';
   htmlContainer.style.width = '794px';
   htmlContainer.style.zIndex = '999999';

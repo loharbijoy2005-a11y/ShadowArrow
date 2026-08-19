@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ArrowUpRight, Ban, Star, Check } from 'lucide-react';
+import { ShoppingBag, ArrowUpRight, Ban, Star, Check, Coins } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps {
@@ -95,6 +95,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.title}
             </h3>
             <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+
+            {/* Dynamic ArrowCoins Earning Badge */}
+            <div className="mt-2.5 inline-flex items-center space-x-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200/80 rounded-lg text-[11px] font-mono font-bold text-amber-800">
+              <Coins className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>Earn {Math.floor(product.price * 0.01)} ArrowCoins</span>
+            </div>
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">

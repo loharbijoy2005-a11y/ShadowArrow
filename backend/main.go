@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"shadow-arrow-backend/config"
+	"shadow-arrow-backend/cron"
 	"shadow-arrow-backend/db"
 	"shadow-arrow-backend/handlers"
 	"shadow-arrow-backend/middleware"
@@ -26,6 +27,9 @@ func main() {
 
 	// 3. Seed Database if empty
 	seed.SeedDatabase()
+
+	// 4. Start ArrowCoins Cron Scheduler (7-day activation & 365-day expiration)
+	cron.StartCronScheduler()
 
 	// 4. Initialize Gin Router
 	r := gin.Default()
@@ -76,9 +80,11 @@ func main() {
 		v1.POST("/auth/google-sync", handlers.GoogleSync)
 		v1.POST("/auth/phone-login", middleware.RateLimiterMiddleware("auth_login", 6, 3*time.Minute), handlers.PhoneLogin)
 
-		// User Profile Routes
+		// User Profile & Rewards Routes
 		v1.PUT("/user/profile", handlers.UpdateUserProfile)
 		v1.GET("/user/profile", handlers.GetUserProfile)
+		v1.GET("/user/rewards", handlers.GetUserRewards)
+		v1.GET("/loyalty/config", handlers.AdminGetLoyaltyConfigHandler)
 
 		// Support Ticket & Cart Sync Routes (Strict Ticket Creation Rate Limit)
 		v1.POST("/tickets/create", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
@@ -129,6 +135,12 @@ func main() {
 			admin.PUT("/settings/theme", handlers.UpdateThemeSettings)
 
 			admin.POST("/cms/banners", handlers.SaveBanners)
+
+			// Loyalty & ArrowCoins System Admin Routes
+			admin.GET("/loyalty/config", handlers.AdminGetLoyaltyConfigHandler)
+			admin.PUT("/loyalty/config", handlers.AdminUpdateLoyaltyConfigHandler)
+			admin.POST("/loyalty/adjust", handlers.AdminManualAdjustCoins)
+			admin.GET("/loyalty/analytics", handlers.AdminGetCoinAnalytics)
 		}
 	}
 

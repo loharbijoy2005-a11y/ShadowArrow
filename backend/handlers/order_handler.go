@@ -105,6 +105,47 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
+		// ArrowCoins Redemption Shield & Verification (Max 20% Cap)
+		var userObj models.UserProfile
+		usersCol := db.GetCollection("users")
+		userFilter := bson.M{
+			"$or": []bson.M{
+				{"phone": order.CustomerPhone},
+				{"email": order.CustomerEmail},
+			},
+		}
+		_ = usersCol.FindOne(ctx, userFilter).Decode(&userObj)
+
+		loyaltyCfg := GetLoyaltyConfig(ctx)
+		maxUsableCap := (verifiedTotal * (loyaltyCfg.MaxRedemptionPct / 100.0))
+
+		if order.CoinsRedeemed > 0 {
+			if userObj.ID.IsZero() {
+				order.CoinsRedeemed = 0
+			} else {
+				if order.CoinsRedeemed > userObj.CoinBalance {
+					order.CoinsRedeemed = userObj.CoinBalance
+				}
+				if order.CoinsRedeemed > maxUsableCap {
+					order.CoinsRedeemed = maxUsableCap
+				}
+
+				discountInINR := order.CoinsRedeemed * loyaltyCfg.ConversionRate
+				verifiedTotal = verifiedTotal - discountInINR
+				if verifiedTotal < 0 {
+					verifiedTotal = 0
+				}
+			}
+		}
+
+		// Evaluate Tier for Cashback Earning
+		currentTier := "SILVER"
+		if !userObj.ID.IsZero() {
+			currentTier, _ = EvaluateUserTier(ctx, userObj.ID, userObj.Phone, userObj.Email)
+		}
+		earnedCoins := CalculateCashbackForOrder(currentTier, verifiedTotal)
+		order.CoinsEarned = earnedCoins
+
 		order.OrderID = generateReadableOrderID()
 		order.CreatedAt = time.Now()
 		order.TotalAmount = verifiedTotal
@@ -154,6 +195,46 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		order.ID = result.InsertedID.(primitive.ObjectID)
+
+		// Record ArrowCoins Debit (Redemption) and Pending Credit Transactions
+		if !userObj.ID.IsZero() {
+			txCol := db.GetCollection("coin_transactions")
+			now := time.Now()
+
+			if order.CoinsRedeemed > 0 {
+				_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": userObj.ID}, bson.M{
+					"$inc": bson.M{"coin_balance": -order.CoinsRedeemed},
+					"$set": bson.M{"updated_at": now},
+				})
+				debitTx := models.CoinTransaction{
+					ID:          primitive.NewObjectID(),
+					UserID:      userObj.ID,
+					OrderID:     &order.ID,
+					OrderCode:   order.OrderID,
+					Amount:      order.CoinsRedeemed,
+					Type:        "DEBIT",
+					Status:      "USED",
+					Description: fmt.Sprintf("Redeemed ArrowCoins on Order #%s", order.OrderID),
+					CreatedAt:   now,
+				}
+				_, _ = txCol.InsertOne(ctx, debitTx)
+			}
+
+			if earnedCoins > 0 {
+				creditTx := models.CoinTransaction{
+					ID:          primitive.NewObjectID(),
+					UserID:      userObj.ID,
+					OrderID:     &order.ID,
+					OrderCode:   order.OrderID,
+					Amount:      earnedCoins,
+					Type:        "CREDIT",
+					Status:      "PENDING",
+					Description: fmt.Sprintf("Cashback for Order #%s (%s Tier)", order.OrderID, currentTier),
+					CreatedAt:   now,
+				}
+				_, _ = txCol.InsertOne(ctx, creditTx)
+			}
+		}
 
 		// 2. Mark abandoned cart sessions as COMPLETED for this customer
 		go func(phone, email string) {
@@ -611,17 +692,48 @@ func UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	// Restock inventory if status changed to CANCELLED
-	if targetStatus == "CANCELLED" && existingOrder.OrderStatus != "CANCELLED" {
-		productCollection := db.GetCollection("products")
-		for _, item := range existingOrder.Items {
-			if item.ProductID != "" {
-				if objID, err := primitive.ObjectIDFromHex(item.ProductID); err == nil {
-					_ = productCollection.FindOneAndUpdate(
-						ctx,
-						bson.M{"_id": objID},
-						bson.M{"$inc": bson.M{"stock": item.Quantity}},
-					)
+	// ArrowCoins Refund & Cancellation logic if order is cancelled or returned
+	isCancelledOrReturned := targetStatus == "CANCELLED" || targetStatus == "RETURNED" || targetStatus == "RTO" || targetStatus == "REFUNDED"
+	if isCancelledOrReturned && existingOrder.OrderStatus != targetStatus {
+		txCol := db.GetCollection("coin_transactions")
+		usersCol := db.GetCollection("users")
+		now := time.Now()
+
+		// 1. Mark pending credit cashback transaction as CANCELLED with 0 balance credited
+		_, _ = txCol.UpdateMany(ctx, bson.M{
+			"order_code": existingOrder.OrderID,
+			"type":       "CREDIT",
+			"status":     "PENDING",
+		}, bson.M{
+			"$set": bson.M{"status": "CANCELLED"},
+		})
+
+		// 2. Refund used coins if customer redeemed ArrowCoins on this order
+		if existingOrder.CoinsRedeemed > 0 {
+			var debitTx models.CoinTransaction
+			if err := txCol.FindOne(ctx, bson.M{"order_code": existingOrder.OrderID, "type": "DEBIT"}).Decode(&debitTx); err == nil {
+				var checkRefund models.CoinTransaction
+				if err := txCol.FindOne(ctx, bson.M{"order_code": existingOrder.OrderID, "type": "REFUND"}).Decode(&checkRefund); err != nil {
+					expiresAt := now.AddDate(1, 0, 0)
+					refundTx := models.CoinTransaction{
+						ID:          primitive.NewObjectID(),
+						UserID:      debitTx.UserID,
+						OrderID:     &existingOrder.ID,
+						OrderCode:   existingOrder.OrderID,
+						Amount:      existingOrder.CoinsRedeemed,
+						Type:        "REFUND",
+						Status:      "ACTIVE",
+						Description: fmt.Sprintf("Refund of used ArrowCoins for %s Order #%s", targetStatus, existingOrder.OrderID),
+						CreatedAt:   now,
+						ActivatedAt: &now,
+						ExpiresAt:   &expiresAt,
+					}
+					_, _ = txCol.InsertOne(ctx, refundTx)
+
+					_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": debitTx.UserID}, bson.M{
+						"$inc": bson.M{"coin_balance": existingOrder.CoinsRedeemed},
+						"$set": bson.M{"updated_at": now},
+					})
 				}
 			}
 		}

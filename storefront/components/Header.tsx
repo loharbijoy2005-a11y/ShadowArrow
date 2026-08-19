@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Search, Sparkles, User, Menu, X } from 'lucide-react';
+import { ShoppingBag, Search, Sparkles, User, Menu, X, Coins, Shield, Crown, Gem } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -15,11 +18,44 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [rewardsInfo, setRewardsInfo] = useState<{
+    coin_balance: number;
+    current_tier: string;
+  } | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('shadow_user');
-    if (saved) setIsLoggedIn(true);
+    if (saved) {
+      setIsLoggedIn(true);
+      try {
+        const u = JSON.parse(saved);
+        if (u.email || u.phone) {
+          axios
+            .get(`${API_URL}/api/v1/user/rewards?email=${encodeURIComponent(u.email || '')}&phone=${encodeURIComponent(u.phone || '')}`)
+            .then((res) => {
+              if (res.data) {
+                setRewardsInfo({
+                  coin_balance: res.data.coin_balance || 0,
+                  current_tier: res.data.current_tier || 'SILVER',
+                });
+              }
+            })
+            .catch(() => {});
+        }
+      } catch (e) {}
+    }
   }, []);
+
+  const renderTierIcon = (tier: string) => {
+    switch (tier) {
+      case 'DIAMOND':
+        return <Gem className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
+      case 'GOLD':
+        return <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+      default:
+        return <Shield className="w-3.5 h-3.5 text-slate-300 shrink-0" />;
+    }
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -49,6 +85,10 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
           <Link href="/#catalog" className="hover:text-white transition-colors">
             Collections
           </Link>
+          <Link href="/rewards" className="hover:text-amber-400 transition-colors flex items-center space-x-1.5 font-bold font-mono text-xs text-amber-400/90">
+            <Coins className="w-4 h-4 text-amber-400" />
+            <span>ArrowCoins Passbook</span>
+          </Link>
         </nav>
 
         {/* Live Search Bar */}
@@ -66,6 +106,25 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
         {/* Right Action Icons */}
         <div className="flex items-center space-x-3 sm:space-x-4">
           
+          {/* ArrowCoins User Tier & Balance Badge */}
+          {isLoggedIn && rewardsInfo && (
+            <Link
+              href="/rewards"
+              className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 border border-amber-500/30 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition shadow-sm"
+              title="View ArrowCoins Passbook & Tier Benefits"
+            >
+              <div className="p-1 bg-amber-500/20 text-amber-400 rounded-full">
+                <Coins className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-amber-300 font-black">{rewardsInfo.coin_balance}</span>
+              <span className="h-3.5 w-px bg-slate-800" />
+              <div className="flex items-center space-x-1 text-[11px] uppercase tracking-wider text-slate-300 font-bold">
+                {renderTierIcon(rewardsInfo.current_tier)}
+                <span className="hidden sm:inline">{rewardsInfo.current_tier}</span>
+              </div>
+            </Link>
+          )}
+
           {/* Shadow AI Stylist Button */}
           <button
             onClick={onToggleAI}

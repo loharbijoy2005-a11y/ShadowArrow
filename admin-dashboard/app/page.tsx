@@ -62,14 +62,23 @@ export default function AdminPage() {
 
   if (!token) {
     return (
-      <main className="min-h-screen bg-ops-900 flex items-center justify-center p-4">
-        <div className="bg-ops-800 border border-ops-700 max-w-md w-full rounded-2xl p-8 shadow-2xl space-y-6">
-          <div className="text-center space-y-2">
-            <div className="inline-flex p-3 bg-blue-600/20 text-blue-400 rounded-xl mb-2">
-              <Lock className="w-8 h-8" />
+      <main className="min-h-screen bg-ops-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated Background Mesh Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="bg-ops-800/90 border border-ops-700/80 max-w-md w-full rounded-3xl p-8 shadow-2xl space-y-6 backdrop-blur-xl relative z-10 transition-all duration-500 transform hover:border-blue-500/50 animate-in fade-in zoom-in-95">
+          <div className="text-center space-y-3">
+            <div className="relative inline-flex">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 blur opacity-40 animate-pulse" />
+              <div className="relative p-3.5 bg-ops-900 text-blue-400 rounded-2xl border border-blue-500/30">
+                <Lock className="w-8 h-8" />
+              </div>
             </div>
-            <h1 className="text-2xl font-mono font-bold text-white tracking-wider">ADMIN PORTAL GATEWAY</h1>
-            <p className="text-xs text-gray-400 font-mono">Restricted Access • Security Clearance Required</p>
+            <div>
+              <h1 className="text-2xl font-mono font-black text-white tracking-widest uppercase">ADMIN PORTAL GATEWAY</h1>
+              <p className="text-xs text-gray-400 font-mono mt-1">Restricted Access • Security Clearance Required</p>
+            </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -81,13 +90,13 @@ export default function AdminPage() {
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-ops-900 border border-ops-700 rounded-lg px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-ops-900 border border-ops-700 rounded-xl px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
               />
             </div>
 
             {authError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400 flex items-center space-x-2 font-mono">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 flex items-center space-x-2 font-mono animate-in slide-in-from-top-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{authError}</span>
               </div>
             )}
@@ -95,14 +104,14 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg text-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-500 active:scale-98 text-white font-bold py-3.5 rounded-xl text-sm font-mono uppercase tracking-wider flex items-center justify-center space-x-2 transition-all shadow-lg shadow-blue-600/25 disabled:opacity-50"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{loading ? 'Authenticating...' : 'Authenticate'}</span>
+              <span>{loading ? 'Authenticating...' : 'Authenticate Clearance'}</span>
             </button>
           </form>
           
-          <div className="text-center">
+          <div className="text-center pt-2 border-t border-ops-700/60">
             <p className="text-[11px] text-gray-500 font-mono">Session ID: {Math.random().toString(36).substring(7).toUpperCase()}</p>
           </div>
         </div>

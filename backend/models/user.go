@@ -16,13 +16,20 @@ type SavedAddress struct {
 	IsDefault bool   `json:"is_default" bson:"is_default"`
 }
 
+type UserTier struct {
+	CurrentTier     string     `json:"current_tier" bson:"current_tier"`
+	LastEvaluatedAt *time.Time `json:"last_evaluated_at,omitempty" bson:"last_evaluated_at,omitempty"`
+}
+
 type UserProfile struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	UID       string             `json:"uid" bson:"uid"`
-	Name      string             `json:"name" bson:"name"`
-	Email     string             `json:"email" bson:"email"`
-	Phone     string             `json:"phone" bson:"phone"`
-	PhotoURL  string             `json:"photo_url" bson:"photo_url"`
-	Addresses []SavedAddress     `json:"addresses" bson:"addresses"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UID         string             `json:"uid" bson:"uid"`
+	Name        string             `json:"name" bson:"name"`
+	Email       string             `json:"email" bson:"email"`
+	Phone       string             `json:"phone" bson:"phone"`
+	PhotoURL    string             `json:"photo_url" bson:"photo_url"`
+	Addresses   []SavedAddress     `json:"addresses" bson:"addresses"`
+	CoinBalance float64            `json:"coin_balance" bson:"coin_balance"`
+	Tier        UserTier           `json:"tier" bson:"tier"`
+	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 }

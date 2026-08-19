@@ -38,5 +38,7 @@ type Order struct {
 	ShiprocketShipmentID int                `json:"shiprocket_shipment_id" bson:"shiprocket_shipment_id"`
 	CouponCode           string             `json:"coupon_code,omitempty" bson:"coupon_code,omitempty"`
 	DiscountAmount       float64            `json:"discount_amount,omitempty" bson:"discount_amount,omitempty"`
+	CoinsRedeemed        float64            `json:"coins_redeemed,omitempty" bson:"coins_redeemed,omitempty"`
+	CoinsEarned          float64            `json:"coins_earned,omitempty" bson:"coins_earned,omitempty"`
 	CreatedAt            time.Time          `json:"created_at" bson:"created_at"`
 }

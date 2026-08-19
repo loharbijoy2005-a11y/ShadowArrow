@@ -94,6 +94,21 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
       // Dynamic import to avoid SSR build errors
       // @ts-ignore
       const html2pdf = (await import('html2pdf.js')).default;
+
+      // Clone element outside scroll container to prevent scroll offset blank canvas
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '794px';
+      container.style.backgroundColor = '#ffffff';
+
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.width = '100%';
+      clone.style.margin = '0';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
       const opt: any = {
         margin: [6, 8, 6, 8],
         filename: `SHADOW_ARROW_TAX_INVOICE_${order.order_id}.pdf`,
@@ -103,12 +118,15 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
+          scrollY: 0,
+          scrollX: 0,
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(clone).save();
+      document.body.removeChild(container);
     } catch (err) {
       console.error('PDF export failed, falling back to clean print driver:', err);
       handlePrint();

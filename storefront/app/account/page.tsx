@@ -343,9 +343,6 @@ export default function AccountPage() {
                   <Package className="w-5 h-5 text-slate-900" />
                   <span>Order History</span>
                 </h2>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  Lifetime orders matching email: <strong className="text-slate-900">{user.email || 'N/A'}</strong> or phone: <strong className="text-slate-900">{user.phone || 'N/A'}</strong>
-                </p>
               </div>
 
               <button

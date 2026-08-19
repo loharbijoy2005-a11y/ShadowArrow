@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Coins,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/ThemeContext';
 import { logAdminAction } from '@/lib/auditLogger';
@@ -39,6 +40,7 @@ export default function Navigation({ onLogout }: NavigationProps) {
     { name: 'Fulfillment Desk', href: '/orders', icon: ShoppingBag },
     { name: 'Product Catalog', href: '/products', icon: Package },
     { name: 'Customer Directory', href: '/customers', icon: Users },
+    { name: 'Loyalty & ArrowCoins', href: '/loyalty', icon: Coins },
     { name: 'Abandoned Carts', href: '/abandoned-carts', icon: ShoppingCart },
     { name: 'Support & Returns', href: '/tickets', icon: HelpCircle },
     { name: 'Coupons & Promos', href: '/coupons', icon: Tag },

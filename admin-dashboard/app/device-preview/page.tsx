@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Smartphone, Tablet, Laptop, RefreshCw, ExternalLink, RotateCw, Monitor, Shield, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Smartphone, Tablet, Laptop, RefreshCw, ExternalLink, RotateCw, Monitor, ArrowLeft } from 'lucide-react';
 
 const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'https://www.shadowarrow.in';
 
@@ -35,6 +36,14 @@ export default function DevicePreviewPage() {
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-xl">
         
         <div className="flex items-center space-x-3">
+          <Link
+            href="/"
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 transition flex items-center space-x-1.5 text-xs font-mono font-bold"
+            title="Return to Admin Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </Link>
           <div className="p-2.5 bg-blue-600/20 border border-blue-500/40 text-blue-400 rounded-xl">
             <Monitor className="w-5 h-5 animate-pulse" />
           </div>

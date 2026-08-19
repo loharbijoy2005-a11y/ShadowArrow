@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
 import axios from 'axios';
-import { Lock, CreditCard, Banknote, ShieldCheck, ArrowRight, Loader2, MapPin, AlertTriangle, RefreshCw, XCircle, ShieldAlert } from 'lucide-react';
+import { Lock, CreditCard, Banknote, ShieldCheck, ArrowRight, Loader2, MapPin, AlertTriangle, RefreshCw, XCircle, ShieldAlert, Coins } from 'lucide-react';
 import GSTBadgeTooltip from '@/components/GSTBadgeTooltip';
 import TruckOrderButton from '@/components/TruckOrderButton';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -40,6 +40,10 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+
+  // ArrowCoins Loyalty State
+  const [userCoinsBalance, setUserCoinsBalance] = useState(0);
+  const [redeemArrowCoins, setRedeemArrowCoins] = useState(false);
 
   // Coupon State
   const [couponInput, setCouponInput] = useState('');
@@ -104,7 +108,7 @@ export default function CheckoutPage() {
           if (def.pincode) setPincode((prev) => prev || def.pincode);
         }
 
-        // 3. Fetch latest profile & addresses from MongoDB Atlas
+        // 3. Fetch latest profile, addresses & ArrowCoins rewards balance from MongoDB Atlas
         if (u.email || u.phone) {
           axios
             .get(`${API_URL}/api/v1/user/profile?email=${encodeURIComponent(u.email || '')}&phone=${encodeURIComponent(u.phone || '')}`)
@@ -125,6 +129,15 @@ export default function CheckoutPage() {
               }
             })
             .catch((err) => console.warn('Background profile fetch warning:', err));
+
+          axios
+            .get(`${API_URL}/api/v1/user/rewards?email=${encodeURIComponent(u.email || '')}&phone=${encodeURIComponent(u.phone || '')}`)
+            .then((res) => {
+              if (res.data && typeof res.data.coin_balance === 'number') {
+                setUserCoinsBalance(res.data.coin_balance);
+              }
+            })
+            .catch(() => {});
         }
       }
     } catch (e) {
@@ -252,7 +265,10 @@ export default function CheckoutPage() {
     setCouponError('');
   };
 
-  const finalPayable = Math.max(0, subtotal - (appliedCoupon ? appliedCoupon.discountAmount : 0));
+  const subtotalAfterCoupon = Math.max(0, subtotal - (appliedCoupon ? appliedCoupon.discountAmount : 0));
+  const maxCoinsUsableCap = Math.floor(subtotalAfterCoupon * 0.20);
+  const actualCoinsRedeemed = redeemArrowCoins ? Math.min(userCoinsBalance, maxCoinsUsableCap) : 0;
+  const finalPayable = Math.max(0, subtotalAfterCoupon - actualCoinsRedeemed);
 
   const triggerPlaceOrder = async (overrideMethod?: 'ONLINE' | 'COD') => {
     const activeMethod = overrideMethod || paymentMethod;
@@ -279,6 +295,7 @@ export default function CheckoutPage() {
       total_amount: finalPayable,
       coupon_code: appliedCoupon ? appliedCoupon.code : '',
       discount_amount: appliedCoupon ? appliedCoupon.discountAmount : 0,
+      coins_redeemed: actualCoinsRedeemed,
       payment_method: activeMethod,
     };
 
@@ -679,6 +696,33 @@ export default function CheckoutPage() {
               )}
             </div>
 
+            {/* ArrowCoins Loyalty Redemption Box */}
+            <div className="pt-3 border-t border-slate-200 space-y-2">
+              <label className="flex items-center justify-between p-3 bg-amber-50/80 border border-amber-200 rounded-2xl cursor-pointer transition hover:bg-amber-50">
+                <div className="flex items-center space-x-2.5">
+                  <input
+                    type="checkbox"
+                    checked={redeemArrowCoins}
+                    onChange={(e) => setRedeemArrowCoins(e.target.checked)}
+                    disabled={userCoinsBalance <= 0 || maxCoinsUsableCap <= 0}
+                    className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 font-mono flex items-center space-x-1">
+                      <Coins className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Redeem ArrowCoins</span>
+                    </span>
+                    <p className="text-[10px] text-slate-600 font-mono">
+                      Available: <strong className="text-slate-900">{userCoinsBalance}</strong> | Max Usable (20% cap): <strong className="text-amber-700">{maxCoinsUsableCap}</strong>
+                    </p>
+                  </div>
+                </div>
+                {actualCoinsRedeemed > 0 && (
+                  <span className="font-mono font-bold text-amber-700 text-xs">-₹{actualCoinsRedeemed}</span>
+                )}
+              </label>
+            </div>
+
             <div className="space-y-2 border-t border-slate-200 pt-4 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Items Subtotal</span>
@@ -688,6 +732,12 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-emerald-600 font-bold">
                   <span>Coupon Discount ({appliedCoupon.code})</span>
                   <span className="font-mono">-₹{appliedCoupon.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              {actualCoinsRedeemed > 0 && (
+                <div className="flex justify-between text-amber-700 font-bold">
+                  <span>ArrowCoins Discount</span>
+                  <span className="font-mono">-₹{actualCoinsRedeemed.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-slate-600">

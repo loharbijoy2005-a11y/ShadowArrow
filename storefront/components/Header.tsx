@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Search, Sparkles, User, Menu, X, Coins, Shield, Crown, Gem } from 'lucide-react';
+import { ShoppingBag, Search, Sparkles, User, Menu, X, Coins, Shield, Crown, Gem, ChevronDown, Info } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import axios from 'axios';
 
@@ -18,10 +18,16 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [coinPopoverOpen, setCoinPopoverOpen] = useState(false);
   const [rewardsInfo, setRewardsInfo] = useState<{
     coin_balance: number;
     current_tier: string;
+    delivered_orders_12m?: number;
+    next_tier?: string;
+    orders_needed_for_next_tier?: number;
+    expiring_in_30_days?: number;
   } | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('shadow_user');
@@ -37,6 +43,10 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
                 setRewardsInfo({
                   coin_balance: res.data.coin_balance || 0,
                   current_tier: res.data.current_tier || 'SILVER',
+                  delivered_orders_12m: res.data.delivered_orders_12m || 0,
+                  next_tier: res.data.next_tier || '',
+                  orders_needed_for_next_tier: res.data.orders_needed_for_next_tier || 0,
+                  expiring_in_30_days: res.data.expiring_in_30_days || 0,
                 });
               }
             })
@@ -46,14 +56,36 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
     }
   }, []);
 
-  const renderTierIcon = (tier: string) => {
+  // Close popover on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setCoinPopoverOpen(false);
+      }
+    };
+    if (coinPopoverOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [coinPopoverOpen]);
+
+  const renderTierIcon = (tier: string, size = 'sm') => {
+    const cls = size === 'sm' ? 'w-3.5 h-3.5' : 'w-5 h-5';
     switch (tier) {
       case 'DIAMOND':
-        return <Gem className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
+        return <Gem className={`${cls} text-cyan-400 shrink-0`} />;
       case 'GOLD':
-        return <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+        return <Crown className={`${cls} text-amber-400 shrink-0`} />;
       default:
-        return <Shield className="w-3.5 h-3.5 text-slate-300 shrink-0" />;
+        return <Shield className={`${cls} text-slate-300 shrink-0`} />;
+    }
+  };
+
+  const tierColor = (tier: string) => {
+    switch (tier) {
+      case 'DIAMOND': return 'text-cyan-400';
+      case 'GOLD': return 'text-amber-400';
+      default: return 'text-slate-300';
     }
   };
 
@@ -85,10 +117,6 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
           <Link href="/#catalog" className="hover:text-white transition-colors">
             Collections
           </Link>
-          <Link href="/rewards" className="hover:text-amber-400 transition-colors flex items-center space-x-1.5 font-bold font-mono text-xs text-amber-400/90">
-            <Coins className="w-4 h-4 text-amber-400" />
-            <span>ArrowCoins Passbook</span>
-          </Link>
         </nav>
 
         {/* Live Search Bar */}
@@ -106,23 +134,109 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
         {/* Right Action Icons */}
         <div className="flex items-center space-x-3 sm:space-x-4">
           
-          {/* ArrowCoins User Tier & Balance Badge */}
+          {/* ArrowCoins Badge — Popover (no redirect to /rewards) */}
           {isLoggedIn && rewardsInfo && (
-            <Link
-              href="/rewards"
-              className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 border border-amber-500/30 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition shadow-sm"
-              title="View ArrowCoins Passbook & Tier Benefits"
-            >
-              <div className="p-1 bg-amber-500/20 text-amber-400 rounded-full">
-                <Coins className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-amber-300 font-black">{rewardsInfo.coin_balance}</span>
-              <span className="h-3.5 w-px bg-slate-800" />
-              <div className="flex items-center space-x-1 text-[11px] uppercase tracking-wider text-slate-300 font-bold">
-                {renderTierIcon(rewardsInfo.current_tier)}
-                <span className="hidden sm:inline">{rewardsInfo.current_tier}</span>
-              </div>
-            </Link>
+            <div className="relative" ref={popoverRef}>
+              <button
+                onClick={() => setCoinPopoverOpen((prev) => !prev)}
+                className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 border border-amber-500/30 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition shadow-sm"
+                title="View ArrowCoins Balance & Tier Details"
+              >
+                <div className="p-1 bg-amber-500/20 text-amber-400 rounded-full">
+                  <Coins className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-amber-300 font-black">{rewardsInfo.coin_balance}</span>
+                <span className="h-3.5 w-px bg-slate-800" />
+                <div className="flex items-center space-x-1 text-[11px] uppercase tracking-wider text-slate-300 font-bold">
+                  {renderTierIcon(rewardsInfo.current_tier)}
+                  <span className="hidden sm:inline">{rewardsInfo.current_tier}</span>
+                </div>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${coinPopoverOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* ArrowCoins Detail Popover */}
+              {coinPopoverOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-amber-600/20 to-amber-500/10 border-b border-slate-700/60 px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-1.5 bg-amber-500/20 text-amber-400 rounded-lg">
+                        <Coins className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black font-mono text-amber-300 uppercase">ArrowCoins Balance</p>
+                        <p className="text-[10px] text-slate-400 font-mono">1 Coin = ₹1 INR Discount</p>
+                      </div>
+                    </div>
+                    <span className="text-3xl font-black font-mono text-white">{rewardsInfo.coin_balance}</span>
+                  </div>
+
+                  {/* Tier Info */}
+                  <div className="px-4 py-3 border-b border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {renderTierIcon(rewardsInfo.current_tier, 'md')}
+                        <span className={`text-sm font-black font-mono uppercase ${tierColor(rewardsInfo.current_tier)}`}>
+                          {rewardsInfo.current_tier} TIER
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {rewardsInfo.delivered_orders_12m || 0} orders (12mo)
+                      </span>
+                    </div>
+                    {(rewardsInfo.orders_needed_for_next_tier ?? 0) > 0 && (
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-white font-bold">{rewardsInfo.orders_needed_for_next_tier}</span> more orders to unlock{' '}
+                        <span className="font-bold text-amber-300">{rewardsInfo.next_tier}</span>
+                      </p>
+                    )}
+                    {rewardsInfo.next_tier === 'MAX_TIER' && (
+                      <p className="text-[10px] text-cyan-400 font-mono font-bold">👑 Highest Tier Achieved!</p>
+                    )}
+                  </div>
+
+                  {/* How it works */}
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-[10px] font-mono text-slate-400 uppercase font-bold flex items-center space-x-1">
+                      <Info className="w-3 h-3" />
+                      <span>How ArrowCoins Work</span>
+                    </p>
+                    <div className="space-y-1.5 text-[10px] font-mono text-slate-400">
+                      <div className="flex justify-between">
+                        <span>🛡️ SILVER (0–4 orders)</span>
+                        <span className="text-white font-bold">1% cashback, max 50/order</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>👑 GOLD (5–19 orders)</span>
+                        <span className="text-amber-300 font-bold">2% cashback, max 100/order</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>💎 DIAMOND (20+ orders)</span>
+                        <span className="text-cyan-300 font-bold">5% cashback, max 200/order</span>
+                      </div>
+                    </div>
+                    <div className="pt-1.5 border-t border-slate-800 flex justify-between text-[10px] font-mono text-slate-500">
+                      <span>Max redeem: <strong className="text-white">20% of cart</strong></span>
+                      <span>Coins expire: <strong className="text-white">after 365 days</strong></span>
+                    </div>
+
+                    {rewardsInfo.expiring_in_30_days && rewardsInfo.expiring_in_30_days > 0 ? (
+                      <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10px] font-mono text-amber-300">
+                        ⚠️ <strong>{rewardsInfo.expiring_in_30_days} coins</strong> expiring in 30 days!
+                      </div>
+                    ) : null}
+
+                    <Link
+                      href="/account"
+                      onClick={() => setCoinPopoverOpen(false)}
+                      className="mt-2 w-full block text-center py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-xs uppercase font-mono rounded-xl transition"
+                    >
+                      View Full History →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Shadow AI Stylist Button */}

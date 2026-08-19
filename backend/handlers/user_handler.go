@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -301,7 +302,7 @@ func RequestAccountDeletion(c *gin.Context) {
 		return
 	}
 
-	// Business Rule: Check if user has active/in-transit orders
+	// Check for active/in-transit orders — collect their details for admin review (no longer blocking)
 	ordersCol := db.GetCollection("orders")
 	activeOrderFilter := bson.M{
 		"$or": []bson.M{
@@ -311,15 +312,25 @@ func RequestAccountDeletion(c *gin.Context) {
 		"order_status": bson.M{"$in": []string{"PENDING_PAYMENT", "CONFIRMED", "PROCESSING", "SHIPPED"}},
 	}
 
-	activeCount, err := ordersCol.CountDocuments(ctx, activeOrderFilter)
-	if err == nil && activeCount > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Cannot submit deletion request while you have active or in-transit order(s). Please wait until delivery is completed.",
-		})
-		return
+	cursor, _ := ordersCol.Find(ctx, activeOrderFilter)
+	var activeOrders []models.Order
+	if cursor != nil {
+		_ = cursor.All(ctx, &activeOrders)
+		cursor.Close(ctx)
+	}
+	activeCount := len(activeOrders)
+
+	// Build active order summary for ticket message
+	activeOrderNote := ""
+	if activeCount > 0 {
+		activeOrderNote = fmt.Sprintf("\n\n⚠️ ADMIN REVIEW REQUIRED: User has %d active/in-transit order(s) at time of request:", activeCount)
+		for _, o := range activeOrders {
+			activeOrderNote += fmt.Sprintf("\n  • Order %s — Status: %s — Amount: ₹%.2f", o.OrderID, o.OrderStatus, o.TotalAmount)
+		}
+		activeOrderNote += "\n\nAdmin must verify all orders are DELIVERED or CANCELLED before approving this deletion request."
 	}
 
-	// Update user soft deletion flag
+	// Update user soft deletion flag — always proceed
 	now := time.Now()
 	_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{
 		"$set": bson.M{
@@ -339,6 +350,8 @@ func RequestAccountDeletion(c *gin.Context) {
 		custName = "Customer"
 	}
 
+	adminNote := "User requested account deletion. Reason: " + payload.Reason + ". Verified Email: " + payload.Email + activeOrderNote
+
 	ticket := models.SupportTicket{
 		ID:            primitive.NewObjectID(),
 		TicketID:      ticketID,
@@ -355,7 +368,7 @@ func RequestAccountDeletion(c *gin.Context) {
 				ID:         primitive.NewObjectID().Hex(),
 				Sender:     "customer",
 				SenderName: custName,
-				Message:    "User requested account deletion. Reason: " + payload.Reason + ". Verified Email: " + payload.Email,
+				Message:    adminNote,
 				CreatedAt:  now,
 			},
 		},
@@ -363,8 +376,15 @@ func RequestAccountDeletion(c *gin.Context) {
 
 	_, _ = ticketsCol.InsertOne(ctx, ticket)
 
+	responseMsg := "Account deletion request received successfully. Standard DPDP/GDPR processing window is 48 to 72 hours."
+	if activeCount > 0 {
+		responseMsg = fmt.Sprintf("Account deletion request received. Note: You have %d active order(s). Our support team will review your request once all orders are completed or cancelled. Processing window: 48 to 72 hours.", activeCount)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message":   "Account deletion request received successfully. Standard DPDP/GDPR processing window is 48 to 72 hours.",
-		"ticket_id": ticketID,
+		"message":      responseMsg,
+		"ticket_id":    ticketID,
+		"active_orders": activeCount,
 	})
 }
+

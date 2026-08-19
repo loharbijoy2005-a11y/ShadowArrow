@@ -78,10 +78,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
         
         {/* Main Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-sm">
           
           {/* Brand Bio */}
-          <div className="space-y-3">
+          <div className="col-span-2 md:col-span-1 space-y-3">
             <div className="flex items-center space-x-2 group">
               <div className="sa_logo_badge w-8 h-8 rounded-lg text-xs font-black shadow-md">
                 SA
@@ -95,7 +95,7 @@ export default function Footer() {
 
           {/* Catalog Categories */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Catalog Categories</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Catalog</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link href="/?category=Apparel#catalog" className="hover:text-white transition">Apparel & Heavy Tees</Link></li>
               <li><Link href="/?category=Footwear#catalog" className="hover:text-white transition">Techwear & Cyber Sneakers</Link></li>
@@ -103,9 +103,28 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* FAQ — Left side, dedicated column */}
+          <div>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono flex items-center space-x-1.5">
+              <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
+              <span>FAQ</span>
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-400">
+              <li><Link href="/policies/faq#orders" className="hover:text-white transition">Order & Delivery FAQs</Link></li>
+              <li><Link href="/policies/faq#returns" className="hover:text-white transition">Returns & Refunds</Link></li>
+              <li><Link href="/policies/faq#coins" className="hover:text-white transition">ArrowCoins FAQs</Link></li>
+              <li><Link href="/policies/faq#payments" className="hover:text-white transition">Payments & COD</Link></li>
+              <li>
+                <Link href="/policies/faq" className="hover:text-white text-blue-400 font-bold transition flex items-center space-x-1.5">
+                  <span>View All FAQs →</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Customer Assistance */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Customer Assistance</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Help Desk</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link href="/account" className="hover:text-white transition">User Account & Profile</Link></li>
               <li>
@@ -131,17 +150,13 @@ export default function Footer() {
 
           {/* Compliance & Policies */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Compliance & Policies</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-4 font-mono">Policies</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link href="/policies/privacy" className="hover:text-white transition">Privacy Policy & Right to Erasure</Link></li>
               <li><Link href="/policies/terms" className="hover:text-white transition">Terms of Service</Link></li>
-              <li><Link href="/policies/shipping" className="hover:text-white transition">Shipping & Delivery Policy</Link></li>
+              <li><Link href="/policies/shipping" className="hover:text-white transition">Shipping & Delivery</Link></li>
               <li><Link href="/policies/returns" className="hover:text-white transition">Return & Refund Policy</Link></li>
-              <li><Link href="/account" className="hover:text-white text-amber-400 font-bold transition">ArrowCoins Rewards & Passbook</Link></li>
-              <li><Link href="/policies/faq" className="hover:text-white text-blue-400 font-bold transition flex items-center space-x-1.5">
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>Frequently Asked Questions (FAQ)</span>
-              </Link></li>
+              <li><Link href="/account" className="hover:text-white text-amber-400 font-bold transition">ArrowCoins Rewards</Link></li>
             </ul>
           </div>
         </div>

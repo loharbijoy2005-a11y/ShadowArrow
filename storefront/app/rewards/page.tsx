@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import { Coins, Shield, Crown, Gem, AlertTriangle, ArrowUpRight, CheckCircle2, Clock, XCircle, RefreshCw, Loader2, Info } from 'lucide-react';
+import { Coins, Shield, Crown, Gem, AlertTriangle, ArrowUpRight, CheckCircle2, Clock, XCircle, Loader2, Info } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -66,7 +66,7 @@ export default function RewardsPassbookPage() {
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 sm:py-12 pb-28 w-full space-y-8">
         
-        {/* Header & Refresh */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="flex items-center space-x-2">
@@ -74,21 +74,13 @@ export default function RewardsPassbookPage() {
                 <Coins className="w-6 h-6" />
               </div>
               <h1 className="text-2xl font-black text-slate-900 uppercase font-mono tracking-tight">
-                ArrowCoins Rewards Passbook
+                ArrowCoins Rewards
               </h1>
             </div>
             <p className="text-xs text-slate-500 font-mono mt-1">
               1 ArrowCoin = ₹1 INR Checkout Discount • 3-Tier Rolling Membership Loyalty
             </p>
           </div>
-
-          <button
-            onClick={() => user && fetchRewardsData(user.phone, user.email)}
-            className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-mono text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Sync Ledger</span>
-          </button>
         </div>
 
         {loading ? (

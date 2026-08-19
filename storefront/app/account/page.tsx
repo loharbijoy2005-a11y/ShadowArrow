@@ -584,12 +584,19 @@ export default function AccountPage() {
                             {ord.payment_method === 'COD' ? 'Total Payable (COD)' : 'Total Paid (ONLINE)'}:{' '}
                             <strong className="text-slate-900 text-base font-bold">₹{ord.total_amount?.toFixed(2)}</strong>
                           </p>
-                          {ord.payment_method !== 'COD' && ord.razorpay_payment_id && (
+                          {/* Txn ID — only show for ONLINE payment with actual razorpay_payment_id */}
+                           {ord.payment_method !== 'COD' && (
                             <p className="text-slate-600 text-[11px] font-mono mt-0.5">
                               Txn ID:{' '}
-                              <strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-mono select-all">
-                                {ord.razorpay_payment_id}
-                              </strong>
+                              {ord.razorpay_payment_id ? (
+                                <strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-mono select-all">
+                                  {ord.razorpay_payment_id}
+                                </strong>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded border border-amber-300 font-mono font-bold text-[10px] uppercase">
+                                  PENDING
+                                </span>
+                              )}
                             </p>
                           )}
                           <p className="text-slate-500 text-[11px] mt-0.5">Shipping Address: {ord.shipping_address}</p>
@@ -622,6 +629,185 @@ export default function AccountPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ARROWCOINS REWARDS TAB */}
+        {activeTab === 'REWARDS' && (
+          <section className="space-y-6">
+            {loadingRewards ? (
+              <div className="p-12 bg-white rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm">
+                <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto" />
+                <p className="text-xs font-mono text-slate-500">Loading ArrowCoins ledger...</p>
+              </div>
+            ) : rewardsInfo ? (
+              <>
+                {/* Balance + Tier Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Active Balance Card */}
+                  <div className="bg-slate-900 text-white p-7 rounded-3xl border border-slate-800 shadow-xl space-y-4 relative overflow-hidden">
+                    <div className="absolute -top-12 -right-12 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-xs text-amber-400 font-mono font-bold uppercase tracking-wider">Total Active Balance</span>
+                        <div className="flex items-baseline space-x-2 mt-2">
+                          <span className="text-5xl font-black font-mono text-white">{rewardsInfo.coin_balance || 0}</span>
+                          <span className="text-sm font-bold text-amber-400 font-mono">ArrowCoins</span>
+                        </div>
+                      </div>
+                      <div className="p-3.5 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/40">
+                        <Coins className="w-8 h-8" />
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-800 flex justify-between text-xs font-mono text-slate-400">
+                      <span>Rate: <strong>1 Coin = ₹1 INR</strong></span>
+                      <span>Max Cap: <strong>20% of Cart</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Tier + Progress Card */}
+                  <div className="bg-white p-7 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-xs text-slate-500 font-mono font-bold uppercase tracking-wider">12-Month Rolling Tier</span>
+                        <h2 className="text-2xl font-black font-mono text-slate-900 mt-1 uppercase flex items-center space-x-2">
+                          <span>{rewardsInfo.current_tier || 'SILVER'} TIER</span>
+                        </h2>
+                      </div>
+                      <div className="p-2.5 bg-slate-900 rounded-2xl">
+                        {rewardsInfo.current_tier === 'DIAMOND' ? <Gem className="w-8 h-8 text-cyan-400" /> :
+                         rewardsInfo.current_tier === 'GOLD' ? <Crown className="w-8 h-8 text-amber-400" /> :
+                         <Shield className="w-8 h-8 text-slate-300" />}
+                      </div>
+                    </div>
+                    <div className="space-y-2 border-t border-slate-100 pt-3 font-mono text-xs">
+                      <div className="flex justify-between items-center text-slate-700 font-bold">
+                        <span>
+                          {rewardsInfo.next_tier === 'MAX_TIER' ? '👑 Highest Tier Achieved!' : `Progress to ${rewardsInfo.next_tier}`}
+                        </span>
+                        <span className="text-slate-500">
+                          {rewardsInfo.delivered_orders_12m} / {rewardsInfo.current_tier === 'SILVER' ? 5 : rewardsInfo.current_tier === 'GOLD' ? 20 : '—'} Orders
+                        </span>
+                      </div>
+                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                        <div
+                          className="h-full bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-500 rounded-full"
+                          style={{ width: `${Math.min(100, rewardsInfo.progress_pct || 0)}%` }}
+                        />
+                      </div>
+                      {(rewardsInfo.orders_needed_for_next_tier || 0) > 0 && (
+                        <p className="text-[11px] text-slate-500">
+                          Deliver <strong className="text-slate-900">{rewardsInfo.orders_needed_for_next_tier} more order(s)</strong> to unlock {rewardsInfo.next_tier} Tier.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transaction Ledger with Expiry Info */}
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="font-black text-base uppercase text-slate-900 font-mono flex items-center space-x-2">
+                      <Coins className="w-5 h-5 text-amber-500" />
+                      <span>ArrowCoins History ({rewardsInfo.ledger?.length || 0})</span>
+                    </h3>
+                  </div>
+
+                  {(!rewardsInfo.ledger || rewardsInfo.ledger.length === 0) ? (
+                    <div className="py-12 text-center text-slate-400 font-mono space-y-2 p-6">
+                      <Coins className="w-10 h-10 mx-auto text-slate-300" />
+                      <p className="text-xs">No ArrowCoins transactions yet. Place your first order to start earning!</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs font-mono">
+                        <thead>
+                          <tr className="bg-slate-100 text-slate-700 font-bold uppercase border-b border-slate-200">
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Order ID</th>
+                            <th className="p-3">Type</th>
+                            <th className="p-3">Status</th>
+                            <th className="p-3">Time Left / Info</th>
+                            <th className="p-3 text-right">Coins</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {rewardsInfo.ledger.map((tx: any, idx: number) => {
+                            const isCredit = tx.type === 'CREDIT' || tx.type === 'REFUND';
+                            const dateStr = new Date(tx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                            const now = Date.now();
+
+                            // Calculate time info
+                            let timeInfo = '';
+                            let timeColor = 'text-slate-400';
+                            if (tx.status === 'PENDING' && tx.created_at) {
+                              const activatesAt = new Date(tx.created_at).getTime() + 7 * 24 * 60 * 60 * 1000;
+                              const daysLeft = Math.ceil((activatesAt - now) / (1000 * 60 * 60 * 24));
+                              timeInfo = daysLeft > 0 ? `Active in ${daysLeft}d` : 'Activating soon';
+                              timeColor = 'text-amber-600';
+                            } else if (tx.status === 'ACTIVE' && tx.expires_at) {
+                              const expiresAt = new Date(tx.expires_at).getTime();
+                              const daysLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+                              if (daysLeft <= 30) {
+                                timeInfo = `Expires in ${daysLeft}d ⚠️`;
+                                timeColor = 'text-red-600 font-bold';
+                              } else {
+                                timeInfo = `Expires in ${daysLeft}d`;
+                                timeColor = 'text-emerald-600';
+                              }
+                            } else if (tx.status === 'EXPIRED') {
+                              timeInfo = 'Expired';
+                              timeColor = 'text-red-400';
+                            } else if (tx.status === 'USED') {
+                              timeInfo = 'Used at checkout';
+                              timeColor = 'text-slate-400';
+                            }
+
+                            return (
+                              <tr key={tx.id || idx} className="hover:bg-slate-50 transition">
+                                <td className="p-3 text-slate-600">{dateStr}</td>
+                                <td className="p-3 font-bold text-slate-900">
+                                  {tx.order_code ? `#${tx.order_code}` : 'N/A'}
+                                </td>
+                                <td className="p-3">
+                                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                    tx.type === 'CREDIT' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                    tx.type === 'REFUND' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                                    'bg-rose-100 text-rose-800 border border-rose-300'
+                                  }`}>
+                                    {tx.type}
+                                  </span>
+                                </td>
+                                <td className="p-3">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                    tx.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' :
+                                    tx.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
+                                    tx.status === 'USED' ? 'bg-slate-200 text-slate-700' :
+                                    tx.status === 'EXPIRED' ? 'bg-red-100 text-red-700' :
+                                    'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {tx.status}
+                                  </span>
+                                </td>
+                                <td className={`p-3 text-[11px] ${timeColor}`}>{timeInfo || '—'}</td>
+                                <td className={`p-3 text-right font-black text-sm ${isCredit ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {isCredit ? `+${tx.amount}` : `-${tx.amount}`}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="p-12 bg-white rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm">
+                <Coins className="w-10 h-10 text-slate-300 mx-auto" />
+                <p className="text-xs font-mono text-slate-500">Could not load ArrowCoins data. Please try again.</p>
               </div>
             )}
           </section>

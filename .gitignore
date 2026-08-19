@@ -36,3 +36,6 @@ server.exe
 Thumbs.db
 .vscode/
 .idea/
+
+# Project brain & architecture (sensitive — do not push to GitHub)
+brain.md

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
-import { HelpCircle, RefreshCw, CheckCircle2, Clock, Image as ImageIcon, ExternalLink, MessageSquare, Send, X, Lock, Upload, Camera, Video, CreditCard, ShieldCheck } from 'lucide-react';
+import { HelpCircle, RefreshCw, CheckCircle2, Clock, Image as ImageIcon, ExternalLink, MessageSquare, Send, X, Lock, Upload, Camera, Video, CreditCard, ShieldCheck, ShieldAlert, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -22,6 +22,10 @@ export default function TicketsAdminPage() {
   const [replyMedia, setReplyMedia] = useState('');
   const [replyMediaType, setReplyMediaType] = useState<'image' | 'video'>('image');
   const [replying, setReplying] = useState(false);
+
+  // Account Deletion Approve / Reject State
+  const [deletionEmailBody, setDeletionEmailBody] = useState('');
+  const [deletionActionLoading, setDeletionActionLoading] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
@@ -134,6 +138,56 @@ export default function TicketsAdminPage() {
       alert(err.response?.data?.error || 'Failed to send admin reply');
     } finally {
       setReplying(false);
+    }
+  };
+
+  const handleDeletionAction = async (action: 'APPROVE' | 'REJECT') => {
+    if (!activeTicket || !token) return;
+    const emailBody = deletionEmailBody.trim();
+    if (!emailBody) {
+      alert('Please type a message/email body for the customer before approving or rejecting.');
+      return;
+    }
+
+    setDeletionActionLoading(true);
+    const id = activeTicket.ticket_id || activeTicket.id || activeTicket._id;
+    try {
+      // Send admin reply with decision
+      const decisionPrefix = action === 'APPROVE'
+        ? '✅ ACCOUNT DELETION APPROVED:\n\n'
+        : '❌ ACCOUNT DELETION REJECTED:\n\n';
+
+      await axios.post(
+        `${API_URL}/api/v1/admin/tickets/${id}/reply`,
+        {
+          sender: 'admin',
+          sender_name: 'Support Operations',
+          message: decisionPrefix + emailBody,
+          media_url: '',
+          media_type: 'image',
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update ticket status
+      const newStatus = action === 'APPROVE' ? 'RESOLVED' : 'IN_PROGRESS';
+      await axios.put(
+        `${API_URL}/api/v1/admin/tickets/${id}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setDeletionEmailBody('');
+      setActiveTicket({ ...activeTicket, status: newStatus });
+      const detailRes = await axios.get(`${API_URL}/api/v1/tickets/${id}`);
+      if (detailRes.data) setActiveTicket(detailRes.data);
+      if (token) fetchTickets(token);
+
+      alert(`Deletion request ${action === 'APPROVE' ? 'APPROVED' : 'REJECTED'}. Customer notified via support thread.`);
+    } catch (err: any) {
+      alert(err.response?.data?.error || `Failed to ${action.toLowerCase()} deletion request.`);
+    } finally {
+      setDeletionActionLoading(false);
     }
   };
 
@@ -400,6 +454,61 @@ export default function TicketsAdminPage() {
                 </button>
               </div>
             </div>
+
+            {/* ACCOUNT DELETION — Approve / Reject Panel */}
+            {activeTicket.category === 'ACCOUNT_DELETION' && (
+              <div className="shrink-0 bg-red-950/40 border border-red-800/50 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <ShieldAlert className="w-4 h-4 text-red-400" />
+                  <span className="text-xs font-black uppercase text-red-300">Account Deletion Request — Admin Decision</span>
+                </div>
+
+                {/* Active orders warning from ticket message */}
+                {activeTicket.messages?.[0]?.message?.includes('ADMIN REVIEW REQUIRED') && (
+                  <div className="p-2.5 bg-amber-900/30 border border-amber-700/50 rounded-xl">
+                    <div className="flex items-center space-x-1.5 text-amber-300 text-[10px] font-bold">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Active orders detected — verify before approving!</span>
+                    </div>
+                    <p className="text-[10px] text-amber-200/70 mt-1 whitespace-pre-line line-clamp-5">
+                      {activeTicket.messages[0].message.split('⚠️ ADMIN REVIEW REQUIRED')[1]?.split('Admin must')[0]}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1.5">Message to Customer (Required — sent as support reply)</label>
+                  <textarea
+                    value={deletionEmailBody}
+                    onChange={(e) => setDeletionEmailBody(e.target.value)}
+                    placeholder="Type your message... e.g. 'Your account deletion has been approved. Your data will be erased within 48-72 hours.' OR 'Your request has been rejected because you have active orders. Please contact us once delivered.'"
+                    rows={3}
+                    className="w-full px-3 py-2.5 bg-ops-900 border border-ops-700 rounded-xl text-white text-xs focus:outline-none focus:border-blue-500 resize-none font-sans"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDeletionAction('APPROVE')}
+                    disabled={deletionActionLoading}
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs uppercase rounded-xl flex items-center justify-center space-x-2 transition"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Approve Deletion</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeletionAction('REJECT')}
+                    disabled={deletionActionLoading}
+                    className="flex-1 py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white font-black text-xs uppercase rounded-xl flex items-center justify-center space-x-2 transition"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    <span>Reject Deletion</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Chat Thread Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-ops-900/80 rounded-2xl border border-ops-700">

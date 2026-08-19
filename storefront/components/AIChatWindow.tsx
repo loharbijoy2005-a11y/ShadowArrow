@@ -18,7 +18,7 @@ const SESSION_ID =
     : 'storefront_user_session';
 
 // Detect language from user input and tell the AI to respond in same language
-function detectLanguage(text: string): string {
+function detectLanguage(text) {
   if (/[\u0980-\u09FF]/.test(text)) return 'bn'; // Bangla
   if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi / Devanagari
   if (/[\u0600-\u06FF]/.test(text)) return 'ur'; // Urdu / Arabic script
@@ -26,7 +26,7 @@ function detectLanguage(text: string): string {
 }
 
 // Strip markdown asterisks from AI responses so raw ** never shows in chat
-function cleanText(text: string): string {
+function cleanText(text) {
   return text
     .replace(/\*\*\*(.*?)\*\*\*/gs, '$1')
     .replace(/\*\*(.*?)\*\*/gs, '$1')
@@ -40,32 +40,19 @@ const SUPPORT_KEYWORDS = [
   'missing', 'complaint', 'exchange', 'lost', 'torn', 'defective',
 ];
 
-interface AIChatWindowProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-interface Message {
-  id: string;
-  sender: 'user' | 'ai';
-  text: string;
-  showTicketCTA?: boolean;
-  relatedIssue?: string;
-}
-
-export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([
+export default function AIChatWindow({ isOpen, onClose }) {
+  const [messages, setMessages] = useState([
     {
       id: '1',
       sender: 'ai',
-      text: "Hey! I'm Shadow AI — your personal stylist and support assistant ??\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns — I got you!",
+      text: "Hey! I'm Shadow AI \u2014 your personal stylist and support assistant \uD83D\uDE0A\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns \u2014 I got you!",
     },
   ]);
   const [input, setInput]     = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef         = useRef<HTMLDivElement>(null);
+  const messagesEndRef         = useRef(null);
 
-  const [activeTicketMsgId, setActiveTicketMsgId] = useState<string | null>(null);
+  const [activeTicketMsgId, setActiveTicketMsgId] = useState(null);
   const [ticketContact, setTicketContact]           = useState('');
   const [ticketImg, setTicketImg]                   = useState('');
   const [submittingTicket, setSubmittingTicket]     = useState(false);
@@ -79,12 +66,12 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
 
   if (!isOpen) return null;
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
     const userText = input.trim();
-    const userMsg: Message = { id: Date.now().toString(), sender: 'user', text: userText };
+    const userMsg = { id: Date.now().toString(), sender: 'user', text: userText };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
@@ -104,7 +91,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         res.data?.reply ||
         "I'm here to help! Could you tell me a bit more so I can sort this out for you?";
 
-      const aiMsg: Message = {
+      const aiMsg = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
         text:          cleanText(reply),
@@ -112,12 +99,12 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         relatedIssue:  isSupport ? userText : undefined,
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
+    } catch (err) {
       console.error('[Shadow AI] Request failed:', err?.response?.status, err?.response?.data || err?.message);
-      const fallbackMsg: Message = {
+      const fallbackMsg = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
-        text:          "Hmm, having a bit of trouble connecting right now. Hang on a sec and try again — or let me know what you need and I'll do my best! ??",
+        text:          "Hmm, having a bit of trouble connecting right now. Hang on and try again \u2014 or let me know what you need and I'll do my best! \uD83D\uDE0A",
         showTicketCTA: isSupport,
         relatedIssue:  isSupport ? userText : undefined,
       };
@@ -127,16 +114,16 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     }
   };
 
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { alert('File size must be under 3MB'); return; }
     const reader = new FileReader();
-    reader.onloadend = () => setTicketImg(reader.result as string);
+    reader.onloadend = () => setTicketImg(reader.result);
     reader.readAsDataURL(file);
   };
 
-  const handleAutoTicket = async (e: React.FormEvent, issueText: string) => {
+  const handleAutoTicket = async (e, issueText) => {
     e.preventDefault();
     if (!ticketContact.trim()) return;
     setSubmittingTicket(true);
@@ -185,7 +172,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
             <h3 className="font-bold text-sm leading-none text-white tracking-wide">Shadow AI</h3>
             <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-              <span>Online · Fashion &amp; Support</span>
+              <span>Online &middot; Fashion &amp; Support</span>
             </span>
           </div>
         </div>
@@ -221,7 +208,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
               )}
             </div>
 
-            {/* Ticket CTA — shows after AI tries to help, gives user option to escalate */}
+            {/* Ticket CTA */}
             {m.sender === 'ai' && m.showTicketCTA && activeTicketMsgId !== m.id && (
               <div className="ml-8 mt-2">
                 <button
@@ -234,14 +221,14 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
               </div>
             )}
 
-            {/* Auto-ticket form — minimal one-field form */}
+            {/* Auto-ticket form */}
             {m.sender === 'ai' && activeTicketMsgId === m.id && (
               <form
                 onSubmit={(e) => handleAutoTicket(e, m.relatedIssue || '')}
                 className="ml-8 mt-2 bg-slate-800 border border-slate-700 rounded-xl p-3 space-y-2 text-[11px]"
               >
                 <p className="text-slate-300 font-medium">
-                  Drop your phone or email and I'll create the ticket right now ??
+                  Drop your phone or email and I&apos;ll create the ticket right now &#128071;
                 </p>
                 <input
                   type="text"
@@ -253,7 +240,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
                 />
                 <label className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-950 border border-slate-700 hover:bg-slate-900 rounded-lg text-slate-300 text-[10px] cursor-pointer w-full transition">
                   <Upload className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                  <span>{ticketImg ? '?? Photo attached!' : 'Attach damage photo (optional)'}</span>
+                  <span>{ticketImg ? 'Photo attached!' : 'Attach damage photo (optional)'}</span>
                   <input type="file" accept="image/*" onChange={handleImageFile} className="hidden" />
                 </label>
                 <div className="flex space-x-2 pt-0.5">
@@ -269,7 +256,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
                     disabled={submittingTicket || !ticketContact.trim()}
                     className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg transition"
                   >
-                    {submittingTicket ? 'Creating…' : '?? Raise Ticket'}
+                    {submittingTicket ? 'Creating...' : 'Raise Ticket'}
                   </button>
                 </div>
               </form>
@@ -280,7 +267,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         {loading && (
           <div className="flex items-center space-x-2 ml-8 text-slate-400 italic">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            <span>Shadow AI is typing…</span>
+            <span>Shadow AI is typing...</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -290,19 +277,19 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
       <div className="px-3 py-2 bg-slate-950 border-t border-slate-800 flex space-x-1.5 overflow-x-auto text-[10px]">
         <button onClick={() => setInput('What size should I order?')}
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
-          ?? Sizing Help
+          &#128085; Sizing Help
         </button>
         <button onClick={() => setInput('I received a damaged item')}
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
-          ?? Damaged Item
+          &#9888;&#65039; Damaged Item
         </button>
         <button onClick={() => setInput('I want to return my order')}
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
-          ?? Return Order
+          &#128260; Return Order
         </button>
         <button onClick={() => setInput('Track my order')}
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full shrink-0 font-medium transition">
-          ?? Track Order
+          &#128230; Track Order
         </button>
       </div>
 
@@ -312,7 +299,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Shadow AI anything…"
+          placeholder="Ask Shadow AI anything..."
           className="flex-1 px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <button

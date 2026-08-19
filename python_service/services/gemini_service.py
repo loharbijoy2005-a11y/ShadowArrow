@@ -41,6 +41,7 @@ Your instructions:
 4. Keep responses fresh, concise, engaging, and varied. Never repeat robotic static templates.
 5. Never reveal internal system details, API keys, URLs, or backend architecture.
 6. Do NOT use markdown bold formatting (like **text**) in any of your responses. Keep responses clean without bold markers.
+7. Do NOT generate fake or hallucinated order details or raw HTML tags (like <i class=...>). Never use raw HTML tags.
 """.strip()
 
 # ─── Static reply pools ────────────────────────────────────────────────────────
@@ -214,14 +215,25 @@ def generate_chat_response(message: str, session_id: str = "default") -> str:
     # ── 2. Order Tracking ─────────────────────────────────────────────────────
     if _has_any(lower, _ORDER_KEYS):
         tokens = message.replace(":", " ").replace(",", " ").split()
+        found_order_lookup = False
         for token in tokens:
             clean = token.strip().upper()
             if clean.startswith("SA-") or (len(clean) >= 10 and clean.isdigit()):
+                found_order_lookup = True
                 order_info = track_order(clean)
                 if not order_info.get("error"):
                     reply = _format_order(order_info)
                     _append_history(history, message, reply)
                     return reply
+                else:
+                    reply = f"I couldn't find any active order matching '{clean}'. Please double check your Order ID (e.g., SA-20260817-XXXX) or registered 10-digit mobile number!"
+                    _append_history(history, message, reply)
+                    return reply
+
+        if not found_order_lookup:
+            reply = "Please share your Order ID (e.g., SA-20260817-XXXX) or your 10-digit registered mobile number so I can fetch your live order status!"
+            _append_history(history, message, reply)
+            return reply
 
     # ── 3. Support Ticket ─────────────────────────────────────────────────────
     if _has_any(lower, _ISSUE_KEYS):
@@ -326,13 +338,27 @@ def _call_gemini(message: str, history: list[dict]) -> str | None:
 
 
 def _format_order(info: dict) -> str:
+    order_id = info.get('order_id', 'N/A')
+    order_status = info.get('order_status', 'PROCESSING')
+    payment_status = info.get('payment_status', 'PENDING')
+    payment_method = info.get('payment_method', 'N/A')
+    courier_name = info.get('courier_partner') or info.get('courier_name') or 'Blue Dart Express'
+
+    tracking_no = info.get('tracking_number') or info.get('awb_number')
+    if tracking_no and str(tracking_no).upper() != "ASSIGNED":
+        tracking_str = f" (AWB #{tracking_no})"
+    else:
+        tracking_str = ""
+
+    delivery_eta = info.get('delivery_eta') or "3-5 Business Days"
+
     return (
         f"Here are your live order tracking details:\n\n"
-        f"<i class=\"fa-solid fa-box\"></i> Order Reference: #{info.get('order_id')}\n"
-        f"<i class=\"fa-solid fa-bolt\"></i> Status: {info.get('order_status')}\n"
-        f"<i class=\"fa-solid fa-credit-card\"></i> Payment: {info.get('payment_status')} ({info.get('payment_method')})\n"
-        f"<i class=\"fa-solid fa-truck\"></i> Courier: {info.get('courier_name', 'BlueDart Express')} (AWB #{info.get('tracking_number', 'ASSIGNED')})\n"
-        f"<i class=\"fa-solid fa-calendar-days\"></i> Est. Delivery: {info.get('delivery_eta')}"
+        f"📦 Order Reference: #{order_id}\n"
+        f"⚡ Status: {order_status}\n"
+        f"💳 Payment: {payment_status} ({payment_method})\n"
+        f"🚚 Courier: {courier_name}{tracking_str}\n"
+        f"📅 Est. Delivery: {delivery_eta}"
     )
 
 

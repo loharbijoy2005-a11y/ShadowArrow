@@ -156,7 +156,7 @@ export default function Footer() {
               <li><Link href="/policies/terms" className="hover:text-white transition">Terms of Service</Link></li>
               <li><Link href="/policies/shipping" className="hover:text-white transition">Shipping & Delivery</Link></li>
               <li><Link href="/policies/returns" className="hover:text-white transition">Return & Refund Policy</Link></li>
-              <li><Link href="/account" className="hover:text-white text-amber-400 font-bold transition">ArrowCoins Rewards</Link></li>
+              <li><Link href="/policies/rewards" className="hover:text-white text-amber-400 font-bold transition">ArrowCoins Rewards</Link></li>
             </ul>
           </div>
         </div>

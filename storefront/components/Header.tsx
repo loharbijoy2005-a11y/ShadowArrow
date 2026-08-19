@@ -216,7 +216,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
                       </div>
                     </div>
                     <div className="pt-1.5 border-t border-slate-800 flex justify-between text-[10px] font-mono text-slate-500">
-                      <span>Max redeem: <strong className="text-white">20% of cart</strong></span>
+                      <span>Max redeem: <strong className="text-white">5% of cart</strong></span>
                       <span>Coins expire: <strong className="text-white">after 365 days</strong></span>
                     </div>
 

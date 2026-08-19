@@ -42,6 +42,12 @@ func CreateTicket(c *gin.Context) {
 		return
 	}
 
+	// Enforce strict size limit on base64 image attachments (Max 3MB binary, approx 4MB base64)
+	if len(ticket.ImageURL) > 4*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Attached image size must be under 3MB"})
+		return
+	}
+
 	now := time.Now()
 	ticket.TicketID = generateTicketID()
 	ticket.CreatedAt = now
@@ -213,6 +219,12 @@ func ReplyToTicket(c *gin.Context) {
 	var payload ReplyTicketPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Enforce strict size limit on base64 media attachment (Max 3MB binary, approx 4MB base64)
+	if len(payload.MediaURL) > 4*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Attached media size must be under 3MB"})
 		return
 	}
 

@@ -18,7 +18,7 @@ import (
 // Default config values if DB config is missing
 const (
 	DefaultConversionRate     = 1.0
-	DefaultMaxRedemptionPct   = 20.0
+	DefaultMaxRedemptionPct    = 5.0
 	DefaultReturnHoldDelayDays = 7
 )
 
@@ -251,7 +251,7 @@ func AdminUpdateLoyaltyConfigHandler(c *gin.Context) {
 		payload.ConversionRate = 1.0
 	}
 	if payload.MaxRedemptionPct <= 0 || payload.MaxRedemptionPct > 100 {
-		payload.MaxRedemptionPct = 20.0
+		payload.MaxRedemptionPct = 5.0
 	}
 	if payload.ReturnHoldDelayDays < 0 {
 		payload.ReturnHoldDelayDays = 7

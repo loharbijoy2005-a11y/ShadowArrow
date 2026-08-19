@@ -58,7 +58,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     {
       id: '1',
       sender: 'ai',
-      text: "Hey! I'm Shadow AI \u2014 your personal stylist and support assistant \uD83D\uDE0A\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns \u2014 I got you!",
+      text: "Hey! I'm Shadow Arrow AI \u2014 your personal stylist and support assistant \uD83D\uDE0A\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns \u2014 I got you!",
     },
   ]);
   const [input, setInput]     = useState<string>('');
@@ -113,7 +113,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
-      console.error('[Shadow AI] Request failed:', err?.response?.status, err?.response?.data || err?.message);
+      console.error('[Shadow Arrow AI] Request failed:', err?.response?.status, err?.response?.data || err?.message);
       const fallbackMsg: Message = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
@@ -146,7 +146,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         customer_phone: isEmail ? '' : ticketContact.trim(),
         customer_email: isEmail ? ticketContact.trim() : '',
         category:       'Customer Support Inquiry',
-        issue_text:     issueText || 'Support request via Shadow AI chat',
+        issue_text:     issueText || 'Support request via Shadow Arrow AI chat',
         image_url:      ticketImg,
         status:         'OPEN',
         priority:       'HIGH',
@@ -182,7 +182,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
             <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-sm leading-none text-white tracking-wide">Shadow AI</h3>
+            <h3 className="font-bold text-sm leading-none text-white tracking-wide">Shadow Arrow AI</h3>
             <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
               <span>Online &middot; Fashion &amp; Support</span>
@@ -280,7 +280,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         {loading && (
           <div className="flex items-center space-x-2 ml-8 text-slate-400 italic">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            <span>Shadow AI is typing...</span>
+            <span>Shadow Arrow AI is typing...</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -312,7 +312,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Shadow AI anything..."
+          placeholder="Ask Shadow Arrow AI anything..."
           className="flex-1 px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <button

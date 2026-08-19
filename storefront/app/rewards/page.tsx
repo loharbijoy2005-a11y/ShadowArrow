@@ -139,7 +139,7 @@ export default function RewardsPassbookPage() {
 
                 <div className="pt-4 border-t border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400">
                   <span>Redemption Rate: <strong>1 Coin = ₹1 INR</strong></span>
-                  <span>Max Cart Cap: <strong>20% Total Cart</strong></span>
+                  <span>Max Cart Cap: <strong>5% Total Cart</strong></span>
                 </div>
               </div>
 

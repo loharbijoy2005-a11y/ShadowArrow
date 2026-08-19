@@ -266,7 +266,7 @@ export default function CheckoutPage() {
   };
 
   const subtotalAfterCoupon = Math.max(0, subtotal - (appliedCoupon ? appliedCoupon.discountAmount : 0));
-  const maxCoinsUsableCap = Math.floor(subtotalAfterCoupon * 0.20);
+  const maxCoinsUsableCap = Math.floor(subtotalAfterCoupon * 0.05);
   const actualCoinsRedeemed = redeemArrowCoins ? Math.min(userCoinsBalance, maxCoinsUsableCap) : 0;
   const finalPayable = Math.max(0, subtotalAfterCoupon - actualCoinsRedeemed);
 
@@ -713,7 +713,7 @@ export default function CheckoutPage() {
                       <span>Redeem ArrowCoins</span>
                     </span>
                     <p className="text-[10px] text-slate-600 font-mono">
-                      Available: <strong className="text-slate-900">{userCoinsBalance}</strong> | Max Usable (20% cap): <strong className="text-amber-700">{maxCoinsUsableCap}</strong>
+                      Available: <strong className="text-slate-900">{userCoinsBalance}</strong> | Max Usable (5% cap): <strong className="text-amber-700">{maxCoinsUsableCap}</strong>
                     </p>
                   </div>
                 </div>

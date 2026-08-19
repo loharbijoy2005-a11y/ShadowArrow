@@ -663,7 +663,7 @@ export default function AccountPage() {
                     </div>
                     <div className="pt-3 border-t border-slate-800 flex justify-between text-xs font-mono text-slate-400">
                       <span>Rate: <strong>1 Coin = ₹1 INR</strong></span>
-                      <span>Max Cap: <strong>20% of Cart</strong></span>
+                      <span>Max Cap: <strong>5% of Cart</strong></span>
                     </div>
                   </div>
 

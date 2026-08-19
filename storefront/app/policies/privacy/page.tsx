@@ -42,11 +42,19 @@ export default function PrivacyPolicyPage() {
                 <span>1. Information Collection & Scope</span>
               </h2>
               <p>
-                SHADOW ARROW Prime Marketplace ("we", "us", or "our") respects the privacy rights of all users and online visitors. This Privacy Policy details how we collect, store, process, transfer, and protect your personal identification information when you browse our website, interact with Shadow AI Stylist, or place an order for streetwear apparel, footwear, and accessories.
+                SHADOW ARROW Prime Marketplace ("we", "us", or "our") respects the privacy rights of all users and online visitors. This Privacy Policy details how we collect, store, process, transfer, and protect your personal identification information when you browse our website, interact with Shadow Arrow AI Stylist, or place an order for streetwear apparel, footwear, and accessories.
               </p>
               <p>
                 We collect information directly provided by you during account registration, checkout, or customer service communications. This includes your full legal name, shipping and billing addresses, primary telephone number, email address, pincode, size preferences, and specific delivery instructions.
               </p>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-mono space-y-2">
+                <p className="font-bold text-slate-950 uppercase">Disclosures on Why We Collect Personal Data:</p>
+                <ul className="list-disc list-inside space-y-1 text-slate-600 pl-1">
+                  <li><strong>Mobile Phone Number</strong>: Collected to send secure account OTP login codes, SMS order confirmations, real-time logistics tracking updates, and for delivery couriers to contact you upon arrival.</li>
+                  <li><strong>Email Address</strong>: Collected to dispatch your digital GST Tax Invoice, order confirmation summaries, support ticket replies, and account settings update alerts.</li>
+                  <li><strong>Delivery Address & Pincode</strong>: Collected exclusively for validating serviceability, calculating shipping timelines, routing parcels, and printing shipping labels via logistics partners.</li>
+                </ul>
+              </div>
             </section>
 
             {/* Section 2 */}
@@ -61,7 +69,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc list-inside space-y-1.5 text-slate-600 pl-2">
                 <li>Process customer orders, verify transaction authenticity, and issue official GST Tax Invoices.</li>
                 <li>Dispatch packages via authorized Pan-India logistics partners (BlueDart Express, Delhivery, Expressbees).</li>
-                <li>Provide personalized fashion stylist recommendations via Shadow AI Stylist.</li>
+                <li>Provide personalized fashion stylist recommendations via Shadow Arrow AI Stylist.</li>
                 <li>Maintain financial auditing records in compliance with Indian GST taxation laws.</li>
               </ul>
             </section>

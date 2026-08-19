@@ -39,3 +39,4 @@ Thumbs.db
 
 # Project brain & architecture (sensitive — do not push to GitHub)
 brain.md
+SECURITY_REMEDIATION.md

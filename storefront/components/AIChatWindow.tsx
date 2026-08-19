@@ -40,6 +40,10 @@ const SUPPORT_KEYWORDS: string[] = [
   'missing', 'complaint', 'exchange', 'lost', 'torn', 'defective',
 ];
 
+const CHAT_STORAGE_KEY   = 'sa_chat_history_v2';
+const CHAT_TIME_KEY      = 'sa_chat_timestamp_v2';
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+
 interface AIChatWindowProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,21 +53,43 @@ interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
+  image?: string;
   showTicketCTA?: boolean;
   relatedIssue?: string;
 }
 
+const DEFAULT_GREETING: Message = {
+  id: '1',
+  sender: 'ai',
+  text: "Hey! I'm Shadow Arrow AI — your personal stylist and support assistant 😊\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns — I got you!",
+};
+
+function loadStoredMessages(): Message[] {
+  if (typeof window === 'undefined') return [DEFAULT_GREETING];
+  try {
+    const savedTime = sessionStorage.getItem(CHAT_TIME_KEY);
+    if (savedTime && Date.now() - parseInt(savedTime, 10) > FIFTEEN_MINUTES_MS) {
+      sessionStorage.removeItem(CHAT_STORAGE_KEY);
+      sessionStorage.removeItem(CHAT_TIME_KEY);
+      return [DEFAULT_GREETING];
+    }
+    const saved = sessionStorage.getItem(CHAT_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.warn('[AIChatWindow] Failed to restore chat history', err);
+  }
+  return [DEFAULT_GREETING];
+}
+
 export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'ai',
-      text: "Hey! I'm Shadow Arrow AI \u2014 your personal stylist and support assistant \uD83D\uDE0A\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns \u2014 I got you!",
-    },
-  ]);
-  const [input, setInput]     = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const messagesEndRef         = useRef<HTMLDivElement>(null);
+  const [messages, setMessages]           = useState<Message[]>(loadStoredMessages);
+  const [input, setInput]                 = useState<string>('');
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [loading, setLoading]             = useState<boolean>(false);
+  const messagesEndRef                     = useRef<HTMLDivElement>(null);
 
   const [activeTicketMsgId, setActiveTicketMsgId] = useState<string | null>(null);
   const [ticketContact, setTicketContact]           = useState<string>('');
@@ -74,19 +100,65 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && messages.length > 0) {
+      sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+      sessionStorage.setItem(CHAT_TIME_KEY, Date.now().toString());
+    }
+  }, [messages]);
+
+  useEffect(() => {
     if (isOpen) scrollToBottom();
   }, [messages, isOpen]);
 
   if (!isOpen) return null;
 
+  const handleClearChat = (): void => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(CHAT_STORAGE_KEY);
+      sessionStorage.removeItem(CHAT_TIME_KEY);
+    }
+    setMessages([DEFAULT_GREETING]);
+  };
+
+  const handleChatImageSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      alert('Image size must be under 4MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAttachedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   const handleSend = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && !attachedImage) || loading) return;
 
     const userText = input.trim();
-    const userMsg: Message = { id: Date.now().toString(), sender: 'user', text: userText };
+    const imageToSend = attachedImage;
+
+    let fullMessage = userText;
+    if (imageToSend) {
+      fullMessage = userText
+        ? `${userText}\n[Image Attached: ${imageToSend}]`
+        : `Attached photo for verification: ${imageToSend}`;
+    }
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: userText || 'Photo attached for verification',
+      image: imageToSend || undefined,
+    };
+
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
+    setAttachedImage(null);
     setLoading(true);
 
     const lang: string      = detectLanguage(userText);
@@ -94,7 +166,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
 
     try {
       const res = await axios.post(`${API_URL}/api/v1/ai/chat`, {
-        message:    userText,
+        message:    fullMessage,
         session_id: SESSION_ID,
         language:   lang,
       });
@@ -104,11 +176,19 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         res.data?.reply ||
         "I'm here to help! Could you tell me a bit more so I can sort this out for you?";
 
+      // Do not prematurely trigger Ticket CTA if AI is asking intermediate intake questions
+      const isAskingForInfo =
+        reply.includes('Which product') ||
+        reply.includes('Please upload') ||
+        reply.includes('Please share') ||
+        reply.includes('Please tell me') ||
+        reply.includes('cancel');
+
       const aiMsg: Message = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
         text:          cleanText(reply),
-        showTicketCTA: isSupport,
+        showTicketCTA: isSupport && !isAskingForInfo,
         relatedIssue:  isSupport ? userText : undefined,
       };
       setMessages((prev) => [...prev, aiMsg]);
@@ -117,7 +197,7 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
       const fallbackMsg: Message = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
-        text:          "Hmm, having a bit of trouble connecting right now. Hang on and try again \u2014 or let me know what you need and I'll do my best!",
+        text:          "Hmm, having a bit of trouble connecting right now. Hang on and try again — or let me know what you need and I'll do my best!",
         showTicketCTA: isSupport,
         relatedIssue:  isSupport ? userText : undefined,
       };
@@ -189,9 +269,18 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
             </span>
           </div>
         </div>
-        <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={handleClearChat}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+            title="Clear chat history"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -211,6 +300,13 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
                   ? 'bg-blue-600 text-white rounded-tr-none shadow'
                   : 'bg-slate-800 text-slate-100 border border-slate-700/60 rounded-tl-none whitespace-pre-line shadow'
               }`}>
+                {m.image && (
+                  <img
+                    src={m.image}
+                    alt="User upload"
+                    className="w-full max-h-48 object-cover rounded-lg mb-2 border border-blue-400/40"
+                  />
+                )}
                 {m.text}
               </div>
 
@@ -306,18 +402,42 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
         </button>
       </div>
 
-      {/* Input */}
+      {/* Attached Image Preview Bar */}
+      {attachedImage && (
+        <div className="px-3 py-1.5 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-[11px] text-blue-400 font-medium">
+            <img src={attachedImage} alt="Preview" className="w-7 h-7 object-cover rounded border border-blue-500" />
+            <span>Photo ready to send</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAttachedImage(null)}
+            className="p-1 text-slate-400 hover:text-white rounded-full bg-slate-800"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Input Form */}
       <form onSubmit={handleSend} className="p-3 bg-slate-950 border-t border-slate-800 flex items-center space-x-2">
+        <label
+          className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 cursor-pointer transition shrink-0"
+          title="Upload photo of damage or product"
+        >
+          <Upload className="w-4 h-4 text-blue-400" />
+          <input type="file" accept="image/*" onChange={handleChatImageSelect} className="hidden" />
+        </label>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Shadow Arrow AI anything..."
+          placeholder="Ask Shadow Arrow AI or attach a photo..."
           className="flex-1 px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <button
           type="submit"
-          disabled={loading || !input.trim()}
+          disabled={loading || (!input.trim() && !attachedImage)}
           className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-40 transition active:scale-95 shadow"
         >
           <Send className="w-4 h-4" />

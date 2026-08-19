@@ -408,6 +408,10 @@ def _find_product_in_text(text: str) -> dict | None:
 
 
 def _extract_image_url(text: str) -> str | None:
+    if "data:image/" in text:
+        match = re.search(r'(data:image/[^;\s]+;base64,[^\s\]\)\>]+)', text)
+        if match:
+            return match.group(1)
     urls = re.findall(r'(https?://[^\s<>"]+)', text)
     for url in urls:
         clean_url = url.split("?")[0].lower()
@@ -421,20 +425,31 @@ def _verify_damage_with_gemini(img_url: str) -> tuple[bool, str]:
         return False, "Gemini API key is missing or invalid."
 
     try:
-        import httpx
         from google import genai
         from google.genai import types
 
-        logger.info("[GEMINI MULTIMODAL] Fetching image from %s", img_url)
-        resp = httpx.get(img_url, timeout=10.0)
-        if resp.status_code != 200:
-            return False, f"Failed to download image (status code {resp.status_code})."
+        if img_url.startswith("data:image/"):
+            import base64
+            logger.info("[GEMINI MULTIMODAL] Decoding base64 image data")
+            header, base64_data = img_url.split(",", 1)
+            mime_type = header.split(";")[0].replace("data:", "")
+            image_bytes = base64.b64decode(base64_data)
+            image_part = types.Part.from_bytes(
+                data=image_bytes,
+                mime_type=mime_type
+            )
+        else:
+            import httpx
+            logger.info("[GEMINI MULTIMODAL] Fetching image from %s", img_url)
+            resp = httpx.get(img_url, timeout=10.0)
+            if resp.status_code != 200:
+                return False, f"Failed to download image (status code {resp.status_code})."
 
-        content_type = resp.headers.get("content-type", "image/jpeg")
-        image_part = types.Part.from_bytes(
-            data=resp.content,
-            mime_type=content_type
-        )
+            content_type = resp.headers.get("content-type", "image/jpeg")
+            image_part = types.Part.from_bytes(
+                data=resp.content,
+                mime_type=content_type
+            )
 
         client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = (

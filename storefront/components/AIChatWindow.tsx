@@ -1,10 +1,19 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, X, Bot, User, RefreshCw, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, X, Bot, User, RefreshCw, Upload } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+// Generate a unique session ID per browser tab so each user has their own chat context
+const SESSION_ID = typeof window !== 'undefined'
+  ? (sessionStorage.getItem('sa_chat_session') || (() => {
+      const id = `sf_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      sessionStorage.setItem('sa_chat_session', id);
+      return id;
+    })())
+  : 'storefront_user_session';
 
 interface AIChatWindowProps {
   isOpen: boolean;
@@ -78,13 +87,19 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
     try {
       const res = await axios.post(`${API_URL}/api/v1/ai/chat`, {
         message: userText,
-        session_id: 'storefront_user_session',
+        session_id: SESSION_ID,
       });
 
-      const reply = res.data?.response || "SHADOW ARROW oversized fits are designed for ultimate urban comfort! What style can I help you pair?";
+      // Support both `response` and `reply` keys from the AI microservice
+      const reply =
+        res.data?.response ||
+        res.data?.reply ||
+        "SHADOW ARROW oversized fits are designed for ultimate urban comfort! What style can I help you pair?";
       const aiMsg: Message = { id: (Date.now() + 1).toString(), sender: 'ai', text: reply };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
+    } catch (err: any) {
+      // Log the real error so devs can debug — check browser console
+      console.error('[AI Chat] Request failed:', err?.response?.status, err?.response?.data || err?.message);
       const fallbackMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',

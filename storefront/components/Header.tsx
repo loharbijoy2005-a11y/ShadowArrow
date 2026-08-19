@@ -245,7 +245,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
             className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3.5 py-2 rounded-full text-xs font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all active:scale-95"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Stylist Advice</span>
+            <span className="hidden sm:inline">Shadow AI</span>
           </button>
 
           {/* User Account / Profile Button */}

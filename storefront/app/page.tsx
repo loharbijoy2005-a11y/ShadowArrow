@@ -188,7 +188,7 @@ export default function HomePage() {
                 className="flex items-center space-x-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 transition"
               >
                 <Sparkles className="w-4 h-4 text-blue-400" />
-                <span>Fashion Advisor</span>
+                <span>Shadow AI</span>
               </button>
             </div>
           </div>

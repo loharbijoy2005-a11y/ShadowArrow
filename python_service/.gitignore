@@ -1,0 +1,29 @@
+# Python cache & bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment secrets — NEVER commit real .env files
+.env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# Editor & OS clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/

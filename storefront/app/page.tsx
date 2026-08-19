@@ -7,7 +7,7 @@ import AIChatWindow from '@/components/AIChatWindow';
 import GalaxyVFXBackground from '@/components/GalaxyVFXBackground';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import axios from 'axios';
-import { SlidersHorizontal, Loader2, Sparkles, Package, ChevronLeft, ChevronRight, ArrowRight, LayoutGrid, Shirt, Footprints, Watch } from 'lucide-react';
+import { SlidersHorizontal, Loader2, Bot, Package, ChevronLeft, ChevronRight, ArrowRight, LayoutGrid, Shirt, Footprints, Watch } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -187,7 +187,7 @@ export default function HomePage() {
                 onClick={() => setAiOpen(true)}
                 className="flex items-center space-x-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 transition"
               >
-                <Sparkles className="w-4 h-4 text-blue-400" />
+                <Bot className="w-4 h-4 text-blue-400" />
                 <span>Shadow AI</span>
               </button>
             </div>

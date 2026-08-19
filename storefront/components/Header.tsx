@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Search, Sparkles, User, Menu, X, Coins, Shield, Crown, Gem, ChevronDown, Info } from 'lucide-react';
+import { ShoppingBag, Search, Bot, User, Menu, X, Coins, Shield, Crown, Gem, ChevronDown, Info } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import axios from 'axios';
 
@@ -244,7 +244,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
             onClick={onToggleAI}
             className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3.5 py-2 rounded-full text-xs font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all active:scale-95"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Bot className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Shadow AI</span>
           </button>
 

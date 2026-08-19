@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Sparkles, Truck, User, ShoppingBag } from 'lucide-react';
+import { Home, Bot, Truck, User, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 interface MobileBottomNavProps {
@@ -31,12 +31,12 @@ export default function MobileBottomNav({ onToggleAI }: MobileBottomNavProps) {
         {/* AI Stylist Assistant */}
         <button
           onClick={onToggleAI}
-          className="flex flex-col items-center space-y-1 text-purple-400 hover:text-purple-300 transition"
+          className="flex flex-col items-center space-y-1 text-blue-400 hover:text-blue-300 transition"
         >
           <div className="relative">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+            <Bot className="w-5 h-5 animate-pulse" />
           </div>
-          <span>AI Stylist</span>
+          <span>Shadow AI</span>
         </button>
 
         {/* Cart Quick Toggle */}

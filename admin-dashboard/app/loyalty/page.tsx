@@ -5,7 +5,11 @@ import Navigation from '@/components/Navigation';
 import axios from 'axios';
 import { Coins, Shield, Crown, Gem, Settings, Search, PlusCircle, MinusCircle, AlertCircle, RefreshCw, Loader2, DollarSign, Users, Clock, CheckCircle2 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8080'
+    : 'https://shadow-arrow-backend.onrender.com');
 
 export default function AdminLoyaltyPage() {
   const [token, setToken] = useState<string | null>(null);
@@ -36,7 +40,7 @@ export default function AdminLoyaltyPage() {
   const [adjustError, setAdjustError] = useState('');
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('ops_admin_token');
+    const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
     if (savedToken) {
       setToken(savedToken);
       fetchLoyaltyData(savedToken);

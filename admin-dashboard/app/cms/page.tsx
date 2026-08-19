@@ -5,7 +5,11 @@ import Navigation from '@/components/Navigation';
 import axios from 'axios';
 import { Image as ImageIcon, FileText, Plus, Trash2, Save, CheckCircle2, Globe, Sparkles, RefreshCw, ShieldCheck, Scale, Truck, RotateCcw } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8080'
+    : 'https://shadow-arrow-backend.onrender.com');
 
 const DEFAULT_PRIVACY_POLICY = `1. Information Collection & Scope
 SHADOW ARROW Prime Marketplace ("we", "us", or "our") respects the privacy rights of all users and online visitors. This Privacy Policy details how we collect, store, process, transfer, and protect your personal identification information when you browse our website, interact with Shadow AI Stylist, or place an order for streetwear apparel, footwear, and accessories.

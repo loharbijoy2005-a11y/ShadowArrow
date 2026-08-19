@@ -16,8 +16,8 @@ func CORSMiddleware() gin.HandlerFunc {
 		"https://shadowarrow.in":     true,
 		"https://www.shadowarrow.in": true,
 	}
+
 	if configuredOrigins := os.Getenv("ALLOWED_ORIGINS"); configuredOrigins != "" {
-		allowedOrigins = make(map[string]bool)
 		for _, origin := range strings.Split(configuredOrigins, ",") {
 			origin = strings.TrimSpace(origin)
 			if origin != "" {
@@ -28,7 +28,16 @@ func CORSMiddleware() gin.HandlerFunc {
 
 	return cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
-			return allowedOrigins[origin]
+			if origin == "" {
+				return true
+			}
+			if allowedOrigins[origin] {
+				return true
+			}
+			if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") || strings.HasSuffix(origin, ".vercel.app") || strings.HasSuffix(origin, ".shadowarrow.in") {
+				return true
+			}
+			return false
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},

@@ -5,7 +5,11 @@ import Navigation from '@/components/Navigation';
 import axios from 'axios';
 import { HelpCircle, RefreshCw, CheckCircle2, Clock, Image as ImageIcon, ExternalLink, MessageSquare, Send, X, Lock, Upload, Camera, Video, CreditCard, ShieldCheck, ShieldAlert, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8080'
+    : 'https://shadow-arrow-backend.onrender.com');
 
 export default function TicketsAdminPage() {
   const [token, setToken] = useState<string | null>(null);

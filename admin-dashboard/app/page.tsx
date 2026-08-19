@@ -5,7 +5,11 @@ import Navigation from '@/components/Navigation';
 import axios from 'axios';
 import { Lock, ShieldCheck, DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, TrendingUp, XCircle } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8080'
+    : 'https://shadow-arrow-backend.onrender.com');
 
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null);
@@ -15,7 +19,7 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<any>(null);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('ops_admin_token');
+    const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
     if (savedToken) {
       setToken(savedToken);
       fetchAnalytics(savedToken);

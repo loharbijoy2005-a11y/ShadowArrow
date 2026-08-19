@@ -7,7 +7,11 @@ import ThermalLabelModal from '@/components/ThermalLabelModal';
 import axios from 'axios';
 import { ShoppingBag, FileText, Truck, RefreshCw, CheckCircle2, Clock, XCircle, DollarSign, Copy, Check, Calendar, Search, Download, Filter, CalendarDays, X, Printer, Banknote, CreditCard, AlertCircle, Package, Layers } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8080'
+    : 'https://shadow-arrow-backend.onrender.com');
 
 const INDIAN_COURIERS = [
   'Blue Dart Express',
@@ -51,7 +55,7 @@ export default function OrdersAdminPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('ops_admin_token');
+    const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
     if (savedToken) {
       setToken(savedToken);
       fetchOrders(savedToken, statusFilter, startDate, endDate);

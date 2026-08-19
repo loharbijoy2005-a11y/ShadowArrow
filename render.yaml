@@ -1,5 +1,6 @@
 services:
-  # 1. Golang API Backend Service
+  # Golang API Backend Service
+  # AI chat is forwarded via HTTP proxy to the external AI microservice (separate repo/deployment).
   - type: web
     name: shadow-arrow-backend
     env: go
@@ -16,21 +17,15 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
+      - key: ADMIN_MASTER_PASS
+        sync: false
       - key: SHIPROCKET_EMAIL
         sync: false
       - key: SHIPROCKET_PASSWORD
         sync: false
       - key: SHIPROCKET_PICKUP_LOCATION
         value: warehouse
-
-  # 2. Python Gemini AI Stylist Microservice
-  - type: web
-    name: shadow-arrow-ai-service
-    env: python
-    buildCommand: cd ai_service && pip install -r requirements.txt
-    startCommand: cd ai_service && python main.py
-    envVars:
-      - key: GEMINI_API_KEY
+      # Full URL of the standalone Python AI microservice (separate Render deployment)
+      # Live production URL: https://python-ai-nxmn.onrender.com
+      - key: AI_SERVICE_URL
         sync: false
-      - key: GEMINI_MODEL
-        value: gemini-3.7-flash

@@ -7,7 +7,7 @@ import axios from 'axios';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Unique session per browser tab
-const SESSION_ID =
+const SESSION_ID: string =
   typeof window !== 'undefined'
     ? sessionStorage.getItem('sa_chat_session') ||
       (() => {
@@ -18,7 +18,7 @@ const SESSION_ID =
     : 'storefront_user_session';
 
 // Detect language from user input and tell the AI to respond in same language
-function detectLanguage(text) {
+function detectLanguage(text: string): string {
   if (/[\u0980-\u09FF]/.test(text)) return 'bn'; // Bangla
   if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi / Devanagari
   if (/[\u0600-\u06FF]/.test(text)) return 'ur'; // Urdu / Arabic script
@@ -26,38 +26,51 @@ function detectLanguage(text) {
 }
 
 // Strip markdown asterisks from AI responses so raw ** never shows in chat
-function cleanText(text) {
+function cleanText(text: string): string {
   return text
-    .replace(/\*\*\*(.*?)\*\*\*/gs, '$1')
-    .replace(/\*\*(.*?)\*\*/gs, '$1')
-    .replace(/\*(.*?)\*/gs, '$1')
+    .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '$1')
+    .replace(/\*\*([\s\S]*?)\*\*/g, '$1')
+    .replace(/\*([\s\S]*?)\*/g, '$1')
     .replace(/\*+/g, '');
 }
 
-const SUPPORT_KEYWORDS = [
+const SUPPORT_KEYWORDS: string[] = [
   'broken', 'damaged', 'wrong item', 'return', 'refund',
   'delivery issue', 'delay', 'issue', 'problem', 'not received',
   'missing', 'complaint', 'exchange', 'lost', 'torn', 'defective',
 ];
 
-export default function AIChatWindow({ isOpen, onClose }) {
-  const [messages, setMessages] = useState([
+interface AIChatWindowProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface Message {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  showTicketCTA?: boolean;
+  relatedIssue?: string;
+}
+
+export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       sender: 'ai',
       text: "Hey! I'm Shadow AI \u2014 your personal stylist and support assistant \uD83D\uDE0A\n\nAsk me anything: sizing advice, outfit ideas, order tracking, returns \u2014 I got you!",
     },
   ]);
-  const [input, setInput]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef         = useRef(null);
+  const [input, setInput]     = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const messagesEndRef         = useRef<HTMLDivElement>(null);
 
-  const [activeTicketMsgId, setActiveTicketMsgId] = useState(null);
-  const [ticketContact, setTicketContact]           = useState('');
-  const [ticketImg, setTicketImg]                   = useState('');
-  const [submittingTicket, setSubmittingTicket]     = useState(false);
+  const [activeTicketMsgId, setActiveTicketMsgId] = useState<string | null>(null);
+  const [ticketContact, setTicketContact]           = useState<string>('');
+  const [ticketImg, setTicketImg]                   = useState<string>('');
+  const [submittingTicket, setSubmittingTicket]     = useState<boolean>(false);
 
-  const scrollToBottom = () =>
+  const scrollToBottom = (): void =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   useEffect(() => {
@@ -66,18 +79,18 @@ export default function AIChatWindow({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleSend = async (e) => {
+  const handleSend = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
     const userText = input.trim();
-    const userMsg = { id: Date.now().toString(), sender: 'user', text: userText };
+    const userMsg: Message = { id: Date.now().toString(), sender: 'user', text: userText };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
-    const lang      = detectLanguage(userText);
-    const isSupport = SUPPORT_KEYWORDS.some((k) => userText.toLowerCase().includes(k));
+    const lang: string      = detectLanguage(userText);
+    const isSupport: boolean = SUPPORT_KEYWORDS.some((k) => userText.toLowerCase().includes(k));
 
     try {
       const res = await axios.post(`${API_URL}/api/v1/ai/chat`, {
@@ -86,12 +99,12 @@ export default function AIChatWindow({ isOpen, onClose }) {
         language:   lang,
       });
 
-      const reply =
+      const reply: string =
         res.data?.response ||
         res.data?.reply ||
         "I'm here to help! Could you tell me a bit more so I can sort this out for you?";
 
-      const aiMsg = {
+      const aiMsg: Message = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
         text:          cleanText(reply),
@@ -99,12 +112,12 @@ export default function AIChatWindow({ isOpen, onClose }) {
         relatedIssue:  isSupport ? userText : undefined,
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Shadow AI] Request failed:', err?.response?.status, err?.response?.data || err?.message);
-      const fallbackMsg = {
+      const fallbackMsg: Message = {
         id:            (Date.now() + 1).toString(),
         sender:        'ai',
-        text:          "Hmm, having a bit of trouble connecting right now. Hang on and try again \u2014 or let me know what you need and I'll do my best! \uD83D\uDE0A",
+        text:          "Hmm, having a bit of trouble connecting right now. Hang on and try again \u2014 or let me know what you need and I'll do my best!",
         showTicketCTA: isSupport,
         relatedIssue:  isSupport ? userText : undefined,
       };
@@ -114,21 +127,21 @@ export default function AIChatWindow({ isOpen, onClose }) {
     }
   };
 
-  const handleImageFile = (e) => {
+  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { alert('File size must be under 3MB'); return; }
     const reader = new FileReader();
-    reader.onloadend = () => setTicketImg(reader.result);
+    reader.onloadend = () => setTicketImg(reader.result as string);
     reader.readAsDataURL(file);
   };
 
-  const handleAutoTicket = async (e, issueText) => {
+  const handleAutoTicket = async (e: React.FormEvent, issueText: string): Promise<void> => {
     e.preventDefault();
     if (!ticketContact.trim()) return;
     setSubmittingTicket(true);
     try {
-      const isEmail = ticketContact.includes('@');
+      const isEmail: boolean = ticketContact.includes('@');
       const payload = {
         customer_phone: isEmail ? '' : ticketContact.trim(),
         customer_email: isEmail ? ticketContact.trim() : '',

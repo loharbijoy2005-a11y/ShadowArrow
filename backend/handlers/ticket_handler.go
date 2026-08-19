@@ -216,6 +216,12 @@ func ReplyToTicket(c *gin.Context) {
 		return
 	}
 
+	// Only the protected admin route may create admin messages. Public callers
+	// are always treated as customers, even if they forge the request payload.
+	if _, isAdmin := c.Get("role"); !isAdmin {
+		payload.Sender = "customer"
+	}
+
 	collection := db.GetCollection("support_tickets")
 
 	var filter bson.M
@@ -283,10 +289,10 @@ func ReplyToTicket(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Reply sent successfully",
-		"ticket_id": existingTicket.TicketID,
+		"message":     "Reply sent successfully",
+		"ticket_id":   existingTicket.TicketID,
 		"new_message": newMsg,
-		"status": newStatus,
+		"status":      newStatus,
 	})
 }
 

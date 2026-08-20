@@ -26,7 +26,7 @@ services:
       - key: SHIPROCKET_PICKUP_LOCATION
         value: warehouse
       # Full URL of the standalone Python AI microservice (separate Render deployment)
-      # Live production URL: https://python-ai-nxmn.onrender.com
+      # Live production URL: https://your-ai-service-url.onrender.com
       - key: AI_SERVICE_URL
         sync: false
       - key: ALLOWED_ORIGINS

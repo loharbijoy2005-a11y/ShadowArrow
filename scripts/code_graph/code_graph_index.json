@@ -1,0 +1,4081 @@
+{
+  "nodes": [
+    {
+      "id": "admin-dashboard/next-env.d.ts",
+      "label": "next-env.d.ts",
+      "group": "Other"
+    },
+    {
+      "id": "admin-dashboard/next.config.js",
+      "label": "next.config.js",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "admin-dashboard/postcss.config.js",
+      "label": "postcss.config.js",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "admin-dashboard/tailwind.config.js",
+      "label": "tailwind.config.js",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "admin-dashboard/app/layout.tsx",
+      "label": "layout.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/abandoned-carts/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/activity-logs/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/analytics/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/cms/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/code-graph/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/coupons/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/customers/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/device-preview/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/loyalty/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/orders/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/products/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/settings/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/shipping/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/app/tickets/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "admin-dashboard/components/InvoiceModal.tsx",
+      "label": "InvoiceModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/components/Navigation.tsx",
+      "label": "Navigation.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/components/ProductModal.tsx",
+      "label": "ProductModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/components/ThemeCustomizerModal.tsx",
+      "label": "ThemeCustomizerModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/components/ThermalLabelModal.tsx",
+      "label": "ThermalLabelModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/context/ThemeContext.tsx",
+      "label": "ThemeContext.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "admin-dashboard/lib/auditLogger.ts",
+      "label": "auditLogger.ts",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "backend/main.go",
+      "label": "main.go",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "backend/config/config.go",
+      "label": "config.go",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "backend/cron/coin_cron.go",
+      "label": "coin_cron.go",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "backend/db/mongodb.go",
+      "label": "mongodb.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/handlers/admin_handler.go",
+      "label": "admin_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/ai_proxy_handler.go",
+      "label": "ai_proxy_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/cart_handler.go",
+      "label": "cart_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/cms_handler.go",
+      "label": "cms_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/coin_handler.go",
+      "label": "coin_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/coupon_handler.go",
+      "label": "coupon_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/order_handler.go",
+      "label": "order_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/product_handler.go",
+      "label": "product_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/settings_handler.go",
+      "label": "settings_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/ticket_handler.go",
+      "label": "ticket_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/handlers/user_handler.go",
+      "label": "user_handler.go",
+      "group": "Controllers/Handlers"
+    },
+    {
+      "id": "backend/middleware/auth_middleware.go",
+      "label": "auth_middleware.go",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "backend/middleware/cors_middleware.go",
+      "label": "cors_middleware.go",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "backend/middleware/security.go",
+      "label": "security.go",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "backend/models/cart.go",
+      "label": "cart.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/coin_transaction.go",
+      "label": "coin_transaction.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/coupon.go",
+      "label": "coupon.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/order.go",
+      "label": "order.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/product.go",
+      "label": "product.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/site_settings.go",
+      "label": "site_settings.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/ticket.go",
+      "label": "ticket.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/models/user.go",
+      "label": "user.go",
+      "group": "DB Models"
+    },
+    {
+      "id": "backend/seed/seed.go",
+      "label": "seed.go",
+      "group": "Other"
+    },
+    {
+      "id": "backend/utils/jwt.go",
+      "label": "jwt.go",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "backend/utils/razorpay.go",
+      "label": "razorpay.go",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "backend/utils/shiprocket.go",
+      "label": "shiprocket.go",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "python_service/backend_client.py",
+      "label": "backend_client.py",
+      "group": "Other"
+    },
+    {
+      "id": "python_service/config.py",
+      "label": "config.py",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "python_service/gemini_service.py",
+      "label": "gemini_service.py",
+      "group": "Other"
+    },
+    {
+      "id": "python_service/main.py",
+      "label": "main.py",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "python_service/services/backend_client.py",
+      "label": "backend_client.py",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "python_service/services/gemini_service.py",
+      "label": "gemini_service.py",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "python_service/services/__init__.py",
+      "label": "__init__.py",
+      "group": "Services/Middleware"
+    },
+    {
+      "id": "scripts/code_graph/generate_graph.py",
+      "label": "generate_graph.py",
+      "group": "Other"
+    },
+    {
+      "id": "scripts/code_graph/search_context.py",
+      "label": "search_context.py",
+      "group": "Other"
+    },
+    {
+      "id": "scripts/code_graph/visualizer_template.py",
+      "label": "visualizer_template.py",
+      "group": "Other"
+    },
+    {
+      "id": "storefront/next-env.d.ts",
+      "label": "next-env.d.ts",
+      "group": "Other"
+    },
+    {
+      "id": "storefront/next.config.js",
+      "label": "next.config.js",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "storefront/postcss.config.js",
+      "label": "postcss.config.js",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "storefront/tailwind.config.js",
+      "label": "tailwind.config.js",
+      "group": "Main/Entry"
+    },
+    {
+      "id": "storefront/app/layout.tsx",
+      "label": "layout.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/account/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/account/login/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/account/register/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/checkout/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/order-confirmation/[id]/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/faq/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/privacy/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/returns/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/rewards/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/shipping/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/policies/terms/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/product/[id]/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/rewards/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/app/track-order/page.tsx",
+      "label": "page.tsx",
+      "group": "Routes/Endpoints"
+    },
+    {
+      "id": "storefront/components/AIChatWindow.tsx",
+      "label": "AIChatWindow.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/CartDrawer.tsx",
+      "label": "CartDrawer.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/CartToast.tsx",
+      "label": "CartToast.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/FAQSection.tsx",
+      "label": "FAQSection.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/FloatingCartBar.tsx",
+      "label": "FloatingCartBar.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/Footer.tsx",
+      "label": "Footer.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/GalaxyVFXBackground.tsx",
+      "label": "GalaxyVFXBackground.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/GSTBadgeTooltip.tsx",
+      "label": "GSTBadgeTooltip.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/Header.tsx",
+      "label": "Header.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/MobileBottomNav.tsx",
+      "label": "MobileBottomNav.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/ProductCard.tsx",
+      "label": "ProductCard.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/SizeGuideModal.tsx",
+      "label": "SizeGuideModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/SupportWidgetModal.tsx",
+      "label": "SupportWidgetModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/TaxInvoiceModal.tsx",
+      "label": "TaxInvoiceModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/ThemeProvider.tsx",
+      "label": "ThemeProvider.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/ThermalInvoiceModal.tsx",
+      "label": "ThermalInvoiceModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/TrackOrderBubbleModal.tsx",
+      "label": "TrackOrderBubbleModal.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/components/TruckOrderButton.tsx",
+      "label": "TruckOrderButton.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/context/CartContext.tsx",
+      "label": "CartContext.tsx",
+      "group": "Components/Context"
+    },
+    {
+      "id": "storefront/lib/firebase.ts",
+      "label": "firebase.ts",
+      "group": "Utilities/Config"
+    },
+    {
+      "id": "storefront/public/theme-loader.js",
+      "label": "theme-loader.js",
+      "group": "Other"
+    },
+    {
+      "id": "storefront/utils/downloadInvoicePDF.ts",
+      "label": "downloadInvoicePDF.ts",
+      "group": "Utilities/Config"
+    }
+  ],
+  "edges": [
+    {
+      "from": "admin-dashboard/app/layout.tsx",
+      "to": "admin-dashboard/context/ThemeContext.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/layout.tsx",
+      "to": "admin-dashboard/components/ThemeCustomizerModal.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/abandoned-carts/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/activity-logs/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/analytics/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/cms/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/code-graph/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/coupons/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/customers/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/loyalty/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/orders/page.tsx",
+      "to": "admin-dashboard/components/InvoiceModal.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/orders/page.tsx",
+      "to": "admin-dashboard/components/ThermalLabelModal.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/orders/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/products/page.tsx",
+      "to": "admin-dashboard/components/ProductModal.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/products/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/settings/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/shipping/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/app/tickets/page.tsx",
+      "to": "admin-dashboard/components/Navigation.tsx"
+    },
+    {
+      "from": "admin-dashboard/components/Navigation.tsx",
+      "to": "admin-dashboard/lib/auditLogger.ts"
+    },
+    {
+      "from": "admin-dashboard/components/Navigation.tsx",
+      "to": "admin-dashboard/context/ThemeContext.tsx"
+    },
+    {
+      "from": "admin-dashboard/components/ThemeCustomizerModal.tsx",
+      "to": "admin-dashboard/context/ThemeContext.tsx"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/product_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/coin_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/middleware/cors_middleware.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/settings_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/cron/coin_cron.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/cms_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/ai_proxy_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/user_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/cart_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/middleware/security.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/admin_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/seed/seed.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/order_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/coupon_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/middleware/auth_middleware.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/handlers/ticket_handler.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/main.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/cron/coin_cron.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/db/mongodb.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/utils/razorpay.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/utils/shiprocket.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/utils/jwt.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/admin_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/ai_proxy_handler.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/cart_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/cms_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/coin_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/coupon_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/utils/razorpay.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/utils/shiprocket.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/utils/jwt.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/order_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/product_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/settings_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/ticket_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/handlers/user_handler.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/middleware/auth_middleware.go",
+      "to": "backend/config/config.go"
+    },
+    {
+      "from": "backend/middleware/auth_middleware.go",
+      "to": "backend/utils/razorpay.go"
+    },
+    {
+      "from": "backend/middleware/auth_middleware.go",
+      "to": "backend/utils/shiprocket.go"
+    },
+    {
+      "from": "backend/middleware/auth_middleware.go",
+      "to": "backend/utils/jwt.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/db/mongodb.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/seed/seed.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/user.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/ticket.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/cart.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/coupon.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/site_settings.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/product.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/coin_transaction.go"
+    },
+    {
+      "from": "backend/utils/shiprocket.go",
+      "to": "backend/models/order.go"
+    },
+    {
+      "from": "python_service/backend_client.py",
+      "to": "python_service/config.py"
+    },
+    {
+      "from": "python_service/gemini_service.py",
+      "to": "python_service/backend_client.py"
+    },
+    {
+      "from": "python_service/gemini_service.py",
+      "to": "python_service/config.py"
+    },
+    {
+      "from": "python_service/main.py",
+      "to": "python_service/gemini_service.py"
+    },
+    {
+      "from": "python_service/main.py",
+      "to": "python_service/config.py"
+    },
+    {
+      "from": "python_service/services/backend_client.py",
+      "to": "python_service/config.py"
+    },
+    {
+      "from": "python_service/services/gemini_service.py",
+      "to": "python_service/services/backend_client.py"
+    },
+    {
+      "from": "python_service/services/gemini_service.py",
+      "to": "python_service/config.py"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/components/CartToast.tsx"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/components/CartDrawer.tsx"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/components/ThemeProvider.tsx"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/components/Footer.tsx"
+    },
+    {
+      "from": "storefront/app/layout.tsx",
+      "to": "storefront/components/TrackOrderBubbleModal.tsx"
+    },
+    {
+      "from": "storefront/app/page.tsx",
+      "to": "storefront/components/MobileBottomNav.tsx"
+    },
+    {
+      "from": "storefront/app/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/page.tsx",
+      "to": "storefront/components/GalaxyVFXBackground.tsx"
+    },
+    {
+      "from": "storefront/app/page.tsx",
+      "to": "storefront/components/AIChatWindow.tsx"
+    },
+    {
+      "from": "storefront/app/page.tsx",
+      "to": "storefront/components/ProductCard.tsx"
+    },
+    {
+      "from": "storefront/app/account/page.tsx",
+      "to": "storefront/utils/downloadInvoicePDF.ts"
+    },
+    {
+      "from": "storefront/app/account/page.tsx",
+      "to": "storefront/components/MobileBottomNav.tsx"
+    },
+    {
+      "from": "storefront/app/account/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/account/login/page.tsx",
+      "to": "storefront/lib/firebase.ts"
+    },
+    {
+      "from": "storefront/app/account/login/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/account/register/page.tsx",
+      "to": "storefront/lib/firebase.ts"
+    },
+    {
+      "from": "storefront/app/account/register/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/checkout/page.tsx",
+      "to": "storefront/components/MobileBottomNav.tsx"
+    },
+    {
+      "from": "storefront/app/checkout/page.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/app/checkout/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/checkout/page.tsx",
+      "to": "storefront/components/TruckOrderButton.tsx"
+    },
+    {
+      "from": "storefront/app/checkout/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/order-confirmation/[id]/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/order-confirmation/[id]/page.tsx",
+      "to": "storefront/components/TaxInvoiceModal.tsx"
+    },
+    {
+      "from": "storefront/app/policies/faq/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/faq/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/policies/privacy/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/privacy/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/policies/returns/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/returns/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/policies/rewards/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/rewards/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/policies/shipping/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/shipping/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/policies/terms/page.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/app/policies/terms/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/product/[id]/page.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/app/product/[id]/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/product/[id]/page.tsx",
+      "to": "storefront/components/AIChatWindow.tsx"
+    },
+    {
+      "from": "storefront/app/product/[id]/page.tsx",
+      "to": "storefront/components/SizeGuideModal.tsx"
+    },
+    {
+      "from": "storefront/app/product/[id]/page.tsx",
+      "to": "storefront/components/ProductCard.tsx"
+    },
+    {
+      "from": "storefront/app/rewards/page.tsx",
+      "to": "storefront/components/MobileBottomNav.tsx"
+    },
+    {
+      "from": "storefront/app/rewards/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/track-order/page.tsx",
+      "to": "storefront/components/MobileBottomNav.tsx"
+    },
+    {
+      "from": "storefront/app/track-order/page.tsx",
+      "to": "storefront/components/Header.tsx"
+    },
+    {
+      "from": "storefront/app/track-order/page.tsx",
+      "to": "storefront/components/TaxInvoiceModal.tsx"
+    },
+    {
+      "from": "storefront/components/CartDrawer.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/components/CartToast.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/components/FloatingCartBar.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/components/Footer.tsx",
+      "to": "storefront/components/GSTBadgeTooltip.tsx"
+    },
+    {
+      "from": "storefront/components/Footer.tsx",
+      "to": "storefront/components/SupportWidgetModal.tsx"
+    },
+    {
+      "from": "storefront/components/Header.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/components/MobileBottomNav.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    },
+    {
+      "from": "storefront/components/ProductCard.tsx",
+      "to": "storefront/context/CartContext.tsx"
+    }
+  ],
+  "details": {
+    "admin-dashboard/next-env.d.ts": {
+      "language": "TypeScript",
+      "cluster": "Other",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "admin-dashboard/next.config.js": {
+      "language": "JavaScript",
+      "cluster": "Main/Entry",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "admin-dashboard/postcss.config.js": {
+      "language": "JavaScript",
+      "cluster": "Utilities/Config",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "admin-dashboard/tailwind.config.js": {
+      "language": "JavaScript",
+      "cluster": "Main/Entry",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "admin-dashboard/app/layout.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "RootLayout"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/ThemeCustomizerModal",
+        "next",
+        "@/context/ThemeContext",
+        "./globals.css"
+      ],
+      "dependencies": [
+        "admin-dashboard/context/ThemeContext.tsx",
+        "admin-dashboard/components/ThemeCustomizerModal.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleLogout",
+        "AdminPage",
+        "fetchAnalytics",
+        "handleLogin"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/abandoned-carts/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "getLeadStatusType",
+        "getWhatsAppLink",
+        "handleLogout",
+        "fetchAbandonedCarts",
+        "AbandonedCartsPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/activity-logs/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "saveStateToStorage",
+        "handleAddAdmin",
+        "ActivityLogsAdminPage",
+        "handleRoleChange",
+        "handleToggleStatus"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/analytics/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "AnalyticsAdminPage",
+        "fetchAnalytics"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/cms/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "fetchBanners",
+        "syncBannersWithBackend",
+        "CMSAdminPage",
+        "handleDeleteBanner",
+        "loadSavedPolicies",
+        "handleAddBanner",
+        "handleSavePolicies"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/code-graph/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "CodeGraphAdminPage",
+        "handleLogout"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/coupons/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleCreateCoupon",
+        "toggleCouponStatus",
+        "fetchCoupons",
+        "handleCopyCode",
+        "deleteCoupon",
+        "CouponsAdminPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/customers/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleLogout",
+        "CustomersAdminPage",
+        "fetchCustomers"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/device-preview/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "getDimensions",
+        "handleCompanyChange",
+        "DevicePreviewPage",
+        "reloadIframe"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "next/link",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": []
+    },
+    "admin-dashboard/app/loyalty/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "AdminLoyaltyPage",
+        "handleManualAdjustment",
+        "fetchLoyaltyData",
+        "handleSearchUserLedger",
+        "handleSaveConfig"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/orders/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleSelectAll",
+        "handleDatePreset",
+        "fetchOrders",
+        "handlePrintBatchThermal",
+        "handleExportCSV",
+        "handleToggleSelectOrder",
+        "handleUpdateStatusSubmit",
+        "OrdersAdminPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/InvoiceModal",
+        "lucide-react",
+        "react",
+        "@/components/Navigation",
+        "@/components/ThermalLabelModal"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/InvoiceModal.tsx",
+        "admin-dashboard/components/ThermalLabelModal.tsx",
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/products/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "fetchProducts",
+        "handleToggleStock",
+        "handleSaveProduct",
+        "handleDelete",
+        "ProductsAdminPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/ProductModal",
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/ProductModal.tsx",
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/settings/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "fetchSettings",
+        "handleSave",
+        "SettingsAdminPage",
+        "applyPresetTheme"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/shipping/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleSaveSettings",
+        "ShippingAdminPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/app/tickets/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "fetchTickets",
+        "handleDeletionAction",
+        "handleMediaUpload",
+        "handleOpenChatDrawer",
+        "handleSendAdminReply",
+        "handleUpdateStatus",
+        "applyQuickPreset",
+        "TicketsAdminPage",
+        "handleToggleCustomerMediaPermission"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/components/Navigation"
+      ],
+      "dependencies": [
+        "admin-dashboard/components/Navigation.tsx"
+      ],
+      "dependents": []
+    },
+    "admin-dashboard/components/InvoiceModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "numberToWordsINR",
+        "handlePrint",
+        "InvoiceModal",
+        "handleDownloadPDF",
+        "convert"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "admin-dashboard/app/orders/page.tsx"
+      ]
+    },
+    "admin-dashboard/components/Navigation.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "Navigation",
+        "toggleQuickMode"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "next/link",
+        "@/lib/auditLogger",
+        "@/context/ThemeContext"
+      ],
+      "dependencies": [
+        "admin-dashboard/lib/auditLogger.ts",
+        "admin-dashboard/context/ThemeContext.tsx"
+      ],
+      "dependents": [
+        "admin-dashboard/app/analytics/page.tsx",
+        "admin-dashboard/app/activity-logs/page.tsx",
+        "admin-dashboard/app/abandoned-carts/page.tsx",
+        "admin-dashboard/app/coupons/page.tsx",
+        "admin-dashboard/app/customers/page.tsx",
+        "admin-dashboard/app/settings/page.tsx",
+        "admin-dashboard/app/shipping/page.tsx",
+        "admin-dashboard/app/code-graph/page.tsx",
+        "admin-dashboard/app/products/page.tsx",
+        "admin-dashboard/app/cms/page.tsx",
+        "admin-dashboard/app/orders/page.tsx",
+        "admin-dashboard/app/page.tsx",
+        "admin-dashboard/app/tickets/page.tsx",
+        "admin-dashboard/app/loyalty/page.tsx"
+      ]
+    },
+    "admin-dashboard/components/ProductModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleSubmit",
+        "handleRemoveImage",
+        "handleImageChange",
+        "handlePriceChange",
+        "ProductModal",
+        "handleComparePriceChange",
+        "handleAddImageField",
+        "handleOfferDiscountChange"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "admin-dashboard/app/products/page.tsx"
+      ]
+    },
+    "admin-dashboard/components/ThemeCustomizerModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "ThemeCustomizerModal"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/context/ThemeContext",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [
+        "admin-dashboard/context/ThemeContext.tsx"
+      ],
+      "dependents": [
+        "admin-dashboard/app/layout.tsx"
+      ]
+    },
+    "admin-dashboard/components/ThermalLabelModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "numberToWordsINR",
+        "handlePrint",
+        "ThermalLabelModal",
+        "renderQRCodeSVG",
+        "convert"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "admin-dashboard/app/orders/page.tsx"
+      ]
+    },
+    "admin-dashboard/context/ThemeContext.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "setDarkness",
+        "setMode",
+        "applyThemeToDOM",
+        "handleGlobalClick",
+        "ThemeProvider",
+        "useAdminTheme",
+        "resetDefaults",
+        "setHue",
+        "applyPreset",
+        "setGlowIntensity",
+        "setAccentHex"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "admin-dashboard/app/layout.tsx",
+        "admin-dashboard/components/ThemeCustomizerModal.tsx",
+        "admin-dashboard/components/Navigation.tsx"
+      ]
+    },
+    "admin-dashboard/lib/auditLogger.ts": {
+      "language": "TypeScript",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "logAdminAction"
+      ],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": [
+        "admin-dashboard/components/Navigation.tsx"
+      ]
+    },
+    "backend/main.go": {
+      "language": "Go",
+      "cluster": "Main/Entry",
+      "functions": [
+        "main"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "log",
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "shadow-arrow-backend/config",
+        "shadow-arrow-backend/cron",
+        "shadow-arrow-backend/handlers",
+        "shadow-arrow-backend/middleware",
+        "shadow-arrow-backend/seed",
+        "time"
+      ],
+      "dependencies": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/middleware/cors_middleware.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/handlers/cms_handler.go",
+        "backend/handlers/ai_proxy_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/cart_handler.go",
+        "backend/middleware/security.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/order_handler.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/middleware/auth_middleware.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/db/mongodb.go",
+        "backend/config/config.go"
+      ],
+      "dependents": []
+    },
+    "backend/config/config.go": {
+      "language": "Go",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "getEnv",
+        "LoadConfig"
+      ],
+      "classes_structs": [
+        "Config"
+      ],
+      "imports": [
+        "log",
+        "os",
+        "github.com/joho/godotenv"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/main.go",
+        "backend/handlers/ai_proxy_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/middleware/auth_middleware.go",
+        "backend/db/mongodb.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/cron/coin_cron.go": {
+      "language": "Go",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "StartCronScheduler",
+        "ProcessCoinLifecycles"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "log",
+        "shadow-arrow-backend/db",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/db/mongodb.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [
+        "ConnectDB",
+        "GetCollection"
+      ],
+      "classes_structs": [
+        "Database"
+      ],
+      "imports": [
+        "log",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "shadow-arrow-backend/config",
+        "context",
+        "go.mongodb.org/mongo-driver/mongo",
+        "time"
+      ],
+      "dependencies": [
+        "backend/config/config.go"
+      ],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/main.go",
+        "backend/handlers/settings_handler.go",
+        "backend/handlers/cms_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/handlers/admin_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "GetAdminCustomers",
+        "AdminLogin",
+        "GetAnalytics"
+      ],
+      "classes_structs": [
+        "AdminLoginPayload",
+        "AdminCustomerItem"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "shadow-arrow-backend/utils",
+        "github.com/gin-gonic/gin",
+        "sort",
+        "shadow-arrow-backend/config",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/utils/razorpay.go",
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/utils/shiprocket.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/utils/jwt.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/config/config.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/ai_proxy_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "AIChatProxy"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "log",
+        "net/http",
+        "io",
+        "github.com/gin-gonic/gin",
+        "bytes",
+        "shadow-arrow-backend/config",
+        "context",
+        "time"
+      ],
+      "dependencies": [
+        "backend/config/config.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/cart_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "SyncCart",
+        "GetAbandonedCarts"
+      ],
+      "classes_structs": [
+        "CartSyncRequest"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/cms_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "SaveBanners",
+        "GetBanners"
+      ],
+      "classes_structs": [
+        "BannerItem",
+        "SaveBannersRequest"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "context",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/db/mongodb.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/coin_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "AdminUpdateLoyaltyConfigHandler",
+        "AdminManualAdjustCoins",
+        "AdminGetCoinAnalytics",
+        "CalculateCashbackForOrder",
+        "EvaluateUserTier",
+        "AdminGetLoyaltyConfigHandler",
+        "CleanPhoneDigits",
+        "AdminGetTopCoinHolders",
+        "GetLoyaltyConfig",
+        "GetUserRewards"
+      ],
+      "classes_structs": [
+        "AdminManualAdjustPayload"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "regexp",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/coupon_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "GetCoupons",
+        "CreateCoupon",
+        "ToggleCouponStatus",
+        "DeleteCoupon",
+        "ValidateCoupon"
+      ],
+      "classes_structs": [
+        "ValidateCouponRequest"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "regexp",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "fmt",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/order_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "GetAdminOrders",
+        "TrackOrder",
+        "UpdateOrderStatus",
+        "CreateOrder",
+        "GetUserOrders",
+        "generateReadableOrderID",
+        "VerifyPayment"
+      ],
+      "classes_structs": [
+        "VerifyPaymentPayload",
+        "UpdateStatusPayload",
+        "CompactOrder"
+      ],
+      "imports": [
+        "math/rand",
+        "net/http",
+        "shadow-arrow-backend/db",
+        "regexp",
+        "shadow-arrow-backend/utils",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "shadow-arrow-backend/config",
+        "fmt",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/utils/razorpay.go",
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/utils/shiprocket.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/utils/jwt.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/config/config.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/product_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "GetProducts",
+        "DeleteProduct",
+        "GetProductByID",
+        "CreateProduct",
+        "UpdateProduct"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "strconv",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/settings_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "GetDefaultThemeSettings",
+        "GetThemeSettings",
+        "UpdateThemeSettings"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/ticket_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "UpdateTicketStatus",
+        "CreateTicket",
+        "GetCustomerTickets",
+        "GetTickets",
+        "ToggleMediaPermission",
+        "GetTicketByID",
+        "generateTicketID",
+        "ReplyToTicket"
+      ],
+      "classes_structs": [
+        "UpdateTicketStatusPayload",
+        "ReplyTicketPayload",
+        "ToggleMediaPermissionPayload"
+      ],
+      "imports": [
+        "math/rand",
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "go.mongodb.org/mongo-driver/mongo/options",
+        "fmt",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/handlers/user_handler.go": {
+      "language": "Go",
+      "cluster": "Controllers/Handlers",
+      "functions": [
+        "PhoneLogin",
+        "RequestAccountDeletion",
+        "GetUserProfile",
+        "GoogleSync",
+        "UpdateUserProfile"
+      ],
+      "classes_structs": [
+        "PhoneLoginPayload",
+        "RequestDeletionPayload"
+      ],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/db",
+        "github.com/gin-gonic/gin",
+        "fmt",
+        "go.mongodb.org/mongo-driver/bson/primitive",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/middleware/auth_middleware.go": {
+      "language": "Go",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "AdminAuthMiddleware"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "net/http",
+        "shadow-arrow-backend/utils",
+        "github.com/gin-gonic/gin",
+        "shadow-arrow-backend/config",
+        "strings"
+      ],
+      "dependencies": [
+        "backend/config/config.go",
+        "backend/utils/razorpay.go",
+        "backend/utils/shiprocket.go",
+        "backend/utils/jwt.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/middleware/cors_middleware.go": {
+      "language": "Go",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "CORSMiddleware"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "os",
+        "github.com/gin-gonic/gin",
+        "github.com/gin-contrib/cors",
+        "strings",
+        "time"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/middleware/security.go": {
+      "language": "Go",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "BlockSensitiveFilesMiddleware",
+        "SecurityHeadersMiddleware",
+        "RateLimiterMiddleware"
+      ],
+      "classes_structs": [
+        "clientRate"
+      ],
+      "imports": [
+        "net/http",
+        "github.com/gin-gonic/gin",
+        "sync",
+        "strings",
+        "time"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/models/cart.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "CartSyncItem",
+        "AbandonedCart"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/coin_transaction.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "CoinTransaction",
+        "LoyaltyConfig"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/coupon.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "Coupon"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/order.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "OrderItem",
+        "Order"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/product.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "ProductSpecs",
+        "Product"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/site_settings.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "SiteThemeSettings"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/ticket.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "TicketMessage",
+        "SupportTicket",
+        "AdminUser"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/models/user.go": {
+      "language": "Go",
+      "cluster": "DB Models",
+      "functions": [],
+      "classes_structs": [
+        "SavedAddress",
+        "UserTier",
+        "UserProfile"
+      ],
+      "imports": [
+        "time",
+        "go.mongodb.org/mongo-driver/bson/primitive"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/product_handler.go",
+        "backend/handlers/coin_handler.go",
+        "backend/handlers/settings_handler.go",
+        "backend/cron/coin_cron.go",
+        "backend/utils/shiprocket.go",
+        "backend/handlers/cart_handler.go",
+        "backend/handlers/admin_handler.go",
+        "backend/seed/seed.go",
+        "backend/handlers/coupon_handler.go",
+        "backend/handlers/ticket_handler.go",
+        "backend/handlers/user_handler.go",
+        "backend/handlers/order_handler.go"
+      ]
+    },
+    "backend/seed/seed.go": {
+      "language": "Go",
+      "cluster": "Other",
+      "functions": [
+        "SeedDatabase"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "log",
+        "shadow-arrow-backend/db",
+        "context",
+        "shadow-arrow-backend/models",
+        "go.mongodb.org/mongo-driver/bson",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/db/mongodb.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/main.go"
+      ]
+    },
+    "backend/utils/jwt.go": {
+      "language": "Go",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "ValidateJWT",
+        "GenerateJWT"
+      ],
+      "classes_structs": [
+        "JWTClaims"
+      ],
+      "imports": [
+        "errors",
+        "github.com/golang-jwt/jwt/v5",
+        "time"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/order_handler.go",
+        "backend/middleware/auth_middleware.go",
+        "backend/handlers/admin_handler.go"
+      ]
+    },
+    "backend/utils/razorpay.go": {
+      "language": "Go",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "CreateRazorpayOrder",
+        "VerifyRazorpaySignature"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "log",
+        "crypto/hmac",
+        "github.com/razorpay/razorpay-go",
+        "encoding/hex",
+        "crypto/sha256",
+        "fmt"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "backend/handlers/order_handler.go",
+        "backend/middleware/auth_middleware.go",
+        "backend/handlers/admin_handler.go"
+      ]
+    },
+    "backend/utils/shiprocket.go": {
+      "language": "Go",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "getShiprocketPassword",
+        "DispatchToShiprocket",
+        "getShiprocketEmail",
+        "getShiprocketPickupLocation",
+        "GetShiprocketToken"
+      ],
+      "classes_structs": [
+        "ShiprocketAuthResponse",
+        "ShiprocketOrderItem",
+        "ShiprocketOrderRequest",
+        "ShiprocketOrderResponse"
+      ],
+      "imports": [
+        "log",
+        "net/http",
+        "shadow-arrow-backend/models",
+        "io",
+        "os",
+        "bytes",
+        "fmt",
+        "encoding/json",
+        "strings",
+        "time"
+      ],
+      "dependencies": [
+        "backend/models/user.go",
+        "backend/models/ticket.go",
+        "backend/models/cart.go",
+        "backend/models/coupon.go",
+        "backend/models/site_settings.go",
+        "backend/models/product.go",
+        "backend/models/coin_transaction.go",
+        "backend/models/order.go"
+      ],
+      "dependents": [
+        "backend/handlers/order_handler.go",
+        "backend/middleware/auth_middleware.go",
+        "backend/handlers/admin_handler.go"
+      ]
+    },
+    "python_service/backend_client.py": {
+      "language": "Python",
+      "cluster": "Other",
+      "functions": [
+        "track_order",
+        "fetch_products",
+        "create_support_ticket"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "httpx",
+        "logging",
+        "config.BACKEND_URL"
+      ],
+      "dependencies": [
+        "python_service/config.py"
+      ],
+      "dependents": [
+        "python_service/gemini_service.py"
+      ]
+    },
+    "python_service/config.py": {
+      "language": "Python",
+      "cluster": "Utilities/Config",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [
+        "os",
+        "dotenv.load_dotenv",
+        "warnings"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "python_service/backend_client.py",
+        "python_service/gemini_service.py",
+        "python_service/main.py",
+        "python_service/services/gemini_service.py",
+        "python_service/services/backend_client.py"
+      ]
+    },
+    "python_service/gemini_service.py": {
+      "language": "Python",
+      "cluster": "Other",
+      "functions": [
+        "generate_chat_response",
+        "_find_product_in_text",
+        "_call_gemini",
+        "_format_order",
+        "_has_any",
+        "_extract_image_url",
+        "_verify_damage_with_gemini",
+        "_append_history",
+        "_extract_phone"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "config.GEMINI_MODEL",
+        "config.GEMINI_API_KEY",
+        "google.genai.types",
+        "backend_client.fetch_products",
+        "httpx",
+        "backend_client.track_order",
+        "re",
+        "backend_client.create_support_ticket",
+        "json",
+        "google.genai",
+        "logging",
+        "base64",
+        "random"
+      ],
+      "dependencies": [
+        "python_service/backend_client.py",
+        "python_service/config.py"
+      ],
+      "dependents": [
+        "python_service/main.py"
+      ]
+    },
+    "python_service/main.py": {
+      "language": "Python",
+      "cluster": "Main/Entry",
+      "functions": [
+        "chat_endpoint",
+        "unhandled_exception_handler",
+        "root",
+        "health_check"
+      ],
+      "classes_structs": [
+        "ChatResponse",
+        "ChatRequest"
+      ],
+      "imports": [
+        "logging",
+        "uvicorn",
+        "config.PORT",
+        "pydantic.Field",
+        "fastapi.Request",
+        "fastapi.responses.JSONResponse",
+        "gemini_service.generate_chat_response",
+        "fastapi.HTTPException",
+        "pydantic.BaseModel",
+        "fastapi.middleware.cors.CORSMiddleware",
+        "fastapi.FastAPI"
+      ],
+      "dependencies": [
+        "python_service/gemini_service.py",
+        "python_service/config.py"
+      ],
+      "dependents": []
+    },
+    "python_service/services/backend_client.py": {
+      "language": "Python",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "track_order",
+        "fetch_products",
+        "create_support_ticket"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "httpx",
+        "logging",
+        "config.BACKEND_URL"
+      ],
+      "dependencies": [
+        "python_service/config.py"
+      ],
+      "dependents": [
+        "python_service/services/gemini_service.py"
+      ]
+    },
+    "python_service/services/gemini_service.py": {
+      "language": "Python",
+      "cluster": "Services/Middleware",
+      "functions": [
+        "generate_chat_response",
+        "_find_product_in_text",
+        "_call_gemini",
+        "_format_order",
+        "_has_any",
+        "_extract_image_url",
+        "_verify_damage_with_gemini",
+        "_append_history",
+        "_extract_phone"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "services.backend_client.create_support_ticket",
+        "config.GEMINI_MODEL",
+        "config.GEMINI_API_KEY",
+        "google.genai.types",
+        "base64",
+        "services.backend_client.track_order",
+        "httpx",
+        "re",
+        "json",
+        "google.genai",
+        "logging",
+        "services.backend_client.fetch_products",
+        "random"
+      ],
+      "dependencies": [
+        "python_service/services/backend_client.py",
+        "python_service/config.py"
+      ],
+      "dependents": []
+    },
+    "python_service/services/__init__.py": {
+      "language": "Python",
+      "cluster": "Services/Middleware",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "scripts/code_graph/generate_graph.py": {
+      "language": "Python",
+      "cluster": "Other",
+      "functions": [
+        "parse_python_file",
+        "resolve_js_ts_import",
+        "parse_go_file",
+        "resolve_go_import",
+        "main",
+        "parse_python_file_regex",
+        "resolve_python_import",
+        "__init__",
+        "load_gitignore",
+        "categorize_cluster",
+        "is_ignored",
+        "get_language",
+        "parse_js_ts_file"
+      ],
+      "classes_structs": [
+        "GitIgnoreMatcher"
+      ],
+      "imports": [
+        "os",
+        "fnmatch",
+        "visualizer_template.HTML_TEMPLATE",
+        "re",
+        "ast",
+        "json"
+      ],
+      "dependencies": [],
+      "dependents": []
+    },
+    "scripts/code_graph/search_context.py": {
+      "language": "Python",
+      "cluster": "Other",
+      "functions": [
+        "search_index",
+        "main",
+        "disable_colors",
+        "load_index"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "os",
+        "sys",
+        "json",
+        "argparse"
+      ],
+      "dependencies": [],
+      "dependents": []
+    },
+    "scripts/code_graph/visualizer_template.py": {
+      "language": "Python",
+      "cluster": "Other",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/next-env.d.ts": {
+      "language": "TypeScript",
+      "cluster": "Other",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/next.config.js": {
+      "language": "JavaScript",
+      "cluster": "Main/Entry",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/postcss.config.js": {
+      "language": "JavaScript",
+      "cluster": "Utilities/Config",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/tailwind.config.js": {
+      "language": "JavaScript",
+      "cluster": "Main/Entry",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/app/layout.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "RootLayout"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/CartToast",
+        "@/components/ThemeProvider",
+        "@/components/TrackOrderBubbleModal",
+        "@/components/CartDrawer",
+        "./globals.css",
+        "@/context/CartContext",
+        "next",
+        "@/components/Footer"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx",
+        "storefront/components/CartToast.tsx",
+        "storefront/components/CartDrawer.tsx",
+        "storefront/components/ThemeProvider.tsx",
+        "storefront/components/Footer.tsx",
+        "storefront/components/TrackOrderBubbleModal.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "fetchProducts",
+        "fetchBanners",
+        "handleLoadMore",
+        "HomePage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "@/components/ProductCard",
+        "@/components/GalaxyVFXBackground",
+        "@/components/AIChatWindow",
+        "react",
+        "lucide-react",
+        "@/components/MobileBottomNav"
+      ],
+      "dependencies": [
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/components/Header.tsx",
+        "storefront/components/GalaxyVFXBackground.tsx",
+        "storefront/components/AIChatWindow.tsx",
+        "storefront/components/ProductCard.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/account/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleSavePhone",
+        "setDefaultAddress",
+        "handleLogout",
+        "fetchRewardsInfo",
+        "openAddAddr",
+        "handleRequestDeletionSubmit",
+        "deleteAddress",
+        "openEditAddr",
+        "AccountPage",
+        "copyToClipboard",
+        "syncLatestProfile",
+        "saveAddress",
+        "fetchUserOrders"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "@/utils/downloadInvoicePDF",
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "@/components/MobileBottomNav"
+      ],
+      "dependencies": [
+        "storefront/utils/downloadInvoicePDF.ts",
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/account/login/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handlePhoneLogin",
+        "handleGoogleSignIn",
+        "AccountLoginPage",
+        "handleLinkGoogleMobile"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/lib/firebase",
+        "@/components/Header",
+        "axios",
+        "next/navigation",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [
+        "storefront/lib/firebase.ts",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/account/register/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleRegister",
+        "handleGoogleSignIn",
+        "AccountRegisterPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/lib/firebase",
+        "@/components/Header",
+        "axios",
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "next/link"
+      ],
+      "dependencies": [
+        "storefront/lib/firebase.ts",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/checkout/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "CheckoutPage",
+        "handlePlaceOrder",
+        "triggerPlaceOrder",
+        "etaInfo",
+        "handlePhoneChange",
+        "handleApplyCoupon",
+        "handleRemoveCoupon"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "@/components/MobileBottomNav",
+        "@/context/CartContext",
+        "@/components/TruckOrderButton",
+        "@/components/GSTBadgeTooltip"
+      ],
+      "dependencies": [
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/context/CartContext.tsx",
+        "storefront/components/Header.tsx",
+        "storefront/components/TruckOrderButton.tsx",
+        "storefront/components/GSTBadgeTooltip.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/order-confirmation/[id]/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "OrderConfirmationPage",
+        "fetchOrder"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "next/navigation",
+        "@/components/TaxInvoiceModal",
+        "lucide-react",
+        "react",
+        "canvas-confetti"
+      ],
+      "dependencies": [
+        "storefront/components/Header.tsx",
+        "storefront/components/TaxInvoiceModal.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/faq/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "FAQPage",
+        "toggleAccordion"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "@/components/GSTBadgeTooltip",
+        "react",
+        "lucide-react"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/privacy/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "PrivacyPolicyPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "@/components/GSTBadgeTooltip",
+        "react",
+        "lucide-react"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/returns/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "ReturnsPolicyPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "@/components/GSTBadgeTooltip",
+        "react",
+        "lucide-react"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/rewards/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "RewardsPolicyPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "lucide-react",
+        "react",
+        "next/link",
+        "@/components/GSTBadgeTooltip"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/shipping/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "ShippingPolicyPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "@/components/GSTBadgeTooltip",
+        "react",
+        "lucide-react"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/policies/terms/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "TermsOfServicePage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/components/Header",
+        "@/components/GSTBadgeTooltip",
+        "react",
+        "lucide-react"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/product/[id]/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleAddToCart",
+        "fetchProduct",
+        "fetchRelated",
+        "handleBuyNow",
+        "ProductDetailPage"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "@/components/SizeGuideModal",
+        "next/navigation",
+        "@/components/ProductCard",
+        "lucide-react",
+        "react",
+        "@/components/AIChatWindow",
+        "@/context/CartContext",
+        "next/link"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx",
+        "storefront/components/Header.tsx",
+        "storefront/components/AIChatWindow.tsx",
+        "storefront/components/SizeGuideModal.tsx",
+        "storefront/components/ProductCard.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/rewards/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "getTierIcon",
+        "RewardsPassbookPage",
+        "fetchRewardsData"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "@/components/MobileBottomNav"
+      ],
+      "dependencies": [
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/components/Header.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/app/track-order/page.tsx": {
+      "language": "TypeScript",
+      "cluster": "Routes/Endpoints",
+      "functions": [
+        "handleTrack",
+        "getStepActive",
+        "fetchTrackOrder",
+        "TrackOrderPage",
+        "copyAwb"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/Header",
+        "@/components/TaxInvoiceModal",
+        "lucide-react",
+        "react",
+        "@/components/MobileBottomNav"
+      ],
+      "dependencies": [
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/components/Header.tsx",
+        "storefront/components/TaxInvoiceModal.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/components/AIChatWindow.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "AIChatWindow",
+        "detectLanguage",
+        "loadStoredMessages",
+        "cleanText"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/page.tsx",
+        "storefront/app/product/[id]/page.tsx"
+      ]
+    },
+    "storefront/components/CartDrawer.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "CartDrawer"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/context/CartContext",
+        "next/link",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": [
+        "storefront/app/layout.tsx"
+      ]
+    },
+    "storefront/components/CartToast.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleClose",
+        "handleCheckout",
+        "handleViewCart",
+        "CartToast"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/context/CartContext",
+        "lucide-react",
+        "react",
+        "next/navigation"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": [
+        "storefront/app/layout.tsx"
+      ]
+    },
+    "storefront/components/FAQSection.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "FAQSection",
+        "toggleAccordion"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/components/FloatingCartBar.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "FloatingCartBar"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/context/CartContext",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": []
+    },
+    "storefront/components/Footer.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleOpenTicketFromToast",
+        "handleDismissToast",
+        "Footer",
+        "checkSupportReplies"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "@/components/SupportWidgetModal",
+        "lucide-react",
+        "react",
+        "next/link",
+        "@/components/GSTBadgeTooltip"
+      ],
+      "dependencies": [
+        "storefront/components/GSTBadgeTooltip.tsx",
+        "storefront/components/SupportWidgetModal.tsx"
+      ],
+      "dependents": [
+        "storefront/app/layout.tsx"
+      ]
+    },
+    "storefront/components/GalaxyVFXBackground.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleMouseMove",
+        "render",
+        "GalaxyVFXBackground",
+        "handleResize"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/page.tsx"
+      ]
+    },
+    "storefront/components/GSTBadgeTooltip.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "GSTBadgeTooltip"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/policies/terms/page.tsx",
+        "storefront/app/policies/returns/page.tsx",
+        "storefront/app/checkout/page.tsx",
+        "storefront/app/policies/faq/page.tsx",
+        "storefront/components/Footer.tsx",
+        "storefront/app/policies/shipping/page.tsx",
+        "storefront/app/policies/rewards/page.tsx",
+        "storefront/app/policies/privacy/page.tsx"
+      ]
+    },
+    "storefront/components/Header.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleSearchChange",
+        "tierColor",
+        "handleOutsideClick",
+        "Header",
+        "renderTierIcon"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react",
+        "@/context/CartContext",
+        "next/link"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": [
+        "storefront/app/policies/terms/page.tsx",
+        "storefront/app/policies/returns/page.tsx",
+        "storefront/app/track-order/page.tsx",
+        "storefront/app/page.tsx",
+        "storefront/app/account/login/page.tsx",
+        "storefront/app/order-confirmation/[id]/page.tsx",
+        "storefront/app/rewards/page.tsx",
+        "storefront/app/product/[id]/page.tsx",
+        "storefront/app/checkout/page.tsx",
+        "storefront/app/policies/faq/page.tsx",
+        "storefront/app/policies/privacy/page.tsx",
+        "storefront/app/policies/shipping/page.tsx",
+        "storefront/app/policies/rewards/page.tsx",
+        "storefront/app/account/page.tsx",
+        "storefront/app/account/register/page.tsx"
+      ]
+    },
+    "storefront/components/MobileBottomNav.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "MobileBottomNav"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "next/navigation",
+        "lucide-react",
+        "react",
+        "@/context/CartContext",
+        "next/link"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": [
+        "storefront/app/track-order/page.tsx",
+        "storefront/app/page.tsx",
+        "storefront/app/rewards/page.tsx",
+        "storefront/app/checkout/page.tsx",
+        "storefront/app/account/page.tsx"
+      ]
+    },
+    "storefront/components/ProductCard.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleQuickAdd",
+        "ProductCard"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "@/context/CartContext",
+        "next/link",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [
+        "storefront/context/CartContext.tsx"
+      ],
+      "dependents": [
+        "storefront/app/page.tsx",
+        "storefront/app/product/[id]/page.tsx"
+      ]
+    },
+    "storefront/components/SizeGuideModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "SizeGuideModal"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/product/[id]/page.tsx"
+      ]
+    },
+    "storefront/components/SupportWidgetModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleSubmit",
+        "resetAndClose",
+        "handleOpenTicketThread",
+        "SupportWidgetModal",
+        "handleSendReply",
+        "handleFetchMyTickets",
+        "handleImageFile"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/components/Footer.tsx"
+      ]
+    },
+    "storefront/components/TaxInvoiceModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "numberToWordsINR",
+        "handlePrint",
+        "handleDownloadPDF",
+        "TaxInvoiceModal",
+        "convert"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/track-order/page.tsx",
+        "storefront/app/order-confirmation/[id]/page.tsx"
+      ]
+    },
+    "storefront/components/ThemeProvider.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "handleThemeEvent",
+        "handleStorageEvent",
+        "ThemeProvider"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/layout.tsx"
+      ]
+    },
+    "storefront/components/ThermalInvoiceModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "numberToWordsINR",
+        "handlePrint",
+        "renderQRCodeSVG",
+        "convert",
+        "ThermalInvoiceModal"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/components/TrackOrderBubbleModal.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "copyAwb",
+        "handleTrack",
+        "TrackOrderBubbleModal"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "axios",
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/layout.tsx"
+      ]
+    },
+    "storefront/components/TruckOrderButton.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "TruckOrderButton",
+        "handleClick"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "lucide-react",
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/checkout/page.tsx"
+      ]
+    },
+    "storefront/context/CartContext.tsx": {
+      "language": "TypeScript",
+      "cluster": "Components/Context",
+      "functions": [
+        "removeFromCart",
+        "runFlyToCartAnimation",
+        "CartProvider",
+        "addToCart",
+        "useCart",
+        "updateQuantity",
+        "clearCart",
+        "syncCartWithBackend"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "react"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/components/MobileBottomNav.tsx",
+        "storefront/components/Header.tsx",
+        "storefront/components/FloatingCartBar.tsx",
+        "storefront/app/layout.tsx",
+        "storefront/components/CartDrawer.tsx",
+        "storefront/components/ProductCard.tsx",
+        "storefront/app/product/[id]/page.tsx",
+        "storefront/app/checkout/page.tsx",
+        "storefront/components/CartToast.tsx"
+      ]
+    },
+    "storefront/lib/firebase.ts": {
+      "language": "TypeScript",
+      "cluster": "Utilities/Config",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [
+        "firebase/auth",
+        "firebase/app"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/account/login/page.tsx",
+        "storefront/app/account/register/page.tsx"
+      ]
+    },
+    "storefront/public/theme-loader.js": {
+      "language": "JavaScript",
+      "cluster": "Other",
+      "functions": [],
+      "classes_structs": [],
+      "imports": [],
+      "dependencies": [],
+      "dependents": []
+    },
+    "storefront/utils/downloadInvoicePDF.ts": {
+      "language": "TypeScript",
+      "cluster": "Utilities/Config",
+      "functions": [
+        "numberToWordsINR",
+        "downloadDirectTaxInvoicePDF",
+        "convert",
+        "itemsRows"
+      ],
+      "classes_structs": [],
+      "imports": [
+        "html2pdf.js"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "storefront/app/account/page.tsx"
+      ]
+    }
+  }
+}

@@ -23,6 +23,7 @@ import {
   Moon,
   Monitor,
   Coins,
+  Network,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/ThemeContext';
 import { logAdminAction } from '@/lib/auditLogger';
@@ -49,6 +50,7 @@ export default function Navigation({ onLogout }: NavigationProps) {
     { name: 'RBAC Audit Logs', href: '/activity-logs', icon: ShieldCheck },
     { name: 'System Settings', href: '/settings', icon: Settings },
     { name: 'Sales Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Codebase Graph', href: '/code-graph', icon: Network },
   ];
 
   const toggleQuickMode = () => {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
+import Link from 'next/link';
 import axios from 'axios';
 import { Lock, ShieldCheck, DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, TrendingUp, XCircle } from 'lucide-react';
 
@@ -217,6 +218,41 @@ export default function AdminPage() {
             </div>
           </section>
         )}
+
+        {/* Codebase Knowledge Graph Overview Card */}
+        <section className="bg-ops-800 border border-ops-700 rounded-2xl p-6 space-y-4 shadow-xl">
+          <div className="flex justify-between items-center">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-gray-300">
+              Codebase Knowledge Graph & Systems Architecture
+            </h2>
+            <Link
+              href="/code-graph"
+              className="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center space-x-1 transition-colors"
+            >
+              <span>Launch Visualizer</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="bg-ops-900 border border-ops-700/80 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-xl">
+              <p className="text-sm font-medium text-white">
+                Interactive Multi-Language Dependency Indexer
+              </p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Scan your Go Backend, Python services, and React frontends to map import dependency paths. 
+                Optimized with local AST parsing to reduce AI prompt tokens and inspect code structures interactively.
+              </p>
+            </div>
+            <div className="flex items-center gap-4 shrink-0">
+              <Link
+                href="/code-graph"
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/25 transition-all text-center"
+              >
+                Open Knowledge Graph
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* Low Stock Warnings */}
         {analytics?.low_stock_warnings && analytics.low_stock_warnings.length > 0 && (

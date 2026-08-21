@@ -133,15 +133,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-800 pt-3 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="physics-toggle" checked 
-                               class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
-                        <label for="physics-toggle" class="text-xs text-slate-300 cursor-pointer">Enable Physics</label>
+                <div class="border-t border-slate-800 pt-3 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="physics-toggle" checked 
+                                   class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                            <label for="physics-toggle" class="text-xs text-slate-300 cursor-pointer">Enable Physics</label>
+                        </div>
+                        <button id="reset-btn" class="text-xs bg-slate-850 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-300 font-medium px-2 py-1 rounded transition-colors">
+                            Reset View
+                        </button>
                     </div>
-                    <button id="reset-btn" class="text-xs bg-slate-850 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-300 font-medium px-2.5 py-1.5 rounded transition-colors">
-                        Reset View
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="particles-toggle" checked 
+                               class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                        <label for="particles-toggle" class="text-xs text-slate-300 cursor-pointer">Show Glow Particles</label>
+                    </div>
                 </div>
             </div>
 
@@ -332,6 +339,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const statNodeChurn = document.getElementById('stat-node-churn');
         const sectionCode = document.getElementById('section-code');
         const nodeCode = document.getElementById('node-code');
+        const particlesToggle = document.getElementById('particles-toggle');
 
         // State variables
         let selectedNodeId = null;
@@ -542,6 +550,87 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     deselectNode();
                 }
             });
+
+            // Real-time canvas particle flow and pulsing neon halo animations
+            let pulseStep = 0;
+            let haloScale = 1.0;
+            let haloDirection = 1;
+
+            network.on('afterDrawing', (ctx) => {
+                if (!particlesToggle || !particlesToggle.checked) return;
+
+                // 1. Draw glowing heartbeat halo on selected node
+                if (selectedNodeId) {
+                    const nodePos = network.getPositions([selectedNodeId])[selectedNodeId];
+                    if (nodePos) {
+                        haloScale += 0.012 * haloDirection;
+                        if (haloScale > 1.4) haloDirection = -1;
+                        if (haloScale < 0.9) haloDirection = 1;
+
+                        ctx.save();
+                        ctx.beginPath();
+                        const baseStyle = CLUSTER_STYLES[nodesDataset.get(selectedNodeId)?.group] || CLUSTER_STYLES['Other'];
+                        const size = 16 + (graphData.details[selectedNodeId]?.dependents?.length || 0) * 1.5;
+                        
+                        ctx.arc(nodePos.x, nodePos.y, size * haloScale, 0, 2 * Math.PI);
+                        ctx.strokeStyle = baseStyle.color.border;
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = baseStyle.color.border;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+
+                // 2. Draw particle streams flowing on edges
+                pulseStep = (pulseStep + 0.5) % 100;
+                const edges = edgesDataset.get();
+                
+                ctx.save();
+                edges.forEach(edge => {
+                    const isSelectedEdge = selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId);
+                    const isPath = activeHighlightedPath && activeHighlightedPath.has(edge.from) && activeHighlightedPath.has(edge.to);
+                    
+                    let opacity = 0.2;
+                    let particleColor = '#6366f1';
+                    let size = 2.5;
+                    
+                    if (isPath) {
+                        opacity = 1.0;
+                        particleColor = '#f43f5e'; // Highlighted path gets red particle
+                        size = 4.5;
+                    } else if (isSelectedEdge) {
+                        opacity = 0.8;
+                        particleColor = '#38bdf8'; // Direct neighbors get cyan particle
+                        size = 3.5;
+                    } else if (activeHighlightedPath) {
+                        return; // Skip other edges entirely in path trace mode
+                    } else if (selectedNodeId) {
+                        return; // Skip other edges entirely if node selected
+                    }
+
+                    const edgePositions = network.getPositions([edge.from, edge.to]);
+                    const fromPos = edgePositions[edge.from];
+                    const toPos = edgePositions[edge.to];
+                    if (!fromPos || !toPos) return;
+
+                    const t = (pulseStep / 100);
+                    const x = fromPos.x + (toPos.x - fromPos.x) * t;
+                    const y = fromPos.y + (toPos.y - fromPos.y) * t;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, 2 * Math.PI);
+                    ctx.fillStyle = particleColor;
+                    ctx.globalAlpha = opacity;
+                    ctx.shadowBlur = isPath ? 8 : 4;
+                    ctx.shadowColor = particleColor;
+                    ctx.fill();
+                });
+                ctx.restore();
+
+                // Keep network rendering frame-by-frame smoothly
+                network.requestRedraw();
+            });
         }
 
         function setupEventListeners() {
@@ -646,6 +735,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             clearTraceBtn.addEventListener('click', () => {
                 pathStartInput.value = '';
                 pathEndInput.value = '';
+                applyColorAndStyleModes();
+            });
+
+            // Particles Toggle Change
+            particlesToggle.addEventListener('change', () => {
                 applyColorAndStyleModes();
             });
         }

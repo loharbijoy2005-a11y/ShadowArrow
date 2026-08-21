@@ -39,7 +39,7 @@ export default function CodeGraphAdminPage() {
       <Navigation onLogout={handleLogout} />
 
       {/* Embedded Code Graph Visualizer */}
-      <main className="flex-1 flex flex-col h-full bg-[#0b0f19] relative">
+      <main className="flex-1 flex flex-col h-full bg-[#0b0f19] relative no-padding">
         <iframe
           src="/visualizer.html"
           className="w-full h-full border-none"

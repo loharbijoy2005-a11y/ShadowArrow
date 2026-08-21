@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import { Globe, MapPin, Loader2, Info } from 'lucide-react';
+import { Globe as GlobeIcon, Loader2 } from 'lucide-react';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -10,10 +10,11 @@ const API_URL =
     ? 'http://localhost:8080'
     : 'https://shadow-arrow-backend.onrender.com');
 
-// Warehouse Coordinates (Kolkata/Howrah region, West Bengal)
-const WAREHOUSE_COORDS: [number, number] = [22.6105, 88.3976];
+// Warehouse Coordinates (Kolkata/Howrah, West Bengal)
+const WAREHOUSE_LAT = 22.6105;
+const WAREHOUSE_LNG = 88.3976;
 
-// Coordinates Dictionary for West Bengal districts
+// West Bengal district coordinate definitions
 const DISTRICT_COORDS: Record<string, [number, number]> = {
   kolkata: [22.5726, 88.3639],
   howrah: [22.5958, 88.2636],
@@ -47,7 +48,6 @@ const DISTRICT_COORDS: Record<string, [number, number]> = {
   sundarbans: [21.9497, 89.1833],
 };
 
-// Coordinates Dictionary for other major Indian cities
 const INDIA_CITY_COORDS: Record<string, [number, number]> = {
   delhi: [28.6139, 77.2090],
   mumbai: [19.0760, 72.8777],
@@ -67,141 +67,98 @@ const INDIA_CITY_COORDS: Record<string, [number, number]> = {
   guwahati: [26.1445, 91.7362],
 };
 
-// Fuzzy parser to resolve city name and return coordinates
+// Geocoder parser
 const geocodeAddress = (address: string): [number, number] => {
   const addrLower = address.toLowerCase();
   
-  // 1. Search for West Bengal districts first
   for (const [district, coords] of Object.entries(DISTRICT_COORDS)) {
     if (addrLower.includes(district)) {
-      // Add slight random offset to prevent exact markers stacking overlap
       return [
-        coords[0] + (Math.random() - 0.5) * 0.02,
-        coords[1] + (Math.random() - 0.5) * 0.02
+        coords[0] + (Math.random() - 0.5) * 0.04,
+        coords[1] + (Math.random() - 0.5) * 0.04
       ];
     }
   }
   
-  // 2. Search for major Indian cities
   for (const [city, coords] of Object.entries(INDIA_CITY_COORDS)) {
     if (addrLower.includes(city)) {
       return [
-        coords[0] + (Math.random() - 0.5) * 0.03,
-        coords[1] + (Math.random() - 0.5) * 0.03
+        coords[0] + (Math.random() - 0.5) * 0.05,
+        coords[1] + (Math.random() - 0.5) * 0.05
       ];
     }
   }
   
-  // 3. Fallback: if West Bengal is mentioned, center in West Bengal
   if (addrLower.includes('west bengal') || addrLower.includes('wb')) {
     return [
-      22.9868 + (Math.random() - 0.5) * 0.4,
-      87.8550 + (Math.random() - 0.5) * 0.4
+      22.9868 + (Math.random() - 0.5) * 0.6,
+      87.8550 + (Math.random() - 0.5) * 0.6
     ];
   }
   
-  // 4. Default: Scatter around central India
   return [
-    21.5937 + (Math.random() - 0.5) * 5,
-    78.9629 + (Math.random() - 0.5) * 5
+    20.5937 + (Math.random() - 0.5) * 6,
+    78.9629 + (Math.random() - 0.5) * 6
   ];
 };
 
 export default function HolographicGlobe() {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const globeContainerRef = useRef<HTMLDivElement | null>(null);
+  const globeInstanceRef = useRef<any>(null);
+
+  const [globeLoaded, setGlobeLoaded] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [hudMessage, setHudMessage] = useState('Syncing database orders...');
 
-  // Dynamically load Leaflet Assets on Mount
+  // Dynamically load ThreeJS and GlobeGL from CDNs
   useEffect(() => {
-    // 1. Leaflet CSS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-    link.crossOrigin = '';
-    document.head.appendChild(link);
-
-    // 2. Custom dark mode styles injection
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .leaflet-container {
-        background: #0b0f19 !important;
-        font-family: monospace !important;
-      }
-      .leaflet-bar {
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-      }
-      .leaflet-bar a {
-        background-color: #0f172a !important;
-        color: #94a3b8 !important;
-        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-      }
-      .leaflet-bar a:hover {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-      }
-      .leaflet-popup-content-wrapper {
-        background: #0f172a !important;
-        color: #f1f5f9 !important;
-        border: 1px solid #334155 !important;
-        border-radius: 12px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
-      }
-      .leaflet-popup-tip {
-        background: #0f172a !important;
-        border: 1px solid #334155 !important;
-      }
-      .leaflet-popup-close-button {
-        color: #94a3b8 !important;
-        padding: 4px 6px !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // 3. Leaflet JS Script
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-    script.crossOrigin = '';
-    script.async = true;
-    script.onload = () => {
-      setLeafletLoaded(true);
+    // 1. Load Three.js first
+    const threeScript = document.createElement('script');
+    threeScript.src = 'https://unpkg.com/three@0.145.0/build/three.min.js';
+    threeScript.async = true;
+    threeScript.onload = () => {
+      // 2. Load Globe.gl after Three.js is complete
+      const globeScript = document.createElement('script');
+      globeScript.src = 'https://unpkg.com/globe.gl@2.32.1/dist/globe.gl.min.js';
+      globeScript.async = true;
+      globeScript.onload = () => {
+        setGlobeLoaded(true);
+      };
+      document.head.appendChild(globeScript);
     };
-    document.head.appendChild(script);
+    document.head.appendChild(threeScript);
 
     return () => {
-      document.head.removeChild(link);
-      document.head.removeChild(style);
-      document.head.removeChild(script);
+      document.head.removeChild(threeScript);
+      const scripts = document.head.getElementsByTagName('script');
+      for (let i = 0; i < scripts.length; i++) {
+        if (scripts[i].src && scripts[i].src.includes('globe.gl')) {
+          document.head.removeChild(scripts[i]);
+        }
+      }
     };
   }, []);
 
-  // Fetch database orders
+  // Fetch real database orders
   useEffect(() => {
     const fetchRealOrders = async () => {
       const savedToken = localStorage.getItem('ops_admin_token') || localStorage.getItem('admin_token');
       if (!savedToken) return;
 
       try {
-        // Fetch processing & shipped orders to map active workflow
         const res = await axios.get(`${API_URL}/api/v1/admin/orders`, {
           headers: { Authorization: `Bearer ${savedToken}` },
         });
         const orderData = Array.isArray(res.data) ? res.data : [];
         setOrders(orderData);
         if (orderData.length > 0) {
-          setHudMessage(`Loaded ${orderData.length} real order(s) from database.`);
+          setHudMessage(`Loaded ${orderData.length} active database order(s).`);
         } else {
           setHudMessage('No active orders found in database.');
         }
       } catch (err) {
-        console.error('Failed to load database orders for map', err);
+        console.error('Failed to load database orders for 3D globe', err);
         setHudMessage('Connection error. Displaying warehouse only.');
       } finally {
         setLoadingOrders(false);
@@ -211,117 +168,131 @@ export default function HolographicGlobe() {
     fetchRealOrders();
   }, []);
 
-  // Map Initialization & Marker Rendering
+  // Initialize and Render 3D Globe
   useEffect(() => {
-    if (!leafletLoaded || !mapContainerRef.current) return;
-    const L = (window as any).L;
-    if (!L) return;
+    if (!globeLoaded || !globeContainerRef.current) return;
+    if (globeInstanceRef.current) return; // Prevent double init
 
-    // Centered at West Bengal (lat=22.9868, lon=87.8550) with zoom level 6.5
-    const map = L.map(mapContainerRef.current, {
-      center: [22.9868, 87.8550],
-      zoom: 7,
-      zoomControl: true,
-      fadeAnimation: true,
-      markerZoomAnimation: true,
+    const Globe = (window as any).Globe;
+    if (!Globe) return;
+
+    // Format Point Markers, Arcs, and Labels for Globe.gl
+    const pointsData = orders.map((order) => {
+      const coords = geocodeAddress(order.shipping_address);
+      let color = '#10b981'; // Completed
+      if (order.order_status === 'PROCESSING') color = '#f59e0b';
+      else if (order.order_status === 'SHIPPED') color = '#3b82f6';
+      else if (order.order_status === 'CANCELLED') color = '#ef4444';
+
+      return {
+        lat: coords[0],
+        lng: coords[1],
+        size: 0.15,
+        color: color,
+        label: `${order.customer_name} (${order.order_id})`,
+      };
     });
 
-    // Dark-themed premium map tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20,
-    }).addTo(map);
+    const arcsData = orders.map((order) => {
+      const coords = geocodeAddress(order.shipping_address);
+      let color = '#10b981'; // Completed
+      if (order.order_status === 'PROCESSING') color = '#f59e0b';
+      else if (order.order_status === 'SHIPPED') color = '#3b82f6';
+      else if (order.order_status === 'CANCELLED') color = '#ef4444';
 
-    // 1. Warehouse Neon Beacon Marker (West Bengal Hub)
-    const warehouseIcon = L.divIcon({
-      className: 'custom-warehouse-icon',
-      html: `
-        <div class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-400 flex items-center justify-center animate-ping absolute" style="margin-left: -6px; margin-top: -6px;"></div>
-        <div class="w-5 h-5 rounded-full bg-indigo-600 border border-indigo-300 flex items-center justify-center relative shadow-[0_0_12px_#6366f1]">🏬</div>
-      `,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
+      return {
+        startLat: WAREHOUSE_LAT,
+        startLng: WAREHOUSE_LNG,
+        endLat: coords[0],
+        endLng: coords[1],
+        color: ['rgba(99, 102, 241, 0.75)', color],
+      };
     });
 
-    L.marker(WAREHOUSE_COORDS, { icon: warehouseIcon })
-      .addTo(map)
-      .bindPopup(`
-        <div class="text-xs p-1 font-mono">
-          <strong class="text-indigo-400 text-sm">SHADOW ARROW Hub</strong><br/>
-          <span class="text-slate-400">West Bengal Central Warehouse</span><br/>
-          <span class="text-[10px] text-slate-500 mt-1 block">Distributing across states & districts</span>
-        </div>
-      `);
+    const labelsData = orders.map((order) => {
+      const coords = geocodeAddress(order.shipping_address);
+      return {
+        lat: coords[0],
+        lng: coords[1],
+        text: `${order.customer_name} (₹${order.total_amount})`,
+        color: '#f8fafc',
+        size: 0.75,
+        dotRadius: 0.1,
+      };
+    });
 
-    // 2. Plot real orders with markers and tracking lines
-    orders.forEach((order) => {
-      if (!order.shipping_address) return;
+    // Add Central Warehouse label
+    labelsData.push({
+      lat: WAREHOUSE_LAT,
+      lng: WAREHOUSE_LNG,
+      text: '★ SHADOW ARROW WAREHOUSE',
+      color: '#818cf8',
+      size: 1.1,
+      dotRadius: 0.35,
+    });
+
+    // Instantiate Globe.gl
+    const myGlobe = Globe()(globeContainerRef.current)
+      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+      .backgroundColor('rgba(0,0,0,0)') // Transparent background
+      .showAtmosphere(true)
+      .atmosphereColor('#3a92c8')
+      .atmosphereAltitude(0.2)
+      .width(globeContainerRef.current.clientWidth)
+      .height(360)
       
-      const orderCoords = geocodeAddress(order.shipping_address);
-      const isWestBengal = order.shipping_address.toLowerCase().includes('west bengal') || order.shipping_address.toLowerCase().includes('wb');
+      // Points styling
+      .pointsData(pointsData)
+      .pointColor('color')
+      .pointRadius('size')
+      .pointAltitude(0.01)
+      .pointLabel('label')
       
-      // Select marker color based on order status
-      let markerColor = '#10b981'; // Green for delivered/completed
-      let orderStatusLabel = order.order_status || 'CONFIRMED';
+      // Animated 3D Arc paths styling
+      .arcsData(arcsData)
+      .arcColor('color')
+      .arcDashLength(0.4)
+      .arcDashGap(0.15)
+      .arcDashAnimateTime(1800)
+      .arcStroke(1.2)
       
-      if (orderStatusLabel === 'PROCESSING') {
-        markerColor = '#f59e0b'; // Amber
-      } else if (orderStatusLabel === 'SHIPPED') {
-        markerColor = '#3b82f6'; // Blue
-      } else if (orderStatusLabel === 'CANCELLED') {
-        markerColor = '#ef4444'; // Red
+      // Holographic Labels styling
+      .labelsData(labelsData)
+      .labelLat('lat')
+      .labelLng('lng')
+      .labelText('text')
+      .labelColor('color')
+      .labelSize('size')
+      .labelDotRadius('dotRadius')
+      .labelResolution(3);
+
+    // Auto rotate settings
+    myGlobe.controls().autoRotate = true;
+    myGlobe.controls().autoRotateSpeed = 0.6;
+    myGlobe.controls().enableZoom = true;
+
+    // Focus initial view on India/Asia region
+    myGlobe.pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 2.2 });
+
+    globeInstanceRef.current = myGlobe;
+
+    // Resize listener
+    const handleResize = () => {
+      if (globeContainerRef.current && globeInstanceRef.current) {
+        globeInstanceRef.current.width(globeContainerRef.current.clientWidth);
       }
-
-      const orderIcon = L.divIcon({
-        className: 'custom-order-icon',
-        html: `
-          <div class="w-3.5 h-3.5 rounded-full border border-white flex items-center justify-center" style="background-color: ${markerColor}; box-shadow: 0 0 8px ${markerColor}"></div>
-        `,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-      });
-
-      // Add order marker
-      const marker = L.marker(orderCoords, { icon: orderIcon })
-        .addTo(map)
-        .bindPopup(`
-          <div class="text-[11px] font-mono leading-relaxed p-0.5">
-            <strong class="text-white text-xs">${order.customer_name}</strong><br/>
-            <span class="text-slate-400">ID: ${order.order_id}</span><br/>
-            <span class="text-slate-400">Dest: ${order.shipping_address}</span><br/>
-            <div class="mt-1 flex items-center gap-1.5">
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style="background-color: ${markerColor}20; color: ${markerColor}; border: 1px solid ${markerColor}40">
-                ${orderStatusLabel}
-              </span>
-              <span class="text-indigo-300 font-bold">₹${order.total_amount?.toLocaleString('en-IN')}</span>
-            </div>
-          </div>
-        `);
-
-      // 3. Draw shipping connection curves (polylines) from warehouse to customer location
-      if (orderStatusLabel === 'PROCESSING' || orderStatusLabel === 'SHIPPED' || orderStatusLabel === 'CONFIRMED') {
-        // Curve coordinates helper
-        const midPoint: [number, number] = [
-          (WAREHOUSE_COORDS[0] + orderCoords[0]) / 2 + (Math.random() - 0.5) * 0.3,
-          (WAREHOUSE_COORDS[1] + orderCoords[1]) / 2 + (Math.random() - 0.5) * 0.3,
-        ];
-        
-        const polyline = L.polyline([WAREHOUSE_COORDS, midPoint, orderCoords], {
-          color: markerColor,
-          weight: 1.5,
-          opacity: 0.5,
-          dashArray: '3, 4',
-        }).addTo(map);
-      }
-    });
-
-    mapInstanceRef.current = map;
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      map.remove();
+      window.removeEventListener('resize', handleResize);
+      if (globeContainerRef.current) {
+        globeContainerRef.current.innerHTML = '';
+      }
+      globeInstanceRef.current = null;
     };
-  }, [leafletLoaded, orders]);
+  }, [globeLoaded, orders]);
 
   return (
     <div
@@ -331,31 +302,31 @@ export default function HolographicGlobe() {
       <div className="px-5 py-4 border-b border-ops-700/80 flex items-center justify-between bg-ops-950/40">
         <div className="flex items-center space-x-2.5">
           <div className="p-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg">
-            <Globe className="w-4 h-4" />
+            <GlobeIcon className="w-4 h-4" />
           </div>
           <div>
             <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
-              LIVE GEOGRAPHICAL ORDERS SCANNER
+              REAL-TIME 3D PLANET EARTH GLOBE
             </h3>
             <p className="text-[10px] text-slate-400 font-mono">
-              Live OpenStreetMap tracker showing real orders with district-level zoom
+              Live NASA Blue Marble 3D projection rendering real customer orders
             </p>
           </div>
         </div>
       </div>
 
-      {/* Map rendering div */}
-      <div className="relative flex-1 bg-[#0b0f19] h-[360px]">
-        {loadingOrders ? (
+      {/* Render Element */}
+      <div className="relative flex-1 bg-ops-900/40 h-[360px]">
+        {loadingOrders || !globeLoaded ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 font-mono text-xs gap-3">
             <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
-            <span>Connecting to database & loading telemetry...</span>
+            <span>Initializing Three.js engine & dynamic assets...</span>
           </div>
         ) : (
           <div
-            ref={mapContainerRef}
-            className="w-full h-full border-none outline-none z-0"
-            id="real-order-map"
+            ref={globeContainerRef}
+            className="w-full h-full outline-none z-0"
+            id="globeEl"
           />
         )}
 
@@ -372,7 +343,7 @@ export default function HolographicGlobe() {
             </span>
           </div>
           <span className="text-slate-500 text-[9px] uppercase hidden sm:inline-block font-bold">
-            ZOOM IN TO SCAN WEST BENGAL DISTRICTS
+            DRAG TO ROTATE • SCROLL TO ZOOM WORLDWIDE
           </span>
         </div>
       </div>

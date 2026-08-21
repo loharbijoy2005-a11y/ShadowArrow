@@ -511,10 +511,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }
                 },
                 edges: {
-                    smooth: {
-                        type: 'continuous',
-                        roundness: 0.3
-                    }
+                    smooth: false
                 }
             };
             
@@ -553,36 +550,65 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Real-time canvas particle flow and pulsing neon halo animations
             let pulseStep = 0;
-            let haloScale = 1.0;
-            let haloDirection = 1;
+            let slowPulseStep = 0;
+            let fastPulseStep = 0;
 
             network.on('afterDrawing', (ctx) => {
                 if (!particlesToggle || !particlesToggle.checked) return;
 
-                // 1. Draw glowing heartbeat halo on selected node
-                if (selectedNodeId) {
-                    const nodePos = network.getPositions([selectedNodeId])[selectedNodeId];
-                    if (nodePos) {
-                        haloScale += 0.012 * haloDirection;
-                        if (haloScale > 1.4) haloDirection = -1;
-                        if (haloScale < 0.9) haloDirection = 1;
+                const nodes = nodesDataset.get();
+                const nodePositions = network.getPositions(nodes.map(n => n.id));
 
-                        ctx.save();
-                        ctx.beginPath();
-                        const baseStyle = CLUSTER_STYLES[nodesDataset.get(selectedNodeId)?.group] || CLUSTER_STYLES['Other'];
-                        const size = 16 + (graphData.details[selectedNodeId]?.dependents?.length || 0) * 1.5;
-                        
-                        ctx.arc(nodePos.x, nodePos.y, size * haloScale, 0, 2 * Math.PI);
-                        ctx.strokeStyle = baseStyle.color.border;
-                        ctx.lineWidth = 2.5;
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = baseStyle.color.border;
-                        ctx.stroke();
-                        ctx.restore();
+                // 1. Draw glowing heartbeat halos on nodes
+                slowPulseStep = (slowPulseStep + 0.015) % (2 * Math.PI);
+                fastPulseStep = (fastPulseStep + 0.07) % (2 * Math.PI);
+
+                ctx.save();
+                nodes.forEach(node => {
+                    const pos = nodePositions[node.id];
+                    if (!pos) return;
+
+                    const isSelected = node.id === selectedNodeId;
+                    const details = graphData.details[node.id] || {};
+                    const baseStyle = CLUSTER_STYLES[node.group] || CLUSTER_STYLES['Other'];
+
+                    // Hash node id to calculate a unique phase offset so they pulse out of sync
+                    let phaseOffset = 0;
+                    for (let i = 0; i < node.id.length; i++) {
+                        phaseOffset += node.id.charCodeAt(i);
                     }
-                }
 
-                // 2. Draw particle streams flowing on edges
+                    let scale = 1.0;
+                    let opacity = 0.15;
+                    let lineWidth = 1.0;
+                    let shadowBlur = 4;
+
+                    if (isSelected) {
+                        scale = 1.1 + Math.sin(fastPulseStep) * 0.25; // Fast, intense pulse when selected
+                        opacity = 0.95;
+                        lineWidth = 2.5;
+                        shadowBlur = 18;
+                    } else {
+                        scale = 1.0 + Math.sin(slowPulseStep + phaseOffset) * 0.1; // Slow, breathing idle pulse
+                        opacity = 0.18;
+                        lineWidth = 1.0;
+                        shadowBlur = 4;
+                    }
+
+                    const size = 16 + (details.dependents || []).length * 1.5;
+
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, size * scale, 0, 2 * Math.PI);
+                    ctx.strokeStyle = baseStyle.color.border;
+                    ctx.lineWidth = lineWidth;
+                    ctx.globalAlpha = opacity;
+                    ctx.shadowBlur = shadowBlur;
+                    ctx.shadowColor = baseStyle.color.border;
+                    ctx.stroke();
+                });
+                ctx.restore();
+
+                // 2. Draw particle streams flowing on edges (straight lines)
                 pulseStep = (pulseStep + 0.5) % 100;
                 const edges = edgesDataset.get();
                 

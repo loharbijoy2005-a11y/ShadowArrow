@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import HolographicGlobe from '@/components/HolographicGlobe';
 import axios from 'axios';
 import { BarChart3, DollarSign, ShoppingBag, AlertTriangle, ShieldCheck, RefreshCw } from 'lucide-react';
 
@@ -95,38 +94,32 @@ export default function AnalyticsAdminPage() {
           </div>
         </div>
 
-        {/* Holographic Globe & Telemetry Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 3D Globe Viewer */}
-          <div className="lg:col-span-2 flex flex-col">
-            <HolographicGlobe />
-          </div>
+        {/* Low Stock Telemetry Table */}
+        <div className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-4">
+          <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-gray-300">
+            Low Stock Inventory Warnings (&lt; 10 units)
+          </h2>
 
-          {/* Low Stock Telemetry Table */}
-          <div className="bg-ops-800 border border-ops-700 rounded-xl p-6 space-y-4 flex flex-col h-[438px] overflow-hidden">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-gray-300">
-              Low Stock Telemetry (&lt; 10 units)
-            </h2>
-
-            <div className="flex-1 overflow-y-auto divide-y divide-ops-700 border border-ops-700 rounded-lg">
-              {analytics?.low_stock_warnings && analytics.low_stock_warnings.length > 0 ? (
-                analytics.low_stock_warnings.map((prod: any) => (
-                  <div key={prod.id || prod._id} className="p-3.5 bg-ops-900/50 flex justify-between items-center text-xs">
-                    <div className="truncate pr-2">
-                      <p className="font-bold text-white truncate text-xs">{prod.title}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">Cat: {prod.category} • ₹{prod.price}</p>
-                    </div>
-                    <span className="px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded font-mono font-bold text-[10px] shrink-0">
-                      {prod.stock} Left
+          <div className="divide-y divide-ops-700 border border-ops-700 rounded-lg overflow-hidden">
+            {analytics?.low_stock_warnings && analytics.low_stock_warnings.length > 0 ? (
+              analytics.low_stock_warnings.map((prod: any) => (
+                <div key={prod.id || prod._id} className="p-4 bg-ops-900 flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-white text-sm">{prod.title}</p>
+                    <p className="text-xs text-gray-400 font-mono">Category: {prod.category} • Price: ₹{prod.price}</p>
+                  </div>
+                  <div>
+                    <span className="px-3 py-1 bg-amber-500/20 text-amber-300 rounded font-mono font-bold text-xs">
+                      {prod.stock} units remaining
                     </span>
                   </div>
-                ))
-              ) : (
-                <div className="p-6 text-center text-gray-500 font-mono text-xs h-full flex items-center justify-center">
-                  All catalog items maintain healthy stock levels (&ge; 10 units).
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="p-6 text-center text-gray-500 font-mono text-xs">
+                All catalog items maintain healthy inventory levels (&ge; 10 units).
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -79,7 +79,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <!-- Left Controls Panel -->
         <div class="absolute left-6 top-6 bottom-6 w-80 flex flex-col gap-4 pointer-events-none z-10">
             <!-- Search & Filter Card -->
-            <div class="glass-panel rounded-xl p-4 flex flex-col gap-4 pointer-events-auto shadow-2xl">
+            <div class="glass-panel rounded-xl p-4 flex flex-col gap-4 pointer-events-auto shadow-2xl overflow-y-auto max-h-full">
                 <div>
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Search Node</label>
                     <div class="mt-1 relative rounded-md shadow-sm">
@@ -91,8 +91,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
                 <div>
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Filter Clusters</label>
-                    <div id="cluster-filters" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                    <div id="cluster-filters" class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1">
                         <!-- Cluster checkboxes injected here -->
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Analysis Modes</label>
+                    <div class="flex flex-col gap-2">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Coloring Mode</span>
+                            <select id="color-mode-select" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded py-1.5 px-2 text-xs text-white focus:outline-none">
+                                <option value="cluster">Cluster Categories</option>
+                                <option value="hotspot">Git Commit Hotspots</option>
+                                <option value="lang">Programming Language</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <input type="checkbox" id="orphan-toggle" 
+                                   class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                            <label for="orphan-toggle" class="text-xs text-slate-300 cursor-pointer">Highlight Dead/Orphan Files</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Dependency Path Tracer</label>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-1">
+                            <input type="text" id="path-start" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-[11px] text-white placeholder-slate-500" placeholder="Start File Path" readonly>
+                            <button id="set-start-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2 py-1 rounded shrink-0 transition" title="Set to selected node">Set</button>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <input type="text" id="path-end" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-[11px] text-white placeholder-slate-500" placeholder="End File Path" readonly>
+                            <button id="set-end-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2 py-1 rounded shrink-0 transition" title="Set to selected node">Set</button>
+                        </div>
+                        <div class="flex gap-2 mt-1">
+                            <button id="trace-path-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-1.5 rounded transition">Trace Path</button>
+                            <button id="clear-trace-btn" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 text-xs px-2 py-1.5 rounded transition">Clear</button>
+                        </div>
                     </div>
                 </div>
 
@@ -147,14 +184,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         <p id="node-path" class="text-xs text-slate-400 font-mono mt-1 break-all cursor-pointer hover:text-indigo-400 transition-colors" title="Click to copy path"></p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 text-xs border-y border-slate-800 py-3">
-                        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/40">
-                            <div class="text-slate-400 font-medium">Functions</div>
-                            <div id="stat-node-funcs" class="text-base font-bold text-white mt-0.5">0</div>
+                    <div class="grid grid-cols-3 gap-2 text-xs border-y border-slate-800 py-3">
+                        <div class="bg-slate-900/50 p-2 text-center rounded border border-slate-800/40">
+                            <div class="text-slate-400 font-medium text-[10px] uppercase truncate">Functions</div>
+                            <div id="stat-node-funcs" class="text-xs font-bold text-white mt-0.5">0</div>
                         </div>
-                        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/40">
-                            <div class="text-slate-400 font-medium">Classes/Structs</div>
-                            <div id="stat-node-classes" class="text-base font-bold text-white mt-0.5">0</div>
+                        <div class="bg-slate-900/50 p-2 text-center rounded border border-slate-800/40">
+                            <div class="text-slate-400 font-medium text-[10px] uppercase truncate">Classes</div>
+                            <div id="stat-node-classes" class="text-xs font-bold text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-slate-900/50 p-2 text-center rounded border border-slate-800/40">
+                            <div class="text-slate-400 font-medium text-[10px] uppercase truncate">Commits</div>
+                            <div id="stat-node-churn" class="text-xs font-bold text-white mt-0.5">0</div>
                         </div>
                     </div>
 
@@ -196,6 +237,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         <div id="node-dependents" class="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
                             <!-- Incoming files -->
                         </div>
+                    </div>
+
+                    <!-- Code Preview Section -->
+                    <div id="section-code" class="hidden border-t border-slate-800 pt-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Code Preview</h3>
+                        <pre id="node-code" class="bg-slate-950/90 border border-slate-800 rounded p-3 text-[10px] font-mono text-slate-300 overflow-auto max-h-60 whitespace-pre scrollbar-thin scrollbar-thumb-slate-800"></pre>
                     </div>
                 </div>
             </div>
@@ -272,6 +319,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const nodeImports = document.getElementById('node-imports');
         const nodeDependencies = document.getElementById('node-dependencies');
         const nodeDependents = document.getElementById('node-dependents');
+
+        // New DOM elements for analysis & code viewer
+        const colorModeSelect = document.getElementById('color-mode-select');
+        const orphanToggle = document.getElementById('orphan-toggle');
+        const pathStartInput = document.getElementById('path-start');
+        const pathEndInput = document.getElementById('path-end');
+        const setStartBtn = document.getElementById('set-start-btn');
+        const setEndBtn = document.getElementById('set-end-btn');
+        const tracePathBtn = document.getElementById('trace-path-btn');
+        const clearTraceBtn = document.getElementById('clear-trace-btn');
+        const statNodeChurn = document.getElementById('stat-node-churn');
+        const sectionCode = document.getElementById('section-code');
+        const nodeCode = document.getElementById('node-code');
 
         // State variables
         let selectedNodeId = null;
@@ -505,6 +565,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 filterGraph();
                 deselectNode();
                 network.fit({ animation: true });
+                if (colorModeSelect) colorModeSelect.value = 'cluster';
+                if (orphanToggle) orphanToggle.checked = false;
+                if (pathStartInput) pathStartInput.value = '';
+                if (pathEndInput) pathEndInput.value = '';
+                applyColorAndStyleModes();
             });
 
             // Close Inspector
@@ -531,6 +596,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         nodePath.style.color = '';
                     }, 1200);
                 });
+            });
+
+            // Color Mode Select
+            colorModeSelect.addEventListener('change', () => {
+                applyColorAndStyleModes();
+            });
+
+            // Orphan/Dead Code Toggle
+            orphanToggle.addEventListener('change', () => {
+                applyColorAndStyleModes();
+            });
+
+            // Set Start Node for Path Tracer
+            setStartBtn.addEventListener('click', () => {
+                if (selectedNodeId) {
+                    pathStartInput.value = selectedNodeId;
+                } else {
+                    alert('Please click on a node in the graph first!');
+                }
+            });
+
+            // Set End Node for Path Tracer
+            setEndBtn.addEventListener('click', () => {
+                if (selectedNodeId) {
+                    pathEndInput.value = selectedNodeId;
+                } else {
+                    alert('Please click on a node in the graph first!');
+                }
+            });
+
+            // Trace Path Button
+            tracePathBtn.addEventListener('click', () => {
+                const start = pathStartInput.value;
+                const end = pathEndInput.value;
+                if (!start || !end) {
+                    alert('Please specify both Start and End files!');
+                    return;
+                }
+                const path = findShortestPath(start, end);
+                if (path) {
+                    highlightPath(path);
+                } else {
+                    alert('No dependency path found between these files!');
+                }
+            });
+
+            // Clear Trace Button
+            clearTraceBtn.addEventListener('click', () => {
+                pathStartInput.value = '';
+                pathEndInput.value = '';
+                applyColorAndStyleModes();
             });
         }
 
@@ -630,6 +746,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Stats
             statNodeFuncs.innerText = (details.functions || []).length;
             statNodeClasses.innerText = (details.classes_structs || []).length;
+            statNodeChurn.innerText = details.churn || 0;
 
             // Classes & Structs list
             const sectionClasses = document.getElementById('section-classes');
@@ -706,6 +823,154 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             } else {
                 nodeDependents.innerHTML = `<span class="text-xs text-slate-500 italic px-1">None</span>`;
             }
+
+            // Safe Code Preview Fetcher
+            sectionCode.classList.add('hidden');
+            nodeCode.innerText = 'Loading code preview...';
+            
+            fetch(`/api/code?path=${encodeURIComponent(nodeId)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('File not loadable');
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.content) {
+                        sectionCode.classList.remove('hidden');
+                        nodeCode.innerText = data.content;
+                    } else {
+                        nodeCode.innerText = 'File content is empty';
+                    }
+                })
+                .catch(err => {
+                    console.warn('Could not retrieve file preview:', err);
+                    nodeCode.innerText = 'Live code preview is unavailable for this node type';
+                });
+        }
+
+        let activeHighlightedPath = null;
+
+        function findShortestPath(startNode, endNode) {
+            let queue = [[startNode]];
+            let visited = new Set([startNode]);
+            while (queue.length > 0) {
+                let path = queue.shift();
+                let node = path[path.length - 1];
+                if (node === endNode) return path;
+                
+                let neighbors = graphData.details[node]?.dependencies || [];
+                for (let neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        visited.add(neighbor);
+                        queue.push([...path, neighbor]);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function highlightPath(path) {
+            activeHighlightedPath = new Set(path);
+            
+            const nodesToUpdate = nodesDataset.get().map(node => {
+                const isPathNode = activeHighlightedPath.has(node.id);
+                const baseStyle = CLUSTER_STYLES[node.group] || CLUSTER_STYLES['Other'];
+                
+                return {
+                    id: node.id,
+                    color: isPathNode ? { background: '#fb7185', border: '#e11d48' } : { background: '#1e293b', border: '#334155' },
+                    size: isPathNode ? 24 : 10,
+                    opacity: isPathNode ? 1.0 : 0.25,
+                    font: { color: isPathNode ? '#ffffff' : 'rgba(255,255,255,0.2)' }
+                };
+            });
+            nodesDataset.update(nodesToUpdate);
+
+            const edgesToUpdate = edgesDataset.get().map(edge => {
+                const isPathEdge = activeHighlightedPath.has(edge.from) && activeHighlightedPath.has(edge.to) && 
+                                   path.indexOf(edge.to) === path.indexOf(edge.from) + 1;
+                return {
+                    id: edge.id,
+                    color: isPathEdge ? { color: '#e11d48', opacity: 1.0 } : { color: '#1e293b', opacity: 0.15 },
+                    width: isPathEdge ? 3.5 : 0.8
+                };
+            });
+            edgesDataset.update(edgesToUpdate);
+        }
+
+        function applyColorAndStyleModes() {
+            activeHighlightedPath = null;
+            const mode = colorModeSelect.value;
+            const highlightOrphans = orphanToggle.checked;
+            
+            let maxChurn = 1;
+            Object.values(graphData.details).forEach(d => {
+                if (d.churn && d.churn > maxChurn) maxChurn = d.churn;
+            });
+
+            function getHotspotColor(churn) {
+                if (churn === 0) return { background: '#1e293b', border: '#334155' };
+                const ratio = Math.min(1.0, churn / maxChurn);
+                if (ratio < 0.3) {
+                    return { background: '#d97706', border: '#fbbf24' };
+                } else if (ratio < 0.7) {
+                    return { background: '#ea580c', border: '#f97316' };
+                } else {
+                    return { background: '#dc2626', border: '#f87171' };
+                }
+            }
+
+            const nodesToUpdate = nodesDataset.get().map(node => {
+                const details = graphData.details[node.id] || {};
+                let color = { background: '#1e293b', border: '#334155' };
+                let size = 16 + (details.dependents?.length || 0) * 1.5;
+                let labelColor = '#ffffff';
+                let opacity = 1.0;
+
+                if (mode === 'cluster') {
+                    const style = CLUSTER_STYLES[node.group] || CLUSTER_STYLES['Other'];
+                    color = style.color;
+                    labelColor = style.labelColor;
+                } else if (mode === 'hotspot') {
+                    const churn = details.churn || 0;
+                    color = getHotspotColor(churn);
+                    size = 14 + (churn > 0 ? Math.log(churn + 1) * 6 : 0) + (details.dependents?.length || 0) * 1.0;
+                    labelColor = '#ffffff';
+                } else if (mode === 'lang') {
+                    const lang = details.language || 'Other';
+                    const hex = LANG_COLORS[lang] || LANG_COLORS['Other'];
+                    color = { background: hex, border: hex };
+                    labelColor = '#ffffff';
+                }
+
+                if (highlightOrphans) {
+                    const isMainEntry = ['main.go', 'page.tsx', 'route.ts', 'layout.tsx', 'next.config.js', 'visualizer.html'].some(entry => 
+                        node.id.endsWith(entry)
+                    );
+                    const isOrphan = (details.dependents || []).length === 0 && !isMainEntry;
+                    if (isOrphan) {
+                        color = { background: '#ef4444', border: '#f87171' };
+                        size = 20;
+                    } else {
+                        opacity = 0.25;
+                    }
+                }
+
+                return {
+                    id: node.id,
+                    color: color,
+                    size: size,
+                    opacity: opacity,
+                    font: { color: labelColor }
+                };
+            });
+            nodesDataset.update(nodesToUpdate);
+
+            const edgesToUpdate = edgesDataset.get().map(edge => ({
+                id: edge.id,
+                color: { color: '#334155', highlight: '#6366f1', hover: '#475569' },
+                width: 1.2
+            }));
+            edgesDataset.update(edgesToUpdate);
         }
 
         // Navigate via dependency list

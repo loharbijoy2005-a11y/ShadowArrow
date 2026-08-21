@@ -11,6 +11,7 @@ import re
 import json
 import ast
 import fnmatch
+import subprocess
 from visualizer_template import HTML_TEMPLATE
 
 class GitIgnoreMatcher:
@@ -422,12 +423,35 @@ def resolve_python_import(source_file, import_path, all_files):
     return None
 
 
+def get_git_churn(root_dir):
+    """Calculates modification frequency for files based on Git logs."""
+    churn_data = {}
+    try:
+        output = subprocess.check_output(
+            ['git', 'log', '--name-only', '--pretty=format:'],
+            cwd=root_dir,
+            stderr=subprocess.DEVNULL,
+            encoding='utf-8',
+            errors='ignore'
+        )
+        for line in output.split('\n'):
+            line = line.strip().replace('\\', '/')
+            if line:
+                churn_data[line] = churn_data.get(line, 0) + 1
+    except Exception as e:
+        print(f"Warning: Could not extract Git churn data: {e}")
+    return churn_data
+
+
 def main():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     print(f"Scanning workspace root: {root_dir}")
     
     # 1. Initialize gitignore matcher
     matcher = GitIgnoreMatcher(root_dir)
+    
+    # Calculate Git commit churn
+    churn_data = get_git_churn(root_dir)
     
     # 2. Discover all relevant files in the codebase
     discovered_files = []
@@ -475,7 +499,8 @@ def main():
             "classes_structs": parsed.get("classes_structs", []),
             "imports": parsed.get("imports", []),
             "dependencies": [],  # Resolved file paths
-            "dependents": []     # Back-links (filled later)
+            "dependents": [],     # Back-links (filled later)
+            "churn": churn_data.get(f, 0)
         }
 
     # 4. Resolve dependencies to build the edges

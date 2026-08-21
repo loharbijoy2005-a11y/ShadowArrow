@@ -162,7 +162,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <!-- Right Detail Panel (Sidebar) -->
-        <div class="absolute right-6 top-6 bottom-6 w-96 glass-panel rounded-xl shadow-2xl flex flex-col overflow-hidden z-10 border border-slate-800/80">
+        <div id="inspector-sidebar" class="absolute right-6 top-6 bottom-6 w-96 glass-panel rounded-xl shadow-2xl flex flex-col overflow-hidden z-10 border border-slate-800/80 transition-transform duration-300 ease-in-out translate-x-[500px]">
             <!-- Sidebar Header -->
             <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
                 <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Node Inspector</span>
@@ -311,6 +311,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const statDeps = document.getElementById('stat-deps');
         const statLangs = document.getElementById('stat-langs');
 
+        const inspectorSidebar = document.getElementById('inspector-sidebar');
         const inspectorDefault = document.getElementById('inspector-default');
         const inspectorDetails = document.getElementById('inspector-details');
         const closeInspectorBtn = document.getElementById('close-inspector-btn');
@@ -774,11 +775,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             selectedNodeId = nodeId;
             highlightDependencies(nodeId);
             populateInspector(nodeId);
+            inspectorSidebar.classList.remove('translate-x-[500px]');
+            inspectorSidebar.classList.add('translate-x-0');
         }
 
         function deselectNode() {
             selectedNodeId = null;
             clearHighlight();
+            inspectorSidebar.classList.remove('translate-x-0');
+            inspectorSidebar.classList.add('translate-x-[500px]');
             inspectorDefault.classList.remove('hidden');
             inspectorDetails.classList.add('hidden');
         }

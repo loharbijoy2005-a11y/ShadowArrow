@@ -161,9 +161,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
 
             <!-- Black Hole Trigger -->
-            <button id="blackhole-btn" class="glass-panel rounded-xl p-3 mt-4 pointer-events-auto shadow-2xl bg-red-900/30 hover:bg-red-800/50 border border-red-500/30 text-red-400 hover:text-red-300 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 group">
-                <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse group-hover:scale-125 transition-transform"></div>
-                Initiate Black Hole
+            <button id="blackhole-btn" class="absolute bottom-6 left-6 w-8 h-8 rounded-full bg-red-900/50 border border-red-500/50 hover:bg-red-700 hover:scale-125 transition-all flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.5)] z-50 pointer-events-auto" title="Initiate Black Hole">
+                <div class="w-3 h-3 rounded-full bg-red-400 animate-pulse"></div>
             </button>
         </div>
 
@@ -520,7 +519,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     zoomView: true
                 },
                 physics: {
-                    enabled: physicsToggle.checked,
+                    enabled: false, // Freeze on load for 3 seconds
                     solver: 'forceAtlas2Based',
                     forceAtlas2Based: {
                         gravitationalConstant: -26,
@@ -550,6 +549,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Fit screen after animation/layout
             network.once('stabilized', () => {
                 network.fit();
+            });
+
+            // 3-SECOND DELAYED BIG BANG BLAST
+            setTimeout(() => {
+                nodesDataset.remove('shadow-arrow-core'); // Destroy the core
+                network.setOptions({ physics: { enabled: physicsToggle.checked } }); // Blast out!
                 
                 // Continuous gentle breathing/floating motion
                 let step = 0;
@@ -567,7 +572,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         network.startSimulation();
                     }
                 }, 100);
-            });
+            }, 3000);
 
             // Network event handlers
             network.on('click', (params) => {
@@ -700,25 +705,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 network.setOptions({ physics: { enabled: e.target.checked } });
             });
 
-            // Reset Button
+            // Reset Button (Also restarts Big Bang)
             resetBtn.addEventListener('click', () => {
                 searchInput.value = '';
                 physicsToggle.checked = true;
                 blackholeActive = false;
-                blackholeBtn.innerHTML = `<div class="w-3 h-3 rounded-full bg-red-500 animate-pulse group-hover:scale-125 transition-transform"></div>Initiate Black Hole`;
-                blackholeBtn.classList.replace('text-red-300', 'text-red-400');
+                blackholeBtn.classList.remove('animate-spin');
+
+                // Re-inject SHADOW ARROW core if missing
+                if (!nodesDataset.get('shadow-arrow-core')) {
+                    nodesDataset.add({
+                        id: 'shadow-arrow-core',
+                        label: 'SHADOW ARROW',
+                        group: 'Main/Entry',
+                        x: 0,
+                        y: 0,
+                        color: { background: '#ef4444', border: '#b91c1c' },
+                        font: { color: '#ffffff', size: 24, face: 'Inter' },
+                        shape: 'dot',
+                        size: 40,
+                        fixed: true
+                    });
+                }
                 
-                network.setOptions({ 
-                    physics: { 
-                        enabled: true,
-                        forceAtlas2Based: {
-                            centralGravity: 0.005,
-                            springLength: 120,
-                            springConstant: 0.08,
-                            avoidOverlap: 0.6
-                        }
-                    } 
-                });
+                // Stack everything back to center and restore text size
+                const nodesToStack = nodesDataset.get().map(n => ({
+                    id: n.id,
+                    x: 0,
+                    y: 0,
+                    font: { size: 12 }
+                }));
+                nodesDataset.update(nodesToStack);
+
+                network.setOptions({ physics: { enabled: false } }); // Pause for 3s
+                
+                setTimeout(() => {
+                    nodesDataset.remove('shadow-arrow-core');
+                    network.setOptions({ 
+                        physics: { 
+                            enabled: physicsToggle.checked,
+                            forceAtlas2Based: {
+                                centralGravity: 0.005,
+                                springLength: 120,
+                                springConstant: 0.08,
+                                avoidOverlap: 0.6
+                            }
+                        } 
+                    });
+                }, 3000);
                 
                 activeClusterFilters = new Set(allClusters);
                 initFilters();
@@ -746,28 +780,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Black Hole Trigger
             blackholeBtn.addEventListener('click', () => {
+                if (blackholeActive) return;
                 blackholeActive = true;
-                blackholeBtn.innerHTML = `⚠️ DANGER ZONE ACTIVE`;
-                blackholeBtn.classList.replace('text-red-400', 'text-red-300');
+                blackholeBtn.classList.add('animate-spin');
                 
-                // Pull everything into the center with massive gravity
-                network.setOptions({
-                    physics: {
-                        forceAtlas2Based: {
-                            centralGravity: 1.5,
-                            springLength: 0,
-                            springConstant: 0.5,
-                            avoidOverlap: 0
-                        }
+                // Slowly pull everything in with turbulence
+                let currentGravity = 0.005;
+                const gravityInterval = setInterval(() => {
+                    if (!blackholeActive) {
+                        clearInterval(gravityInterval);
+                        return;
                     }
-                });
+                    currentGravity = Math.min(1.5, currentGravity + 0.03);
+                    network.setOptions({
+                        physics: {
+                            forceAtlas2Based: {
+                                centralGravity: currentGravity,
+                                springLength: 20,
+                                springConstant: 0.1,
+                                avoidOverlap: 1.0 // Struggle effect
+                            }
+                        }
+                    });
+                }, 100);
                 
-                // Turn everything red
+                // Turn everything red and hide text labels
                 const nodesToUpdate = nodesDataset.get().map(node => ({
                     id: node.id,
                     color: { background: '#ef4444', border: '#991b1b' },
                     opacity: 1.0,
-                    size: node.id === 'shadow-arrow-core' ? 60 : 10
+                    font: { size: 0 } // Hide text
                 }));
                 nodesDataset.update(nodesToUpdate);
 

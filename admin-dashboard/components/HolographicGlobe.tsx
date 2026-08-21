@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import { Globe, Loader2 } from 'lucide-react';
+import { Globe, Loader2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -11,9 +11,10 @@ const API_URL =
     : 'https://shadow-arrow-backend.onrender.com');
 
 // Warehouse Coordinates provided by User
-const WAREHOUSE_COORDS: [number, number] = [23.1595236, 87.3516596];
+const WAREHOUSE_LAT = 23.1595236;
+const WAREHOUSE_LNG = 87.3516596;
 
-// West Bengal district coordinate definitions
+// West Bengal districts coordinates dictionary
 const DISTRICT_COORDS: Record<string, [number, number]> = {
   kolkata: [22.5726, 88.3639],
   howrah: [22.5958, 88.2636],
@@ -66,7 +67,7 @@ const INDIA_CITY_COORDS: Record<string, [number, number]> = {
   guwahati: [26.1445, 91.7362],
 };
 
-// Geocoding function mapping text address to coordinates
+// Geocode matching function
 const geocodeAddress = (address: string): [number, number] => {
   const addrLower = address.toLowerCase();
   
@@ -101,87 +102,26 @@ const geocodeAddress = (address: string): [number, number] => {
   ];
 };
 
-export default function HolographicGlobe() {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const polylinesRef = useRef<any[]>([]);
+interface RenderPoint {
+  x: number;
+  y: number;
+  z: number;
+}
 
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
+export default function HolographicGlobe() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [hudMessage, setHudMessage] = useState('Syncing database orders...');
+  const [hudMessage, setHudMessage] = useState('Connecting to system telemetry...');
 
-  // Dynamically load Leaflet Assets
-  useEffect(() => {
-    // 1. Leaflet CSS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-    link.crossOrigin = '';
-    document.head.appendChild(link);
-
-    // 2. Custom Styles Injection (dark-theme OSM styling and blinking keyframes)
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .leaflet-container {
-        background: #0b0f19 !important;
-        font-family: monospace !important;
-      }
-      .leaflet-bar {
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-      }
-      .leaflet-bar a {
-        background-color: #0f172a !important;
-        color: #94a3b8 !important;
-        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-      }
-      .leaflet-bar a:hover {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-      }
-      .leaflet-popup-content-wrapper {
-        background: #0f172a !important;
-        color: #f1f5f9 !important;
-        border: 1px solid #334155 !important;
-        border-radius: 12px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
-      }
-      .leaflet-popup-tip {
-        background: #0f172a !important;
-        border: 1px solid #334155 !important;
-      }
-      
-      /* Blinking animation for West Bengal orders */
-      @keyframes marker-blink {
-        0% { transform: scale(0.9); opacity: 0.4; }
-        50% { transform: scale(1.15); opacity: 1.0; }
-        100% { transform: scale(0.9); opacity: 0.4; }
-      }
-      .wb-blinking-marker {
-        animation: marker-blink 1.4s infinite ease-in-out;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // 3. Leaflet JS Script
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-    script.crossOrigin = '';
-    script.async = true;
-    script.onload = () => {
-      setLeafletLoaded(true);
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(link);
-      document.head.removeChild(style);
-      document.head.removeChild(script);
-    };
-  }, []);
+  // Navigation state refs
+  const rotationRef = useRef({ yaw: 0.8, pitch: 0.3 });
+  const zoomRef = useRef<number>(1.2); // Current zoom level
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const lastInteractionTimeRef = useRef<number>(0);
 
   // Fetch real database orders
   useEffect(() => {
@@ -201,7 +141,7 @@ export default function HolographicGlobe() {
           setHudMessage('No active orders found in database.');
         }
       } catch (err) {
-        console.error('Failed to load database orders for Map', err);
+        console.error('Failed to load database orders for 3D globe', err);
         setHudMessage('Connection error. Displaying warehouse only.');
       } finally {
         setLoadingOrders(false);
@@ -211,137 +151,306 @@ export default function HolographicGlobe() {
     fetchRealOrders();
   }, []);
 
-  // Initialize Map & Markers
+  // 3D Math Calculations & Canvas rendering loop
   useEffect(() => {
-    if (!leafletLoaded || !mapContainerRef.current) return;
-    const L = (window as any).L;
-    if (!L) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    // Centered at India/West Bengal (zoom level 6 to view districts easily)
-    const map = L.map(mapContainerRef.current, {
-      center: [22.9868, 87.8550],
-      zoom: 6,
-      zoomControl: true,
-    });
+    let animFrameId: number;
+    let slowPulse = 0;
+    const baseR = 100; // Base Globe Radius
 
-    // Dark styled map tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      subdomains: 'abcd',
-      maxZoom: 20,
-    }).addTo(map);
-
-    // Call invalidateSize on load to ensure there is no black/broken grey container
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 400);
-
-    // 1. Warehouse Beacon (custom coordinates 23.1595236, 87.3516596)
-    const warehouseIcon = L.divIcon({
-      className: 'custom-warehouse-icon',
-      html: `
-        <div class="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400 flex items-center justify-center animate-ping absolute" style="margin-left: -8px; margin-top: -8px;"></div>
-        <div class="w-6 h-6 rounded-full bg-indigo-600 border border-indigo-300 flex items-center justify-center relative shadow-[0_0_12px_rgba(99,102,241,0.8)] text-xs">🏬</div>
-      `,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    L.marker(WAREHOUSE_COORDS, { icon: warehouseIcon })
-      .addTo(map)
-      .bindPopup(`
-        <div class="text-xs p-1 font-mono">
-          <strong class="text-indigo-400 text-sm">SHADOW ARROW Hub</strong><br/>
-          <span class="text-slate-400 font-bold">Central Warehouse</span><br/>
-          <span class="text-[9px] text-slate-500 block mt-1">Coordinates: 23.1595, 87.3516</span>
-        </div>
-      `);
-
-    // 2. Plot real orders
-    const polylines: any[] = [];
-    orders.forEach((order) => {
-      if (!order.shipping_address) return;
-
-      const orderCoords = geocodeAddress(order.shipping_address);
-      const isWestBengal = order.shipping_address.toLowerCase().includes('west bengal') || order.shipping_address.toLowerCase().includes('wb');
-      
-      let markerColor = '#10b981'; // Completed
-      if (order.order_status === 'PROCESSING') markerColor = '#f59e0b';
-      else if (order.order_status === 'SHIPPED') markerColor = '#3b82f6';
-      else if (order.order_status === 'CANCELLED') markerColor = '#ef4444';
-
-      // Blinking css class applied only to West Bengal orders
-      const blinkClass = isWestBengal ? 'wb-blinking-marker' : '';
-
-      const orderIcon = L.divIcon({
-        className: `custom-order-icon ${blinkClass}`,
-        html: `
-          <div class="w-3.5 h-3.5 rounded-full border border-white flex items-center justify-center relative" style="background-color: ${markerColor}; box-shadow: 0 0 10px ${markerColor}">
-            ${isWestBengal ? '<div class="absolute w-5 h-5 border border-amber-400/50 rounded-full animate-ping"></div>' : ''}
-          </div>
-        `,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-      });
-
-      L.marker(orderCoords, { icon: orderIcon })
-        .addTo(map)
-        .bindPopup(`
-          <div class="text-[11px] font-mono leading-relaxed p-0.5">
-            <strong class="text-white text-xs">${order.customer_name}</strong><br/>
-            <span class="text-slate-400">ID: ${order.order_id}</span><br/>
-            <span class="text-slate-400">Addr: ${order.shipping_address}</span><br/>
-            <div class="mt-1 flex items-center gap-1.5">
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold" style="background-color: ${markerColor}20; color: ${markerColor}; border: 1px solid ${markerColor}40">
-                ${order.order_status || 'CONFIRMED'}
-              </span>
-              <span class="text-indigo-300 font-bold">₹${order.total_amount?.toLocaleString('en-IN')}</span>
-            </div>
-          </div>
-        `);
-
-      // 3. Draw shipping lines (ultra thin, hidden at low zooms, visible at high zooms)
-      const midPoint: [number, number] = [
-        (WAREHOUSE_COORDS[0] + orderCoords[0]) / 2 + (Math.random() - 0.5) * 0.25,
-        (WAREHOUSE_COORDS[1] + orderCoords[1]) / 2 + (Math.random() - 0.5) * 0.25,
-      ];
-
-      const currentZoom = map.getZoom();
-      const initialOpacity = currentZoom >= 9 ? 0.55 : 0.02; // Thin lines hidden at low zoom
-
-      const polyline = L.polyline([WAREHOUSE_COORDS, midPoint, orderCoords], {
-        color: markerColor,
-        weight: 0.8, // Ultra thin line
-        opacity: initialOpacity,
-        dashArray: '2, 3',
-      }).addTo(map);
-
-      polylines.push(polyline);
-    });
-
-    polylinesRef.current = polylines;
-
-    // Dynamically adjust line visibility based on Zoom Level
-    const handleZoomEnd = () => {
-      const zoom = map.getZoom();
-      polylinesRef.current.forEach((line) => {
-        line.setStyle({
-          opacity: zoom >= 9 ? 0.65 : 0.02, // Only show details when user zooms in
-        });
-      });
+    const handleResize = () => {
+      const container = containerRef.current;
+      if (container && canvas) {
+        canvas.width = container.clientWidth;
+        canvas.height = 360;
+      }
     };
-    map.on('zoomend', handleZoomEnd);
+    handleResize();
+    window.addEventListener('resize', handleResize);
 
-    mapInstanceRef.current = map;
+    // Convert Lat/Lng to spherical 3D points
+    const latLngTo3D = (lat: number, lng: number, r: number): RenderPoint => {
+      const latRad = (lat * Math.PI) / 180;
+      const lngRad = (lng * Math.PI) / 180;
+      return {
+        x: r * Math.cos(latRad) * Math.sin(lngRad),
+        y: -r * Math.sin(latRad), // Invert Y for canvas mapping
+        z: r * Math.cos(latRad) * Math.cos(lngRad),
+      };
+    };
+
+    const drawLoop = () => {
+      if (!ctx || !canvas) return;
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const R = baseR * zoomRef.current; // Adjust radius by zoom level
+
+      // Clear background
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Grid background dots
+      ctx.save();
+      ctx.fillStyle = 'rgba(99, 102, 241, 0.02)';
+      for (let x = 10; x < canvas.width; x += 30) {
+        for (let y = 10; y < canvas.height; y += 30) {
+          ctx.fillRect(x, y, 2, 2);
+        }
+      }
+      ctx.restore();
+
+      const yaw = rotationRef.current.yaw;
+      const pitch = rotationRef.current.pitch;
+
+      // Auto rotate only if user has not interacted in the last 4 seconds
+      const now = Date.now();
+      if (now - lastInteractionTimeRef.current > 4000) {
+        rotationRef.current.yaw += 0.003;
+      }
+
+      // Rotate point around pitch (X-axis) and yaw (Y-axis)
+      const rotatePoint = (pt: RenderPoint) => {
+        // Yaw
+        const x1 = pt.x * Math.cos(yaw) - pt.z * Math.sin(yaw);
+        const z1 = pt.x * Math.sin(yaw) + pt.z * Math.cos(yaw);
+        // Pitch
+        const y2 = pt.y * Math.cos(pitch) - z1 * Math.sin(pitch);
+        const z2 = pt.y * Math.sin(pitch) + z1 * Math.cos(pitch);
+
+        return { x: x1, y: y2, z: z2 };
+      };
+
+      const project = (pt: RenderPoint) => {
+        return {
+          x: cx + pt.x,
+          y: cy + pt.y,
+          z: pt.z,
+        };
+      };
+
+      slowPulse = (slowPulse + 0.05) % (2 * Math.PI);
+
+      // 1. Draw Latitudes Grid (Horizontal circles)
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.08)';
+      ctx.lineWidth = 0.8;
+      for (let lat = -80; lat <= 80; lat += 20) {
+        const latRad = (lat * Math.PI) / 180;
+        const y = R * Math.sin(latRad);
+        const rRing = R * Math.cos(latRad);
+
+        ctx.beginPath();
+        let first = true;
+        for (let th = 0; th <= 360; th += 15) {
+          const thRad = (th * Math.PI) / 180;
+          const pt = rotatePoint({ x: rRing * Math.cos(thRad), y: y, z: rRing * Math.sin(thRad) });
+          const screen = project(pt);
+          
+          if (first) {
+            ctx.moveTo(screen.x, screen.y);
+            first = false;
+          } else {
+            ctx.lineTo(screen.x, screen.y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // 2. Draw Longitudes Grid (Vertical circles)
+      for (let lon = 0; lon < 180; lon += 30) {
+        const lonRad = (lon * Math.PI) / 180;
+        ctx.beginPath();
+        let first = true;
+        for (let th = 0; th <= 360; th += 15) {
+          const thRad = (th * Math.PI) / 180;
+          const pt = rotatePoint({
+            x: R * Math.cos(thRad) * Math.cos(lonRad),
+            y: R * Math.sin(thRad),
+            z: R * Math.cos(thRad) * Math.sin(lonRad),
+          });
+          const screen = project(pt);
+          
+          if (first) {
+            ctx.moveTo(screen.x, screen.y);
+            first = false;
+          } else {
+            ctx.lineTo(screen.x, screen.y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // 3. Draw Warehouse Marker (Pulsing holographic anchor at user coordinates)
+      const w3D = latLngTo3D(WAREHOUSE_LAT, WAREHOUSE_LNG, R);
+      const wRot = rotatePoint(w3D);
+      const wScreen = project(wRot);
+      const isWarehouseFront = wRot.z > -10;
+
+      if (isWarehouseFront) {
+        // Blinking anchor ring
+        ctx.beginPath();
+        ctx.arc(wScreen.x, wScreen.y, 8 + Math.sin(slowPulse * 1.5) * 3, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Solid inner dot
+        ctx.beginPath();
+        ctx.arc(wScreen.x, wScreen.y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#818cf8';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#818cf8';
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset
+
+        // Label
+        ctx.font = 'bold 9px monospace';
+        ctx.fillStyle = '#a5b4fc';
+        ctx.fillText('★ SHADOW ARROW HUB', wScreen.x + 8, wScreen.y + 3);
+      }
+
+      // 4. Plot Real Orders & Draw Ultra-Thin lines (Zoom-sensitive)
+      orders.forEach((order) => {
+        if (!order.shipping_address) return;
+        
+        const coords = geocodeAddress(order.shipping_address);
+        const pt3D = latLngTo3D(coords[0], coords[1], R);
+        const rot = rotatePoint(pt3D);
+        const screen = project(rot);
+
+        const isFront = rot.z > -10;
+        if (!isFront) return; // Skip back-face markers
+
+        const isWestBengal = order.shipping_address.toLowerCase().includes('west bengal') || order.shipping_address.toLowerCase().includes('wb');
+
+        let markerColor = '#10b981'; // Confirmed/Delivered
+        if (order.order_status === 'PROCESSING') markerColor = '#f59e0b';
+        else if (order.order_status === 'SHIPPED') markerColor = '#3b82f6';
+        else if (order.order_status === 'CANCELLED') markerColor = '#ef4444';
+
+        // Blinking calculations for West Bengal orders
+        let scalePulse = 1.0;
+        let opacityPulse = 0.8;
+        if (isWestBengal) {
+          scalePulse = 1.0 + Math.sin(slowPulse * 2.0) * 0.35; // Rapid blink
+          opacityPulse = 0.5 + Math.sin(slowPulse * 2.0) * 0.5;
+        }
+
+        // Draw order node
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, 3 * scalePulse, 0, 2 * Math.PI);
+        ctx.fillStyle = markerColor;
+        ctx.globalAlpha = opacityPulse;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = markerColor;
+        ctx.fill();
+        ctx.restore();
+
+        // Draw text label on high zoom
+        if (zoomRef.current > 1.8) {
+          ctx.font = '8px monospace';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+          ctx.fillText(`${order.customer_name} (₹${order.total_amount})`, screen.x + 6, screen.y + 2);
+        }
+
+        // 5. Draw Ultra-Thin Connection Arcs (Visibility dependent on zoom factor)
+        // Hidden/practically invisible at low zoom, visible when user zooms in
+        let lineOpacity = 0.02;
+        if (zoomRef.current > 2.0) {
+          // Fade in dynamically
+          lineOpacity = Math.min(0.65, (zoomRef.current - 2.0) * 0.25);
+        }
+
+        if (lineOpacity > 0.03 && isWarehouseFront) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(wScreen.x, wScreen.y);
+          
+          // Draw simple projected 3D arc curve between warehouse and customer location
+          const midX = (wScreen.x + screen.x) / 2;
+          const midY = (wScreen.y + screen.y) / 2 - 25 * zoomRef.current; // Arc height
+          
+          ctx.quadraticCurveTo(midX, midY, screen.x, screen.y);
+          ctx.strokeStyle = markerColor;
+          ctx.globalAlpha = lineOpacity;
+          ctx.lineWidth = 0.8; // Ultra thin
+          ctx.setLineDash([2, 3]);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+
+      // Atmosphere/Radar Ring Glow
+      ctx.beginPath();
+      ctx.arc(cx, cy, R + 4, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(58, 146, 200, 0.12)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      animFrameId = requestAnimationFrame(drawLoop);
+    };
+
+    animFrameId = requestAnimationFrame(drawLoop);
 
     return () => {
-      map.off('zoomend', handleZoomEnd);
-      map.remove();
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [leafletLoaded, orders]);
+  }, [orders]);
+
+  // Drag rotation handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDraggingRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    lastInteractionTimeRef.current = Date.now();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    
+    rotationRef.current.yaw += dx * 0.007;
+    rotationRef.current.pitch += dy * 0.007;
+    
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    lastInteractionTimeRef.current = Date.now();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+  };
+
+  // Scroll wheel zoom handler
+  const handleWheel = (e: React.WheelEvent) => {
+    // Zoom factor ranges from 0.6 (zoomed out) to 5.0 (deep zoomed in)
+    const direction = e.deltaY > 0 ? -1 : 1;
+    const newZoom = Math.min(5.0, Math.max(0.6, zoomRef.current + direction * 0.08));
+    zoomRef.current = newZoom;
+    lastInteractionTimeRef.current = Date.now();
+  };
+
+  const triggerZoom = (zoomIn: boolean) => {
+    const direction = zoomIn ? 1 : -1;
+    const newZoom = Math.min(5.0, Math.max(0.6, zoomRef.current + direction * 0.4));
+    zoomRef.current = newZoom;
+    lastInteractionTimeRef.current = Date.now();
+  };
+
+  const resetView = () => {
+    rotationRef.current = { yaw: 0.8, pitch: 0.3 };
+    zoomRef.current = 1.2;
+    lastInteractionTimeRef.current = Date.now();
+  };
 
   return (
     <div
+      ref={containerRef}
       className="w-full bg-ops-800 border border-ops-700 rounded-2xl flex flex-col overflow-hidden relative shadow-2xl backdrop-blur-xl"
     >
       {/* Header */}
@@ -352,44 +461,73 @@ export default function HolographicGlobe() {
           </div>
           <div>
             <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
-              REAL-TIME GEOGRAPHICAL LOGISTICS TRACKER
+              HOLOGRAPHIC 3D NETWORK GLOBE
             </h3>
             <p className="text-[10px] text-slate-400 font-mono">
-              Live OpenStreetMap scanner. Ultra-thin connections appear on zoom-in.
+              Live offline-ready canvas sphere. Drag to rotate, scroll/zoom anywhere.
             </p>
           </div>
         </div>
+
+        {/* Zoom & Reset Toolbar */}
+        <div className="flex items-center space-x-1.5 z-10">
+          <button
+            onClick={() => triggerZoom(true)}
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => triggerZoom(false)}
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={resetView}
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition"
+            title="Reset View"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Map rendering div */}
+      {/* Render Element */}
       <div className="relative flex-1 bg-[#0b0f19] h-[360px]">
         {loadingOrders ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 font-mono text-xs gap-3">
             <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
-            <span>Synchronizing tracking data...</span>
+            <span>Initializing 3D Telemetry Grid...</span>
           </div>
         ) : (
-          <div
-            ref={mapContainerRef}
-            className="w-full h-full border-none outline-none z-0"
-            id="real-order-map"
+          <canvas
+            ref={canvasRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onWheel={handleWheel}
+            className="w-full h-full cursor-grab active:cursor-grabbing block"
           />
         )}
 
         {/* Live HUD ticker overlay */}
-        <div className="absolute bottom-4 left-4 right-4 bg-ops-950/80 border border-ops-700/80 px-4 py-2.5 rounded-xl backdrop-blur-md flex items-center justify-between font-mono text-[10px] shadow-lg z-[400] pointer-events-none">
+        <div className="absolute bottom-4 left-4 right-4 bg-ops-950/80 border border-ops-700/80 px-4 py-2.5 rounded-xl backdrop-blur-md flex items-center justify-between font-mono text-[10px] shadow-lg pointer-events-none z-10">
           <div className="flex items-center space-x-2.5 truncate">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
             </span>
-            <span className="text-slate-400 uppercase tracking-wider">MAP SYNC:</span>
+            <span className="text-slate-400 uppercase tracking-wider">DATABASE SYNC:</span>
             <span className="text-indigo-300 font-bold truncate">
               {hudMessage}
             </span>
           </div>
           <span className="text-slate-500 text-[9px] uppercase hidden sm:inline-block font-bold">
-            ZOOM IN FOR DISTRICT ROADS & BLINKING WB MARKERS
+            DRAG TO ROTATE • WHEEL TO ZOOM GLOBE
           </span>
         </div>
       </div>

@@ -159,11 +159,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <!-- Legend entries injected here -->
                 </div>
             </div>
-
-            <!-- Black Hole Trigger -->
-            <button id="blackhole-btn" class="absolute bottom-6 left-6 w-8 h-8 rounded-full bg-red-900/50 border border-red-500/50 hover:bg-red-700 hover:scale-125 transition-all flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.5)] z-50 pointer-events-auto" title="Initiate Black Hole">
-                <div class="w-3 h-3 rounded-full bg-red-400 animate-pulse"></div>
-            </button>
         </div>
 
         <!-- Right Detail Panel (Sidebar) -->
@@ -352,8 +347,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         let activeClusterFilters = new Set();
         let allClusters = new Set();
         let allLangs = new Set();
-        let blackholeActive = false;
-        const blackholeBtn = document.getElementById('blackhole-btn');
 
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
@@ -378,28 +371,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const style = CLUSTER_STYLES[n.group] || CLUSTER_STYLES['Other'];
                 return {
                     ...n,
-                    x: 0, // Big Bang coordinates
-                    y: 0,
                     color: style.color,
                     font: { color: style.labelColor, size: 12, face: 'Inter' },
                     shape: 'dot',
                     size: 16 + (graphData.details[n.id]?.dependents?.length || 0) * 1.5 // Size based on popularity
                 };
             });
-            // Inject SHADOW ARROW core
-            originalNodes.push({
-                id: 'shadow-arrow-core',
-                label: 'SHADOW ARROW',
-                group: 'Main/Entry',
-                x: 0,
-                y: 0,
-                color: { background: '#ef4444', border: '#b91c1c' },
-                font: { color: '#ffffff', size: 24, face: 'Inter' },
-                shape: 'dot',
-                size: 40,
-                fixed: true // Anchor to center
-            });
-            
             originalEdges = graphData.edges.map(e => ({
                 ...e,
                 arrows: 'to',
@@ -519,7 +496,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     zoomView: true
                 },
                 physics: {
-                    enabled: false, // Freeze on load for 3 seconds
+                    enabled: physicsToggle.checked,
                     solver: 'forceAtlas2Based',
                     forceAtlas2Based: {
                         gravitationalConstant: -26,
@@ -549,17 +526,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Fit screen after animation/layout
             network.once('stabilized', () => {
                 network.fit();
-            });
-
-            // 3-SECOND DELAYED BIG BANG BLAST
-            setTimeout(() => {
-                nodesDataset.remove('shadow-arrow-core'); // Destroy the core
-                network.setOptions({ physics: { enabled: physicsToggle.checked } }); // Blast out!
                 
                 // Continuous gentle breathing/floating motion
                 let step = 0;
                 setInterval(() => {
-                    if (physicsToggle && physicsToggle.checked && !blackholeActive) {
+                    if (physicsToggle && physicsToggle.checked) {
                         step += 0.04;
                         // Slightly oscillate central gravity to keep nodes swaying gently
                         network.setOptions({
@@ -572,7 +543,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         network.startSimulation();
                     }
                 }, 100);
-            }, 3000);
+            });
 
             // Network event handlers
             network.on('click', (params) => {
@@ -634,11 +605,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
                     ctx.beginPath();
                     ctx.arc(pos.x, pos.y, size * scale, 0, 2 * Math.PI);
-                    ctx.strokeStyle = blackholeActive || node.id === 'shadow-arrow-core' ? '#ef4444' : baseStyle.color.border;
-                    ctx.lineWidth = blackholeActive ? 2.5 : lineWidth;
-                    ctx.globalAlpha = blackholeActive ? 1.0 : opacity;
-                    ctx.shadowBlur = blackholeActive ? 20 : shadowBlur;
-                    ctx.shadowColor = blackholeActive || node.id === 'shadow-arrow-core' ? '#ef4444' : baseStyle.color.border;
+                    ctx.strokeStyle = baseStyle.color.border;
+                    ctx.lineWidth = lineWidth;
+                    ctx.globalAlpha = opacity;
+                    ctx.shadowBlur = shadowBlur;
+                    ctx.shadowColor = baseStyle.color.border;
                     ctx.stroke();
                 });
                 ctx.restore();
@@ -705,55 +676,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 network.setOptions({ physics: { enabled: e.target.checked } });
             });
 
-            // Reset Button (Also restarts Big Bang)
+            // Reset Button
             resetBtn.addEventListener('click', () => {
                 searchInput.value = '';
                 physicsToggle.checked = true;
-                blackholeActive = false;
-                blackholeBtn.classList.remove('animate-spin');
-
-                // Re-inject SHADOW ARROW core if missing
-                if (!nodesDataset.get('shadow-arrow-core')) {
-                    nodesDataset.add({
-                        id: 'shadow-arrow-core',
-                        label: 'SHADOW ARROW',
-                        group: 'Main/Entry',
-                        x: 0,
-                        y: 0,
-                        color: { background: '#ef4444', border: '#b91c1c' },
-                        font: { color: '#ffffff', size: 24, face: 'Inter' },
-                        shape: 'dot',
-                        size: 40,
-                        fixed: true
-                    });
-                }
-                
-                // Stack everything back to center and restore text size
-                const nodesToStack = nodesDataset.get().map(n => ({
-                    id: n.id,
-                    x: 0,
-                    y: 0,
-                    font: { size: 12 }
-                }));
-                nodesDataset.update(nodesToStack);
-
-                network.setOptions({ physics: { enabled: false } }); // Pause for 3s
-                
-                setTimeout(() => {
-                    nodesDataset.remove('shadow-arrow-core');
-                    network.setOptions({ 
-                        physics: { 
-                            enabled: physicsToggle.checked,
-                            forceAtlas2Based: {
-                                centralGravity: 0.005,
-                                springLength: 120,
-                                springConstant: 0.08,
-                                avoidOverlap: 0.6
-                            }
-                        } 
-                    });
-                }, 3000);
-                
+                network.setOptions({ physics: { enabled: true } });
                 activeClusterFilters = new Set(allClusters);
                 initFilters();
                 filterGraph();
@@ -776,49 +703,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (e.key === 'Escape') {
                     deselectNode();
                 }
-            });
-
-            // Black Hole Trigger
-            blackholeBtn.addEventListener('click', () => {
-                if (blackholeActive) return;
-                blackholeActive = true;
-                blackholeBtn.classList.add('animate-spin');
-                
-                // Slowly pull everything in with turbulence
-                let currentGravity = 0.005;
-                const gravityInterval = setInterval(() => {
-                    if (!blackholeActive) {
-                        clearInterval(gravityInterval);
-                        return;
-                    }
-                    currentGravity = Math.min(1.5, currentGravity + 0.03);
-                    network.setOptions({
-                        physics: {
-                            forceAtlas2Based: {
-                                centralGravity: currentGravity,
-                                springLength: 20,
-                                springConstant: 0.1,
-                                avoidOverlap: 1.0 // Struggle effect
-                            }
-                        }
-                    });
-                }, 100);
-                
-                // Turn everything red and hide text labels
-                const nodesToUpdate = nodesDataset.get().map(node => ({
-                    id: node.id,
-                    color: { background: '#ef4444', border: '#991b1b' },
-                    opacity: 1.0,
-                    font: { size: 0 } // Hide text
-                }));
-                nodesDataset.update(nodesToUpdate);
-
-                const edgesToUpdate = edgesDataset.get().map(edge => ({
-                    id: edge.id,
-                    color: { color: '#ef4444', opacity: 0.8 },
-                    width: 2.0
-                }));
-                edgesDataset.update(edgesToUpdate);
             });
 
             // Copy Path Click
@@ -949,7 +833,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function clearHighlight() {
-            if (blackholeActive) return;
             // Reset opacity and styling
             const nodesToUpdate = nodesDataset.get().map(node => {
                 const style = CLUSTER_STYLES[node.group] || CLUSTER_STYLES['Other'];
@@ -1145,7 +1028,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function applyColorAndStyleModes() {
-            if (blackholeActive) return;
             activeHighlightedPath = null;
             const mode = colorModeSelect.value;
             const highlightOrphans = orphanToggle.checked;

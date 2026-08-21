@@ -144,3 +144,21 @@ html.light-mode .fixed.inset-0.bg-black\/70 {
   animation: origin-expand 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: clip-path;
 }
+
+/* ========================================================
+   MOBILE & TABLET RESPONSIVENESS OVERRIDES
+   ======================================================== */
+@media (max-width: 767px) {
+  /* Offset main content below the fixed top bar on mobile and reduce padding */
+  main.flex-1 {
+    padding: 1.5rem !important;
+    padding-top: 5.5rem !important;
+  }
+
+  /* Make sure table containers don't clip contents or cause main page horizontal scroll */
+  .bg-ops-800.border.rounded-xl.overflow-hidden,
+  .bg-ops-800.border.rounded-2xl.overflow-hidden {
+    overflow-x: auto !important;
+  }
+}
+

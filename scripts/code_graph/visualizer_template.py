@@ -512,7 +512,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }
                 },
                 edges: {
-                    smooth: false
+                    smooth: false,
+                    color: {
+                        inherit: 'both',
+                        opacity: 0.35
+                    },
+                    width: 1.0
                 }
             };
             
@@ -580,20 +585,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }
 
                     let scale = 1.0;
-                    let opacity = 0.15;
-                    let lineWidth = 1.0;
-                    let shadowBlur = 4;
+                    let opacity = 0.35;
+                    let lineWidth = 1.2;
+                    let shadowBlur = 8;
 
                     if (isSelected) {
-                        scale = 1.1 + Math.sin(fastPulseStep) * 0.25; // Fast, intense pulse when selected
-                        opacity = 0.95;
-                        lineWidth = 2.5;
-                        shadowBlur = 18;
+                        scale = 1.1 + Math.sin(fastPulseStep) * 0.4; // Fast, intense pulse when selected
+                        opacity = 1.0;
+                        lineWidth = 3.0;
+                        shadowBlur = 25;
                     } else {
-                        scale = 1.0 + Math.sin(slowPulseStep + phaseOffset) * 0.1; // Slow, breathing idle pulse
-                        opacity = 0.18;
-                        lineWidth = 1.0;
-                        shadowBlur = 4;
+                        scale = 1.0 + Math.sin(slowPulseStep + phaseOffset) * 0.15; // Slow, breathing idle pulse
+                        opacity = 0.35;
+                        lineWidth = 1.2;
+                        shadowBlur = 8;
                     }
 
                     const size = 16 + (details.dependents || []).length * 1.5;
@@ -820,8 +825,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const isSelectedEdge = edge.from === nodeId || edge.to === nodeId;
                 return {
                     id: edge.id,
-                    color: isSelectedEdge ? { color: '#6366f1', opacity: 1.0 } : { color: '#1e293b', opacity: 0.1 },
-                    width: isSelectedEdge ? 2.5 : 1.0
+                    color: isSelectedEdge ? { inherit: 'both', opacity: 1.0 } : { inherit: 'both', opacity: 0.08 },
+                    width: isSelectedEdge ? 2.5 : 0.8
                 };
             });
             edgesDataset.update(edgesToUpdate);
@@ -842,8 +847,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             const edgesToUpdate = edgesDataset.get().map(edge => ({
                 id: edge.id,
-                color: { color: '#334155', highlight: '#6366f1', hover: '#475569' },
-                width: 1.2
+                color: { inherit: 'both', opacity: 0.35 },
+                width: 1.0
             }));
             edgesDataset.update(edgesToUpdate);
         }
@@ -1092,8 +1097,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             const edgesToUpdate = edgesDataset.get().map(edge => ({
                 id: edge.id,
-                color: { color: '#334155', highlight: '#6366f1', hover: '#475569' },
-                width: 1.2
+                color: { inherit: 'both', opacity: 0.35 },
+                width: 1.0
             }));
             edgesDataset.update(edgesToUpdate);
         }

@@ -1304,45 +1304,6 @@
             
             setTimeout(() => {
                 try {
-                    // Resume audio context if suspended (browser security)
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                    
-                    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-
-                    osc.start(audioCtx.currentTime);
-                    osc.stop(audioCtx.currentTime + duration);
-                } catch(e) {
-                    console.log("Audio play blocked/failed:", e);
-                }
-            }, delay);
-        }
-
-        // Attack Simulator Sound Effects using Web Audio API (Synthesizer)
-        let audioCtx = null;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playTone(freq, type, duration, delay = 0) {
-            initAudio();
-            if (!audioCtx) return;
-            
-            setTimeout(() => {
-                try {
                     if (audioCtx.state === 'suspended') {
                         audioCtx.resume();
                     }

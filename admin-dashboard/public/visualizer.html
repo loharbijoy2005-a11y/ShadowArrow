@@ -46,13 +46,8 @@
     </style>
 </head>
 <body class="h-full overflow-hidden flex flex-col relative">
-    <!-- View Toggle Button (Moved to body root to ensure it's always on top) -->
-    <button id="view-toggle-btn" style="z-index: 9999 !important;" class="absolute top-2 right-2 sm:top-4 sm:right-4 pointer-events-auto bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded shadow-lg transition-colors border border-indigo-400/30">
-        Show Flow
-    </button>
-
     <!-- Header -->
-    <header class="glass-panel z-10 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+    <header class="glass-panel z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center gap-3">
             <div class="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-indigo-500/30">G</div>
             <div>
@@ -60,12 +55,16 @@
                 <p class="text-xs text-slate-400">Interactive dependency visualizer & context search index</p>
             </div>
         </div>
-        <div class="flex gap-4 text-sm text-slate-400">
-            <div>Files: <span id="stat-files" class="font-semibold text-indigo-400">0</span></div>
-            <div class="h-4 w-px bg-slate-800"></div>
-            <div>Dependencies: <span id="stat-deps" class="font-semibold text-indigo-400">0</span></div>
-            <div class="h-4 w-px bg-slate-800"></div>
-            <div>Languages: <span id="stat-langs" class="font-semibold text-indigo-400">0</span></div>
+        <div class="flex gap-4 items-center text-sm text-slate-400">
+            <div class="hidden sm:block">Files: <span id="stat-files" class="font-semibold text-indigo-400">0</span></div>
+            <div class="hidden sm:block h-4 w-px bg-slate-800"></div>
+            <div class="hidden sm:block">Dependencies: <span id="stat-deps" class="font-semibold text-indigo-400">0</span></div>
+            <div class="hidden sm:block h-4 w-px bg-slate-800"></div>
+            <div class="hidden sm:block">Languages: <span id="stat-langs" class="font-semibold text-indigo-400">0</span></div>
+            <!-- View Toggle Button -->
+            <button id="view-toggle-btn" class="ml-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-4 py-2 rounded shadow-lg font-bold border border-indigo-400/50 transition-colors animate-pulse">
+                🔄 Show Flow
+            </button>
         </div>
     </header>
 

@@ -43,6 +43,30 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        /* Flow Simulation Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.8); transform: scale(1.05); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        @keyframes flash-red {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.4); background-color: rgba(220, 38, 38, 0.2); }
+            50% { border-color: rgba(239, 68, 68, 1); background-color: rgba(220, 38, 38, 0.6); }
+        }
+        .animate-glow {
+            animation: pulse-glow 1.2s infinite ease-in-out;
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        .animate-flash-red {
+            animation: flash-red 0.6s infinite alternate;
+        }
     </style>
 </head>
 <body class="h-full overflow-hidden flex flex-col relative">
@@ -81,9 +105,10 @@
                 
                 <!-- Attack Simulator Dropdown -->
                 <div class="mb-8 w-full max-w-sm">
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Simulate Attack Scenario</label>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Simulate Purchase & Attack Flow</label>
                     <select id="attack-simulator" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
-                        <option value="none">🟢 Normal Secure Flow</option>
+                        <option value="none">🟢 Normal Secure Flow (Online Payment)</option>
+                        <option value="cod">🟢 Normal Secure Flow (Cash On Delivery - COD)</option>
                         <option value="price_hack">🔴 Simulate Price Tampering (Proxy Hack)</option>
                         <option value="ddos">🔴 Simulate DDoS / Bot Attack</option>
                         <option value="path_traversal">🔴 Simulate Sensitive File Hack (.env)</option>
@@ -1264,10 +1289,113 @@
             });
         }
 
-        // Attack Simulator Logic
+        // Attack Simulator Sound Effects using Web Audio API (Synthesizer)
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(freq, type, duration, delay = 0) {
+            initAudio();
+            if (!audioCtx) return;
+            
+            setTimeout(() => {
+                try {
+                    // Resume audio context if suspended (browser security)
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + duration);
+                } catch(e) {
+                    console.log("Audio play blocked/failed:", e);
+                }
+            }, delay);
+        }
+
+        // Attack Simulator Sound Effects using Web Audio API (Synthesizer)
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(freq, type, duration, delay = 0) {
+            initAudio();
+            if (!audioCtx) return;
+            
+            setTimeout(() => {
+                try {
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + duration);
+                } catch(e) {
+                    console.log("Audio play blocked/failed:", e);
+                }
+            }, delay);
+        }
+
+        function playClick() {
+            playTone(600, 'sine', 0.08);
+        }
+
+        function playSuccessSound() {
+            playTone(523.25, 'sine', 0.1, 0);   // C5
+            playTone(659.25, 'sine', 0.1, 80);  // E5
+            playTone(783.99, 'sine', 0.1, 160); // G5
+            playTone(1046.5, 'sine', 0.3, 240); // C6
+        }
+
+        function playErrorSound() {
+            playTone(150, 'sawtooth', 0.3, 0);
+            playTone(100, 'sawtooth', 0.4, 100);
+        }
+
+        // Simulator Timeline & Packet Animation Logic
         const simulatorDropdown = document.getElementById('attack-simulator');
+        let activeTimeouts = [];
         
+        function clearAllTimeouts() {
+            activeTimeouts.forEach(clearTimeout);
+            activeTimeouts = [];
+            // Remove any floating packets
+            const packets = document.querySelectorAll('.flow-packet');
+            packets.forEach(p => p.remove());
+        }
+
         function resetNodes() {
+            clearAllTimeouts();
             const allNodes = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
             const allArrows = ['arrow-1', 'arrow-2', 'arrow-3', 'arrow-4', 'arrow-5', 'arrow-6', 'arrow-7'];
             
@@ -1275,59 +1403,252 @@
                 const el = document.getElementById(id);
                 if(el) {
                     el.style.opacity = '1';
-                    el.classList.remove('bg-red-900/50', 'border-red-500/50');
-                    // restore original colors
-                    if(id === 'node-firewall') { el.classList.add('bg-slate-800', 'border-rose-900/50'); el.querySelector('.status-text').innerText = 'Rate Limit & DDoS Check'; el.querySelector('.status-text').classList.remove('text-red-400', 'font-bold'); el.querySelector('.status-text').classList.add('text-slate-400'); }
-                    if(id === 'node-mongo') { el.classList.add('bg-emerald-900/50', 'border-emerald-500/50'); el.querySelector('.status-text').innerText = 'Verifies Real Price'; el.querySelector('.status-text').classList.remove('text-red-400', 'font-bold'); el.querySelector('.status-text').classList.add('text-slate-400'); }
+                    el.classList.remove('animate-glow', 'animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                    
+                    // restore original classes and text
+                    if(id === 'node-client') { 
+                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Sends Request'; 
+                    }
+                    if(id === 'node-firewall') { 
+                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Rate Limit & DDoS Check'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-backend') { 
+                        el.className = "flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Validates Order'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-mongo') { 
+                        el.className = "flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Verifies Real Price'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-razorpay') { 
+                        el.className = "flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Creates Payment Link'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-success') { 
+                        el.className = "flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Order PAID'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-shiprocket') { 
+                        el.className = "flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Auto Dispatched'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
+                    if(id === 'node-customer') { 
+                        el.className = "flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.querySelector('.status-text').innerText = 'Delivered Safely'; 
+                        el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
+                    }
                 }
             });
             allArrows.forEach(cls => {
                 const els = document.querySelectorAll('.' + cls);
-                els.forEach(el => el.style.opacity = '1');
+                els.forEach(el => {
+                    el.style.opacity = '1';
+                    el.classList.remove('animate-pulse', 'text-indigo-400', 'text-rose-500', 'text-red-500');
+                    el.classList.add('text-indigo-500');
+                });
             });
         }
 
-        function applyHack(scenario) {
-            resetNodes();
-            if (scenario === 'none') return;
-
+        function grayOutFrom(nodeIndex) {
             const allNodes = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
             const allArrows = ['arrow-1', 'arrow-2', 'arrow-3', 'arrow-4', 'arrow-5', 'arrow-6', 'arrow-7'];
             
-            let cutoffIndex = 99;
-
-            if (scenario === 'ddos' || scenario === 'path_traversal') {
-                cutoffIndex = 1; // Blocked at Firewall (index 1)
-                const fw = document.getElementById('node-firewall');
-                fw.classList.remove('bg-slate-800', 'border-rose-900/50');
-                fw.classList.add('bg-red-900/50', 'border-red-500/50');
-                const text = fw.querySelector('.status-text');
-                text.innerText = 'ATTACK BLOCKED ❌';
-                text.classList.remove('text-slate-400');
-                text.classList.add('text-red-400', 'font-bold');
-            } else if (scenario === 'price_hack') {
-                cutoffIndex = 3; // Blocked at Mongo (index 3)
-                const mongo = document.getElementById('node-mongo');
-                mongo.classList.remove('bg-emerald-900/50', 'border-emerald-500/50');
-                mongo.classList.add('bg-red-900/50', 'border-red-500/50');
-                const text = mongo.querySelector('.status-text');
-                text.innerText = 'FAKE PRICE REJECTED ❌';
-                text.classList.remove('text-slate-400');
-                text.classList.add('text-red-400', 'font-bold');
-            }
-
-            // Gray out nodes and arrows after cutoff
             allNodes.forEach((id, idx) => {
-                if (idx > cutoffIndex) {
-                    document.getElementById(id).style.opacity = '0.2';
+                if (idx >= nodeIndex) {
+                    const el = document.getElementById(id);
+                    if (el) el.style.opacity = '0.2';
                 }
             });
+            // Gray out arrows that proceed from the blocked node
             allArrows.forEach((cls, idx) => {
-                if (idx >= cutoffIndex) {
+                if (idx >= (nodeIndex - 1)) {
                     const els = document.querySelectorAll('.' + cls);
                     els.forEach(el => el.style.opacity = '0.2');
                 }
             });
+        }
+
+        // Animates a traveling packet (emoji) along the nodes
+        function animateFlowPacket(path, emoji, onReachNode, onBlock, onComplete) {
+            const container = document.getElementById('architecture-container');
+            if (!container) return;
+
+            const packet = document.createElement('div');
+            packet.className = 'flow-packet absolute z-[100] text-2xl transition-all duration-[600ms] ease-out pointer-events-none';
+            packet.innerText = emoji;
+            packet.style.filter = 'drop-shadow(0 0 8px rgba(255,255,255,0.8))';
+            container.appendChild(packet);
+
+            let currentStep = 0;
+
+            function moveToNext() {
+                if (currentStep >= path.length - 1) {
+                    packet.remove();
+                    if (onComplete) onComplete();
+                    return;
+                }
+
+                const fromId = path[currentStep];
+                const toId = path[currentStep + 1];
+
+                const fromEl = document.getElementById(fromId);
+                const toEl = document.getElementById(toId);
+                const containerRect = container.getBoundingClientRect();
+
+                if (fromEl && toEl) {
+                    const fromRect = fromEl.getBoundingClientRect();
+                    const toRect = toEl.getBoundingClientRect();
+
+                    // Initial position inside container
+                    if (currentStep === 0) {
+                        packet.style.left = `${fromRect.left - containerRect.left + fromRect.width / 2 - 12}px`;
+                        packet.style.top = `${fromRect.top - containerRect.top + fromRect.height / 2 - 12}px`;
+                    }
+
+                    // Animate to target node
+                    activeTimeouts.push(setTimeout(() => {
+                        packet.style.left = `${toRect.left - containerRect.left + toRect.width / 2 - 12}px`;
+                        packet.style.top = `${toRect.top - containerRect.top + toRect.height / 2 - 12}px`;
+                    }, 50));
+
+                    // Once reached (after transition of 600ms)
+                    activeTimeouts.push(setTimeout(() => {
+                        const targetNodeIndex = path.indexOf(toId);
+                        
+                        // Check if block occurs at this node
+                        if (onBlock && onBlock(toId)) {
+                            packet.remove(); // Destroy packet on block
+                            return;
+                        }
+
+                        if (onReachNode) {
+                            onReachNode(toId);
+                        }
+
+                        currentStep++;
+                        moveToNext();
+                    }, 650));
+                } else {
+                    packet.remove();
+                }
+            }
+
+            moveToNext();
+        }
+
+        function applyHack(scenario) {
+            resetNodes();
+            initAudio();
+
+            // Highlight the initial client node
+            const client = document.getElementById('node-client');
+            if (client) {
+                client.classList.add('animate-glow');
+                playClick();
+            }
+
+            let path = [];
+            let emoji = '🛒';
+
+            if (scenario === 'none') {
+                // Online Flow: Client -> Firewall -> Backend -> Mongo -> Razorpay -> Success -> Shiprocket -> Customer
+                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
+                emoji = '🛒';
+            } else if (scenario === 'cod') {
+                // COD Flow: Skip Razorpay
+                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-success', 'node-shiprocket', 'node-customer'];
+                emoji = '📦';
+            } else if (scenario === 'ddos') {
+                path = ['node-client', 'node-firewall'];
+                emoji = '🤖'; // Bot traffic
+            } else if (scenario === 'path_traversal') {
+                path = ['node-client', 'node-firewall'];
+                emoji = '💀'; // Hacker packet
+            } else if (scenario === 'price_hack') {
+                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo'];
+                emoji = '💰'; // Price tempered request
+            }
+
+            // Start flow simulation
+            activeTimeouts.push(setTimeout(() => {
+                animateFlowPacket(
+                    path,
+                    emoji,
+                    // On reach node
+                    (nodeId) => {
+                        const el = document.getElementById(nodeId);
+                        if (el) {
+                            el.classList.add('animate-glow');
+                            
+                            // Specific node status updates
+                            if (nodeId === 'node-firewall') {
+                                el.querySelector('.status-text').innerText = 'Verified IP & Rate Limit ✅';
+                                playTone(440, 'sine', 0.08); // A4 tick
+                            } else if (nodeId === 'node-backend') {
+                                el.querySelector('.status-text').innerText = 'Sanitized Body ✅';
+                                playTone(493.88, 'sine', 0.08); // B4 tick
+                            } else if (nodeId === 'node-mongo') {
+                                el.querySelector('.status-text').innerText = 'Price Verified ✅';
+                                playTone(523.25, 'sine', 0.08); // C5 tick
+                            } else if (nodeId === 'node-razorpay') {
+                                el.querySelector('.status-text').innerText = 'Payment Successful ✅';
+                                playTone(587.33, 'sine', 0.1); // D5 tick
+                            } else if (nodeId === 'node-success') {
+                                if (scenario === 'cod') {
+                                    el.querySelector('.status-text').innerText = 'COD ORDER PLACED (UNPAID) ✅';
+                                } else {
+                                    el.querySelector('.status-text').innerText = 'PAID SUCCESS ✅';
+                                }
+                                playSuccessSound();
+                            } else if (nodeId === 'node-shiprocket') {
+                                el.querySelector('.status-text').innerText = 'Tracking Created ✅';
+                                playTone(698.46, 'sine', 0.1); // F5
+                            } else if (nodeId === 'node-customer') {
+                                el.querySelector('.status-text').innerText = 'Order Delivered! 🎉';
+                                playSuccessSound();
+                            } else {
+                                playClick();
+                            }
+                        }
+                    },
+                    // On Block handler
+                    (nodeId) => {
+                        if (nodeId === 'node-firewall' && (scenario === 'ddos' || scenario === 'path_traversal')) {
+                            const fw = document.getElementById('node-firewall');
+                            fw.classList.add('animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                            const text = fw.querySelector('.status-text');
+                            text.innerText = scenario === 'ddos' ? 'DDoS BLOCKED (Rate Limit Exceeded) ❌' : 'ACCESS DENIED (Sensitive File Attack) ❌';
+                            text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                            playErrorSound();
+                            grayOutFrom(2); // Gray out from backend onwards
+                            return true; // Blocked!
+                        }
+                        if (nodeId === 'node-mongo' && scenario === 'price_hack') {
+                            const mongo = document.getElementById('node-mongo');
+                            mongo.classList.add('animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                            const text = mongo.querySelector('.status-text');
+                            text.innerText = 'PROXY HACK BLOCKED (Real Price Mismatch) ❌';
+                            text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                            playErrorSound();
+                            grayOutFrom(4); // Gray out success onwards
+                            return true; // Blocked!
+                        }
+                        return false;
+                    },
+                    // On complete
+                    () => {
+                        console.log("Simulation complete!");
+                    }
+                );
+            }, 500));
         }
 
         if (simulatorDropdown) {

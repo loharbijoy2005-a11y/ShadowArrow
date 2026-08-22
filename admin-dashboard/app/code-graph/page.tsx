@@ -41,7 +41,7 @@ export default function CodeGraphAdminPage() {
       {/* Embedded Code Graph Visualizer */}
       <main className="flex-1 flex flex-col h-full bg-[#0b0f19] relative no-padding">
         <iframe
-          src="/visualizer.html"
+          src="/visualizer.html?v=2"
           className="w-full h-full border-none"
           title="Codebase Knowledge Graph"
         />

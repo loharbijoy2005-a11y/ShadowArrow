@@ -163,22 +163,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="hidden sm:block">Dependencies: <span id="stat-deps" class="font-semibold text-indigo-400">0</span></div>
             <div class="hidden sm:block h-4 w-px bg-slate-800"></div>
             <div class="hidden sm:block">Languages: <span id="stat-langs" class="font-semibold text-indigo-400">0</span></div>
-            <!-- View Toggle Button (Compact Icon Button with Tooltip) -->
-            <div class="relative group ml-2">
-                <button id="view-toggle-btn" class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg border border-indigo-500/50 transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95" aria-label="Toggle View">
-                    <!-- Default: Flow icon (Show Flow) -->
-                    <svg id="toggle-icon-flow" class="w-4.5 h-4.5 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                    <!-- Alternate: Graph icon (Show Graph) - Hidden by default -->
-                    <svg id="toggle-icon-graph" class="w-4.5 h-4.5 text-white hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9a2 2 0 002 2z"></path>
-                    </svg>
-                </button>
-                <div class="absolute right-0 top-11 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] px-2 py-1 rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                    Toggle Graph / Flow View
-                </div>
-            </div>
+            <!-- View Toggle Button (Compact Icon Button with Native Tooltip) -->
+            <button id="view-toggle-btn" title="Toggle Graph / Flow View" class="ml-2 p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg border border-indigo-500/50 transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95" aria-label="Toggle View">
+                <!-- Default: Flow icon (Show Flow) -->
+                <svg id="toggle-icon-flow" class="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <!-- Alternate: Graph icon (Show Graph) - Hidden by default -->
+                <svg id="toggle-icon-graph" class="w-5 h-5 text-white hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9a2 2 0 002 2z"></path>
+                </svg>
+            </button>
         </div>
     </header>
 

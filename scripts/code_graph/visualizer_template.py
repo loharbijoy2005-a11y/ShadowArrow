@@ -90,15 +90,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
             box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3) !important;
         }
+        /* Road segment styles */
+        .road-segment {
+            background-color: #090d16 !important;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .road-divider-h {
+            background-image: linear-gradient(to right, #475569 50%, transparent 50%);
+            background-size: 8px 100%;
+        }
+        .road-divider-v {
+            background-image: linear-gradient(to bottom, #475569 50%, transparent 50%);
+            background-size: 100% 8px;
+        }
         .locked-arrow {
-            opacity: 0.05 !important;
-            filter: blur(1.5px) !important;
-            transition: all 0.5s ease !important;
+            opacity: 0.25 !important;
+            border-color: #1e293b !important;
         }
         .unlocked-arrow {
             opacity: 1 !important;
-            filter: none !important;
-            transition: all 0.5s ease !important;
+            background-color: #111827 !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4) !important;
+        }
+        .unlocked-arrow .road-divider-h {
+            background-image: linear-gradient(to right, #fbbf24 60%, transparent 40%);
+            animation: road-scroll-h 0.35s infinite linear;
+        }
+        .unlocked-arrow .road-divider-v {
+            background-image: linear-gradient(to bottom, #fbbf24 60%, transparent 40%);
+            animation: road-scroll-v 0.35s infinite linear;
+        }
+        @keyframes road-scroll-h {
+            from { background-position: 0 0; }
+            to { background-position: 16px 0; }
+        }
+        @keyframes road-scroll-v {
+            from { background-position: 0 0; }
+            to { background-position: 0 16px; }
         }
 
         /* Stickman walk and swing keyframes */
@@ -257,21 +286,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                             <div class="text-xs sm:text-sm font-semibold text-white">Client</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Sends Request</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-1 locked-arrow">➔</div>
+                        <div class="road-segment arrow-1 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
                         
                         <div id="node-firewall" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                             <div class="text-xs sm:text-sm font-semibold text-rose-400">Security Firewall</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Rate Limit & DDoS Check</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-2 locked-arrow">➔</div>
+                        <div class="road-segment arrow-2 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
      
                         <div id="node-backend" class="flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-indigo-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             <div class="text-xs sm:text-sm font-semibold text-indigo-300">Go Backend</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Validates Order</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-3 locked-arrow">➔</div>
+                        <div class="road-segment arrow-3 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
      
                         <div id="node-mongo" class="flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-emerald-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
@@ -280,7 +318,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         </div>
                     </div>
                     
-                    <div class="my-4 sm:my-6 text-indigo-500 text-xl sm:text-2xl arrow-4 locked-arrow">⬇</div>
+                    <div class="road-segment arrow-4 locked-arrow my-4 w-[8px] h-[40px] border-x-2 border-slate-700 flex items-center justify-center">
+                        <div class="road-divider-v h-full w-0.5"></div>
+                    </div>
      
                     <!-- ROW 2 -->
                     <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
@@ -289,21 +329,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                             <div class="text-xs sm:text-sm font-semibold text-blue-300">Razorpay</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Creates Payment Link</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-5 locked-arrow">➔</div>
+                        <div class="road-segment arrow-5 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
                         
                         <div id="node-success" class="flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-green-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                             <div class="text-xs sm:text-sm font-semibold text-green-300">Success</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Order PAID</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-6 locked-arrow">➔</div>
+                        <div class="road-segment arrow-6 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
      
                         <div id="node-shiprocket" class="flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-orange-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                             <div class="text-xs sm:text-sm font-semibold text-orange-300">Shiprocket</div>
                             <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Auto Dispatched</div>
                         </div>
-                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-7 locked-arrow">➔</div>
+                        <div class="road-segment arrow-7 locked-arrow mx-1 w-[8px] h-[30px] sm:w-[50px] sm:h-[14px] border-x-2 sm:border-x-0 sm:border-y-2 border-slate-700 flex items-center justify-center">
+                            <div class="road-divider-v sm:hidden h-full w-0.5"></div>
+                            <div class="road-divider-h hidden sm:block w-full h-0.5"></div>
+                        </div>
      
                         <div id="node-customer" class="flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                             <svg class="w-8 h-8 mb-1 sm:mb-2 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>

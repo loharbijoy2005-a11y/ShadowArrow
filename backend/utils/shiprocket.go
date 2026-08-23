@@ -103,7 +103,7 @@ type ShiprocketOrderRequest struct {
 	OrderDate            string                `json:"order_date"`
 	PickupLocation       string                `json:"pickup_location"`
 	BillingCustomerName  string                `json:"billing_customer_name"`
-	BillingLastName      string                `json:"billing_last_name,omitempty"`
+	BillingLastName      string                `json:"billing_last_name"`
 	BillingAddress       string                `json:"billing_address"`
 	BillingCity          string                `json:"billing_city"`
 	BillingPincode       string                `json:"billing_pincode"`
@@ -122,9 +122,9 @@ type ShiprocketOrderRequest struct {
 }
 
 type ShiprocketOrderResponse struct {
-	OrderID    int `json:"order_id"`
-	ShipmentID int `json:"shipment_id"`
-	Status     int `json:"status"`
+	OrderID    int    `json:"order_id"`
+	ShipmentID int    `json:"shipment_id"`
+	Status     string `json:"status"`
 }
 
 func GetShiprocketToken() (string, error) {
@@ -176,11 +176,22 @@ func DispatchToShiprocket(order *models.Order) (int, int, error) {
 
 	pincode, city, state := ParseAddressDetails(order.ShippingAddress)
 
+	firstName := order.CustomerName
+	lastName := "."
+	parts := strings.Fields(strings.TrimSpace(order.CustomerName))
+	if len(parts) > 1 {
+		firstName = parts[0]
+		lastName = strings.Join(parts[1:], " ")
+	} else if len(parts) == 1 {
+		firstName = parts[0]
+	}
+
 	srReq := ShiprocketOrderRequest{
 		OrderID:             order.OrderID,
 		OrderDate:           order.CreatedAt.Format("2006-01-02 15:04"),
 		PickupLocation:      getShiprocketPickupLocation(),
-		BillingCustomerName: order.CustomerName,
+		BillingCustomerName: firstName,
+		BillingLastName:     lastName,
 		BillingAddress:      order.ShippingAddress,
 		BillingCity:         city,
 		BillingPincode:      pincode,
@@ -216,6 +227,7 @@ func DispatchToShiprocket(order *models.Order) (int, int, error) {
 	defer resp.Body.Close()
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
+	log.Printf("[SHIPROCKET RESPONSE] Status: %d, Body: %s", resp.StatusCode, string(bodyBytes))
 	var srResp ShiprocketOrderResponse
 	if err := json.Unmarshal(bodyBytes, &srResp); err != nil {
 		log.Printf("[SHIPROCKET WARN] Response parse error: %s", string(bodyBytes))

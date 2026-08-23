@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -19,6 +20,52 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var (
+	// ShiprocketQueue manages order dispatches asynchronously to handle 100k+ concurrent checkout requests
+	ShiprocketQueue = make(chan models.Order, 500000)
+)
+
+func init() {
+	// Initialize 5 background workers to process order dispatches in parallel, sequentially draining the queue.
+	// This protects the backend from thread exhaustion and rate limits under huge volumes.
+	for i := 1; i <= 5; i++ {
+		go shiprocketWorker(i)
+	}
+}
+
+func shiprocketWorker(workerID int) {
+	log.Printf("[SHIPROCKET WORKER-%d] Initialized background worker queue", workerID)
+	for order := range ShiprocketQueue {
+		log.Printf("[SHIPROCKET WORKER-%d] Processing order %s from queue...", workerID, order.OrderID)
+		srOrderID, srShipmentID, err := utils.DispatchToShiprocket(&order)
+		if err != nil {
+			log.Printf("[SHIPROCKET WORKER-%d ERROR] Dispatch failed for order %s: %v", workerID, order.OrderID, err)
+			time.Sleep(1 * time.Second) // wait before next job in case of endpoint outages
+			continue
+		}
+
+		if srOrderID > 0 || srShipmentID > 0 {
+			bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
+			_, updateErr := db.GetCollection("orders").UpdateOne(
+				bgCtx,
+				bson.M{"order_id": order.OrderID},
+				bson.M{"$set": bson.M{
+					"shiprocket_order_id":    srOrderID,
+					"shiprocket_shipment_id": srShipmentID,
+				}},
+			)
+			bgCancel()
+			if updateErr != nil {
+				log.Printf("[SHIPROCKET WORKER-%d ERROR] Failed to save database reference for order %s: %v", workerID, order.OrderID, updateErr)
+			} else {
+				log.Printf("[SHIPROCKET WORKER-%d SUCCESS] Order %s dispatched successfully. IDs: (%d, %d)", workerID, order.OrderID, srOrderID, srShipmentID)
+			}
+		}
+		// A small delay to adhere to Shiprocket rate limits under heavy queues
+		time.Sleep(100 * time.Millisecond)
+	}
+}
 
 type VerifyPaymentPayload struct {
 	OrderID           string `json:"order_id" binding:"required"`
@@ -186,22 +233,13 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			order.PaymentMethod = "COD"
 			order.PaymentStatus = "PENDING"
 
-			// Trigger automatic Shiprocket dispatch for COD orders
-			go func(ord models.Order) {
-				srOrderID, srShipmentID, err := utils.DispatchToShiprocket(&ord)
-				if err == nil && (srOrderID > 0 || srShipmentID > 0) {
-					bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
-					defer bgCancel()
-					db.GetCollection("orders").UpdateOne(
-						bgCtx,
-						bson.M{"order_id": ord.OrderID},
-						bson.M{"$set": bson.M{
-							"shiprocket_order_id":    srOrderID,
-							"shiprocket_shipment_id": srShipmentID,
-						}},
-					)
-				}
-			}(order)
+			// Push COD order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion
+			select {
+			case ShiprocketQueue <- order:
+				log.Printf("[QUEUE] COD Order %s queued successfully", order.OrderID)
+			default:
+				log.Printf("[QUEUE ERROR] Shiprocket queue full, order %s dropped from queue", order.OrderID)
+			}
 		}
 
 		orderCollection := db.GetCollection("orders")
@@ -347,21 +385,13 @@ func VerifyPayment(cfg *config.Config) gin.HandlerFunc {
 		order.RazorpaySignature = payload.RazorpaySignature
 
 		// Trigger automatic Shiprocket dispatch upon successful Prepaid payment verification
-		go func(ord models.Order) {
-			srOrderID, srShipmentID, err := utils.DispatchToShiprocket(&ord)
-			if err == nil && (srOrderID > 0 || srShipmentID > 0) {
-				bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
-				defer bgCancel()
-				db.GetCollection("orders").UpdateOne(
-					bgCtx,
-					bson.M{"order_id": ord.OrderID},
-					bson.M{"$set": bson.M{
-						"shiprocket_order_id":    srOrderID,
-						"shiprocket_shipment_id": srShipmentID,
-					}},
-				)
-			}
-		}(order)
+		// Push Paid order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion
+		select {
+		case ShiprocketQueue <- order:
+			log.Printf("[QUEUE] Paid Order %s queued successfully", order.OrderID)
+		default:
+			log.Printf("[QUEUE ERROR] Shiprocket queue full, order %s dropped from queue", order.OrderID)
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"message":        "Payment verified successfully",

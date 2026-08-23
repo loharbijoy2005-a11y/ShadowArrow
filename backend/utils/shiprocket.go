@@ -11,7 +11,14 @@ import (
 	"regexp"
 	"shadow-arrow-backend/models"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	cachedToken     string
+	tokenExpiryTime time.Time
+	tokenMutex      sync.Mutex
 )
 
 func getShiprocketEmail() string {
@@ -128,6 +135,15 @@ type ShiprocketOrderResponse struct {
 }
 
 func GetShiprocketToken() (string, error) {
+	tokenMutex.Lock()
+	defer tokenMutex.Unlock()
+
+	// Shiprocket JWT token is valid for 240 hours.
+	// We check if cached token is still valid with a 2-hour buffer safety margin.
+	if cachedToken != "" && time.Now().Before(tokenExpiryTime) {
+		return cachedToken, nil
+	}
+
 	authPayload := map[string]string{
 		"email":    getShiprocketEmail(),
 		"password": getShiprocketPassword(),
@@ -150,7 +166,10 @@ func GetShiprocketToken() (string, error) {
 		return "", fmt.Errorf("shiprocket auth token empty. Response: %s", string(bodyBytes))
 	}
 
-	return authResp.Token, nil
+	cachedToken = authResp.Token
+	tokenExpiryTime = time.Now().Add(238 * time.Hour)
+
+	return cachedToken, nil
 }
 
 func DispatchToShiprocket(order *models.Order) (int, int, error) {

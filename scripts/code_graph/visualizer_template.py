@@ -163,10 +163,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="hidden sm:block">Dependencies: <span id="stat-deps" class="font-semibold text-indigo-400">0</span></div>
             <div class="hidden sm:block h-4 w-px bg-slate-800"></div>
             <div class="hidden sm:block">Languages: <span id="stat-langs" class="font-semibold text-indigo-400">0</span></div>
-            <!-- View Toggle Button -->
-            <button id="view-toggle-btn" class="ml-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-4 py-2 rounded shadow-lg font-bold border border-indigo-400/50 transition-colors animate-pulse">
-                🔄 Show Flow
-            </button>
+            <!-- View Toggle Button (Compact Icon Button with Tooltip) -->
+            <div class="relative group ml-2">
+                <button id="view-toggle-btn" class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg border border-indigo-500/50 transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95" aria-label="Toggle View">
+                    <!-- Default: Flow icon (Show Flow) -->
+                    <svg id="toggle-icon-flow" class="w-4.5 h-4.5 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <!-- Alternate: Graph icon (Show Graph) - Hidden by default -->
+                    <svg id="toggle-icon-graph" class="w-4.5 h-4.5 text-white hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9a2 2 0 002 2z"></path>
+                    </svg>
+                </button>
+                <div class="absolute right-0 top-11 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] px-2 py-1 rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                    Toggle Graph / Flow View
+                </div>
+            </div>
         </div>
     </header>
 
@@ -218,66 +230,111 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <div id="stickman-status-label" class="text-[11px] font-mono tracking-wider font-semibold text-indigo-400 mt-2 select-none uppercase">Waiting for simulation...</div>
                 </div>
 
-                <!-- ROW 1 -->
-                <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
-                    <div id="node-client" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-white">Client</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Sends Request</div>
-                    </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-1 locked-arrow">➔</div>
+                <!-- Flowchart Nodes Container (Hidden initially, revealed when order is placed) -->
+                <div id="flow-nodes-container" class="w-full flex flex-col items-center opacity-0 scale-95 pointer-events-none transition-all duration-700 h-0 overflow-hidden mt-4">
                     
-                    <div id="node-firewall" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-rose-400">Security Firewall</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Rate Limit & DDoS Check</div>
+                    <!-- Live Stats Bar -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-3xl mb-8">
+                        <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center">
+                            <span class="text-[9px] text-slate-500 uppercase tracking-wider">Gateway Latency</span>
+                            <span class="text-xs font-semibold text-emerald-400 mt-1 flex items-center gap-1.5 animate-pulse">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> 42ms
+                            </span>
+                        </div>
+                        <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center">
+                            <span class="text-[9px] text-slate-500 uppercase tracking-wider">API Backend</span>
+                            <span class="text-xs font-semibold text-emerald-400 mt-1">Go-Gin v1.0.0</span>
+                        </div>
+                        <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center">
+                            <span class="text-[9px] text-slate-500 uppercase tracking-wider">Database Status</span>
+                            <span class="text-xs font-semibold text-emerald-400 mt-1 font-mono">MongoDB Atlas</span>
+                        </div>
+                        <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center">
+                            <span class="text-[9px] text-slate-500 uppercase tracking-wider">Logistics API</span>
+                            <span class="text-xs font-semibold text-orange-400 mt-1 font-mono">Shiprocket v1.0</span>
+                        </div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-2 locked-arrow">➔</div>
- 
-                    <div id="node-backend" class="flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-indigo-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-indigo-300">Go Backend</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Validates Order</div>
+
+                    <!-- ROW 1 -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
+                        <div id="node-client" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-white">Client</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Sends Request</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-1 locked-arrow">➔</div>
+                        
+                        <div id="node-firewall" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-rose-400">Security Firewall</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Rate Limit & DDoS Check</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-2 locked-arrow">➔</div>
+     
+                        <div id="node-backend" class="flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-indigo-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-indigo-300">Go Backend</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Validates Order</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-3 locked-arrow">➔</div>
+     
+                        <div id="node-mongo" class="flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-emerald-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-emerald-300">MongoDB</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Verifies Real Price</div>
+                        </div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-3 locked-arrow">➔</div>
- 
-                    <div id="node-mongo" class="flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-emerald-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-emerald-300">MongoDB</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Verifies Real Price</div>
-                    </div>
-                </div>
-                
-                <div class="my-4 sm:my-6 text-indigo-500 text-xl sm:text-2xl arrow-4 locked-arrow">⬇</div>
- 
-                <!-- ROW 2 -->
-                <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
-                    <div id="node-razorpay" class="flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-blue-300">Razorpay</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Creates Payment Link</div>
-                    </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-5 locked-arrow">➔</div>
                     
-                    <div id="node-success" class="flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-green-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-green-300">Success</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Order PAID</div>
+                    <div class="my-4 sm:my-6 text-indigo-500 text-xl sm:text-2xl arrow-4 locked-arrow">⬇</div>
+     
+                    <!-- ROW 2 -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
+                        <div id="node-razorpay" class="flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-blue-300">Razorpay</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Creates Payment Link</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-5 locked-arrow">➔</div>
+                        
+                        <div id="node-success" class="flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-green-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-green-300">Success</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Order PAID</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-6 locked-arrow">➔</div>
+     
+                        <div id="node-shiprocket" class="flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-orange-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-orange-300">Shiprocket</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Auto Dispatched</div>
+                        </div>
+                        <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-7 locked-arrow">➔</div>
+     
+                        <div id="node-customer" class="flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
+                            <svg class="w-8 h-8 mb-1 sm:mb-2 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            <div class="text-xs sm:text-sm font-semibold text-purple-300">Customer</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Delivered Safely</div>
+                        </div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-6 locked-arrow">➔</div>
- 
-                    <div id="node-shiprocket" class="flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-orange-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-orange-300">Shiprocket</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Auto Dispatched</div>
+
+                    <!-- Real-time Backend Log Terminal -->
+                    <div class="w-full max-w-3xl bg-black border border-slate-800 rounded-xl mt-8 p-3 shadow-2xl font-mono text-left text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                                <span class="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>
+                                <span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider ml-2">Secure Backend Terminal Logs</span>
+                            </div>
+                            <div class="text-[9px] text-indigo-400 bg-indigo-950/50 border border-indigo-900/30 px-2 py-0.5 rounded font-bold uppercase animate-pulse">
+                                Live Feed
+                            </div>
+                        </div>
+                        <div id="terminal-logs" class="h-32 overflow-y-auto flex flex-col gap-1 pr-2 text-slate-300">
+                            <div class="text-slate-500">// System idle. Select a scenario to begin.</div>
+                        </div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-7 locked-arrow">➔</div>
- 
-                    <div id="node-customer" class="flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
-                        <svg class="w-8 h-8 mb-1 sm:mb-2 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        <div class="text-xs sm:text-sm font-semibold text-purple-300">Customer</div>
-                        <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Delivered Safely</div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -1366,14 +1423,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         let isFlowView = false;
         if (viewToggleBtn && architectureContainer) {
+            const iconFlow = document.getElementById('toggle-icon-flow');
+            const iconGraph = document.getElementById('toggle-icon-graph');
+            
             viewToggleBtn.addEventListener('click', () => {
                 isFlowView = !isFlowView;
                 if (isFlowView) {
-                    viewToggleBtn.innerText = 'Show Graph';
+                    if (iconFlow) iconFlow.classList.add('hidden');
+                    if (iconGraph) iconGraph.classList.remove('hidden');
                     architectureContainer.classList.remove('hidden');
                     architectureContainer.classList.add('flex');
                 } else {
-                    viewToggleBtn.innerText = 'Show Flow';
+                    if (iconFlow) iconFlow.classList.remove('hidden');
+                    if (iconGraph) iconGraph.classList.add('hidden');
                     architectureContainer.classList.add('hidden');
                     architectureContainer.classList.remove('flex');
                 }
@@ -1461,8 +1523,48 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             packets.forEach(p => p.remove());
         }
 
+        function addLog(text, type = 'info') {
+            const logsDiv = document.getElementById('terminal-logs');
+            if (!logsDiv) return;
+            
+            // Remove idle line if it exists
+            if (logsDiv.innerHTML.includes('System idle')) {
+                logsDiv.innerHTML = '';
+            }
+            
+            const timestamp = new Date().toLocaleTimeString() + '.' + String(new Date().getMilliseconds()).padStart(3, '0');
+            
+            let colorClass = 'text-indigo-400';
+            if (type === 'success') colorClass = 'text-green-400 font-bold';
+            if (type === 'warn') colorClass = 'text-yellow-500 font-semibold';
+            if (type === 'error') colorClass = 'text-red-500 font-bold animate-pulse';
+            if (type === 'system') colorClass = 'text-slate-500 italic';
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'flex gap-2 text-[11px] leading-relaxed';
+            logLine.innerHTML = `
+                <span class="text-slate-600 select-none">[${timestamp}]</span>
+                <span class="${colorClass}">${text}</span>
+            `;
+            logsDiv.appendChild(logLine);
+            
+            // Auto scroll to bottom
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
         function resetNodes() {
             clearAllTimeouts();
+            
+            // Hide flowchart nodes container and reset terminal logs
+            const nodesContainer = document.getElementById('flow-nodes-container');
+            if (nodesContainer) {
+                nodesContainer.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                nodesContainer.classList.add('opacity-0', 'scale-95', 'pointer-events-none', 'h-0', 'overflow-hidden');
+            }
+            const logsDiv = document.getElementById('terminal-logs');
+            if (logsDiv) {
+                logsDiv.innerHTML = '<div class="text-slate-500">// System idle. Select a scenario to begin.</div>';
+            }
             
             // Hide stickman stage by default
             const stage = document.getElementById('stickman-stage');
@@ -1697,6 +1799,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     armLeft.setAttribute('x2', '65'); armLeft.setAttribute('y2', '65');
                     armRight.setAttribute('x2', '65'); armRight.setAttribute('y2', '65');
                     
+                    addLog("Hacker: Loaded botnet scripts. Initiating DDoS flood targeting backend...", "warn");
+                    
                     // Show a hacker laptop screen in bubble
                     bubble.innerHTML = `
                         <div class="flex flex-col gap-1 text-left font-mono bg-black text-red-500 border border-red-500 p-2 rounded text-[9px] w-56">
@@ -1712,6 +1816,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     // Spawn spam request packets rapidly!
                     activeTimeouts.push(setTimeout(() => {
                         statusLabel.innerText = "Flooding server with HTTP requests! 🤖";
+                        addLog("Hacker: Flooding server with rapid HTTP POST packets...", "warn");
                         let packetCount = 0;
                         const floodInterval = setInterval(() => {
                             if (packetCount >= 8) {
@@ -1750,6 +1855,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 } else if (scenario === 'path_traversal') {
                     // Path Traversal Attack
                     statusLabel.innerText = "Hacker opens terminal to fetch .env...";
+                    addLog("Hacker: Injecting directory traversal exploit payload (../..) into POST URL...", "warn");
                     
                     // Arms typing
                     armLeft.setAttribute('x2', '65'); armLeft.setAttribute('y2', '65');
@@ -1853,6 +1959,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             function showCheckoutDetails() {
                 if (scenario === 'price_hack') {
                     statusLabel.innerText = "Intercepting request using Proxy Hack Tool... 😈";
+                    addLog("Hacker: Intercepting client request... Price tampering detected.", "warn");
                     
                     bubble.innerHTML = `
                         <div class="flex flex-col gap-1 text-left w-52 bg-slate-900 border border-rose-500/40 p-1.5 rounded">
@@ -1873,6 +1980,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     
                     activeTimeouts.push(setTimeout(() => {
                         statusLabel.innerText = "Injecting tampered price (₹1.00)...";
+                        addLog("Hacker: Injected total_amount = 1.00 into order payload. Forwarding...", "warn");
                         armLeft.setAttribute('x2', '62');
                         armLeft.setAttribute('y2', '65');
                         playTone(180, 'sawtooth', 0.1);
@@ -1898,6 +2006,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     const payMethodName = scenario === 'cod' ? 'Cash On Delivery (COD)' : 'Prepaid (Online Payment)';
                     const payBtnText = scenario === 'cod' ? '⚡ PLACE COD ORDER' : '💳 PLACE ORDER (RAZORPAY)';
                     statusLabel.innerText = "Reviewing shipping and payment details...";
+                    addLog(`Client: Checkout details loaded. Selected payment: ${payMethodName}.`, "info");
                     
                     bubble.innerHTML = `
                         <div class="flex flex-col gap-1 text-left w-52">
@@ -1917,6 +2026,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     
                     activeTimeouts.push(setTimeout(() => {
                         statusLabel.innerText = "Tapping place order button...";
+                        addLog("Client: Tapping place order button on device storefront...", "info");
                         armLeft.setAttribute('x2', '62');
                         armLeft.setAttribute('y2', '65');
                         playTone(523.25, 'sine', 0.08); // C5 tick
@@ -1945,6 +2055,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 phoneGlow.setAttribute('class', 'phone-glow-active');
                 
                 statusLabel.innerText = "Order submitted! Connecting to gateway... 📡";
+                addLog("Client: Order submitted. Initiating secure socket transmission...", "info");
                 
                 activeTimeouts.push(setTimeout(() => {
                     // Create floating packet emoji starting from stickman phone area
@@ -1993,14 +2104,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Run Stickman animation first
             runStickmanAnimation(scenario, () => {
-                // Stickman animation is complete! Start node path traversal.
-                
+                // Stickman animation is complete! Reveal the flowchart nodes container!
+                const nodesContainer = document.getElementById('flow-nodes-container');
+                if (nodesContainer) {
+                    nodesContainer.classList.remove('opacity-0', 'scale-95', 'pointer-events-none', 'h-0', 'overflow-hidden');
+                    nodesContainer.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                    // Scroll to it nicely
+                    nodesContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                addLog("Gateway: Incoming HTTP POST request received.", "system");
+
                 // First unlock client node
                 const clientNode = document.getElementById('node-client');
                 if (clientNode) {
                     clientNode.classList.remove('locked-node');
                     clientNode.classList.add('unlocked-node', 'animate-glow');
                     playClick();
+                    addLog("Client: Socket connection initialized. Forwarding request to API Firewall...", "info");
                 }
 
                 let path = [];
@@ -2041,28 +2162,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                                 if (nodeId === 'node-firewall') {
                                     el.querySelector('.status-text').innerText = 'Verified IP & Rate Limit ✅';
                                     playTone(440, 'sine', 0.08); // A4 tick
+                                    addLog("Firewall: Rate limit and SSL validations passed. ✅", "success");
                                 } else if (nodeId === 'node-backend') {
                                     el.querySelector('.status-text').innerText = 'Sanitized Body ✅';
                                     playTone(493.88, 'sine', 0.08); // B4 tick
+                                    addLog("Backend: Request payload validated and parsed. ✅", "success");
                                 } else if (nodeId === 'node-mongo') {
                                     el.querySelector('.status-text').innerText = 'Price Verified ✅';
                                     playTone(523.25, 'sine', 0.08); // C5 tick
+                                    addLog("Database: Price verification passed! Product in stock. ✅", "success");
                                 } else if (nodeId === 'node-razorpay') {
                                     el.querySelector('.status-text').innerText = 'Payment Successful ✅';
                                     playTone(587.33, 'sine', 0.1); // D5 tick
+                                    addLog("Razorpay: Generated payment link. Signature verification passed. PAID. ✅", "success");
                                 } else if (nodeId === 'node-success') {
                                     if (scenario === 'cod') {
                                         el.querySelector('.status-text').innerText = 'COD ORDER PLACED (UNPAID) ✅';
+                                        addLog("Backend: COD order stored successfully (Status: CONFIRMED_UNPAID). ✅", "success");
                                     } else {
                                         el.querySelector('.status-text').innerText = 'PAID SUCCESS ✅';
+                                        addLog("Backend: Order verified. Stored successfully (Status: CONFIRMED_PAID). ✅", "success");
                                     }
                                     playSuccessSound();
                                 } else if (nodeId === 'node-shiprocket') {
                                     el.querySelector('.status-text').innerText = 'Tracking Created ✅';
                                     playTone(698.46, 'sine', 0.1); // F5
+                                    addLog("Shiprocket: Dispatch succeeded. OrderID: 1536154868, ShipmentID: 1532374860 created. ✅", "success");
                                 } else if (nodeId === 'node-customer') {
                                     el.querySelector('.status-text').innerText = 'Order Delivered! 🎉';
                                     playSuccessSound();
+                                    addLog("Customer: Order tracking dispatched to mobile phone. 🎉", "success");
                                 } else {
                                     el.querySelector('.status-text').innerText = 'Order Delivered Safely! 🎉';
                                     playSuccessSound();
@@ -2080,6 +2209,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                                     const text = fw.querySelector('.status-text');
                                     text.innerText = scenario === 'ddos' ? 'DDoS BLOCKED (Limit Exceeded) ❌' : 'ACCESS DENIED (Sensitive File Attack) ❌';
                                     text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                                    
+                                    if (scenario === 'ddos') {
+                                        addLog("Firewall: Rate limit exceeded (500 req/sec) from client IP. BLOCKED! ❌", "error");
+                                    } else {
+                                        addLog("Firewall: Threat signature matched for Path Traversal (/../../.env). BLOCKED! ❌", "error");
+                                    }
                                 }
                                 playErrorSound();
                                 grayOutFrom(2);
@@ -2094,6 +2229,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                                     const text = mongo.querySelector('.status-text');
                                     text.innerText = 'HACK REJECTED (Price Tampered) ❌';
                                     text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                                    addLog("Database: Price validation failed! Expected: ₹1,499.00, Received: ₹1.00. REJECTED ❌", "error");
                                 }
                                 playErrorSound();
                                 grayOutFrom(4);
@@ -2105,6 +2241,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         () => {
                             console.log("Simulation complete!");
                             document.getElementById('stickman-status-label').innerText = "Simulation complete! All systems operational. ✅";
+                            addLog("System: All transactions finalized. Monitoring gateway traffic... ✅", "system");
                         }
                     );
                 }, 1000));

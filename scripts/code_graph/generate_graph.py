@@ -591,6 +591,15 @@ def main():
     except Exception as e:
         print(f"Warning: Could not copy visualizer to admin-dashboard/public: {e}")
 
+    # Write to root downloaded_vercel_visualizer.html
+    try:
+        vercel_visualizer_path = os.path.join(root_dir, 'downloaded_vercel_visualizer.html')
+        with open(vercel_visualizer_path, 'w', encoding='utf-8') as hf:
+            hf.write(html_content)
+        print(f"Interactive visualizer copied to root downloaded_vercel_visualizer.html at: {vercel_visualizer_path}")
+    except Exception as e:
+        print(f"Warning: Could not copy visualizer to root downloaded_vercel_visualizer.html: {e}")
+
     print("Done! Open visualizer.html in your browser to view the graph.")
 
 

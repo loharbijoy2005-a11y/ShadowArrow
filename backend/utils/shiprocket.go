@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"shadow-arrow-backend/models"
 	"strings"
 	"time"
@@ -32,6 +33,58 @@ func getShiprocketPickupLocation() string {
 		return val
 	}
 	return "warehouse"
+}
+
+// ParseAddressDetails parses shipping address to extract pincode, city, and state.
+// It tries to parse pincode using regex and fetch details from India Post API,
+// falling back to parsed pincode and default state/city if the API fails or is slow.
+func ParseAddressDetails(address string) (string, string, string) {
+	defaultPincode := "722157"
+	defaultCity := "Bankura"
+	defaultState := "West Bengal"
+
+	// Find 6 digit pincode using regex
+	re := regexp.MustCompile(`\b\d{6}\b`)
+	pincodes := re.FindAllString(address, -1)
+	pincode := defaultPincode
+	if len(pincodes) > 0 {
+		// Use the last match which is usually the pincode (e.g. PIN: 722157)
+		pincode = pincodes[len(pincodes)-1]
+	}
+
+	// Try fetching city/state from postal API with 2 second timeout
+	type PostOfficeInfo struct {
+		Name     string `json:"Name"`
+		District string `json:"District"`
+		State    string `json:"State"`
+	}
+	type PincodeResponse struct {
+		Status     string           `json:"Status"`
+		PostOffice []PostOfficeInfo `json:"PostOffice"`
+	}
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(fmt.Sprintf("https://api.postalpincode.in/pincode/%s", pincode))
+	if err == nil {
+		defer resp.Body.Close()
+		var apiResps []PincodeResponse
+		if bodyBytes, err := io.ReadAll(resp.Body); err == nil {
+			if err := json.Unmarshal(bodyBytes, &apiResps); err == nil && len(apiResps) > 0 && apiResps[0].Status == "Success" && len(apiResps[0].PostOffice) > 0 {
+				po := apiResps[0].PostOffice[0]
+				city := po.District
+				if city == "" {
+					city = po.Name
+				}
+				state := po.State
+				if city != "" && state != "" {
+					return pincode, city, state
+				}
+			}
+		}
+	}
+
+	// Fallback if API fails
+	return pincode, defaultCity, defaultState
 }
 
 type ShiprocketAuthResponse struct {
@@ -81,7 +134,7 @@ func GetShiprocketToken() (string, error) {
 	}
 	jsonData, _ := json.Marshal(authPayload)
 
-	resp, err := http.Post("https://apiv2.shiprocket.in/v2/console/data/auth/login", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("https://apiv2.shiprocket.in/v1/external/auth/login", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("shiprocket auth request failed: %v", err)
 	}
@@ -121,9 +174,7 @@ func DispatchToShiprocket(order *models.Order) (int, int, error) {
 		})
 	}
 
-	city := "Bankura"
-	pincode := "722157"
-	state := "West Bengal"
+	pincode, city, state := ParseAddressDetails(order.ShippingAddress)
 
 	srReq := ShiprocketOrderRequest{
 		OrderID:             order.OrderID,
@@ -149,7 +200,7 @@ func DispatchToShiprocket(order *models.Order) (int, int, error) {
 
 	jsonData, _ := json.Marshal(srReq)
 
-	req, err := http.NewRequest("POST", "https://apiv2.shiprocket.in/v2/console/data/orders/create/adhoc", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "https://apiv2.shiprocket.in/v1/external/orders/create/adhoc", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return 0, 0, err
 	}

@@ -73,6 +73,78 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .animate-flash-red {
             animation: flash-red 0.6s infinite alternate;
         }
+
+        /* Dynamic Box and Arrow Locking */
+        .locked-node {
+            opacity: 0.08 !important;
+            transform: scale(0.8) !important;
+            filter: grayscale(100%) blur(1px) !important;
+            pointer-events: none !important;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .unlocked-node {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+            filter: none !important;
+            pointer-events: auto !important;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3) !important;
+        }
+        .locked-arrow {
+            opacity: 0.05 !important;
+            filter: blur(1.5px) !important;
+            transition: all 0.5s ease !important;
+        }
+        .unlocked-arrow {
+            opacity: 1 !important;
+            filter: none !important;
+            transition: all 0.5s ease !important;
+        }
+
+        /* Stickman walk and swing keyframes */
+        @keyframes swing-leg-l {
+            0% { transform: rotate(-25deg); }
+            100% { transform: rotate(25deg); }
+        }
+        @keyframes swing-leg-r {
+            0% { transform: rotate(25deg); }
+            100% { transform: rotate(-25deg); }
+        }
+        @keyframes swing-arm-l {
+            0% { transform: rotate(-20deg); }
+            100% { transform: rotate(20deg); }
+        }
+        @keyframes swing-arm-r {
+            0% { transform: rotate(20deg); }
+            100% { transform: rotate(-20deg); }
+        }
+        @keyframes phone-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+        }
+
+        /* Walking Animation Classes */
+        .stickman-walking #leg-left {
+            animation: swing-leg-l 0.25s infinite alternate ease-in-out;
+        }
+        .stickman-walking #leg-right {
+            animation: swing-leg-r 0.25s infinite alternate ease-in-out;
+        }
+        .stickman-walking #arm-left {
+            animation: swing-arm-l 0.25s infinite alternate ease-in-out;
+        }
+        .stickman-walking #arm-right {
+            animation: swing-arm-r 0.25s infinite alternate ease-in-out;
+        }
+        
+        #leg-left { transform-origin: 50px 80px; }
+        #leg-right { transform-origin: 50px 80px; }
+        #arm-left { transform-origin: 50px 55px; }
+        #arm-right { transform-origin: 50px 55px; }
+        
+        .phone-glow-active {
+            animation: phone-pulse 1s infinite alternate ease-in-out;
+        }
     </style>
 </head>
 <body class="h-full overflow-hidden flex flex-col relative">
@@ -122,62 +194,86 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </select>
                 </div>
 
+                <!-- Stickman Interactive Simulation Area -->
+                <div id="stickman-stage" class="w-full max-w-xl bg-slate-950/60 border border-slate-800 rounded-2xl p-4 mb-8 relative overflow-hidden hidden flex-col items-center justify-center shadow-inner min-h-[220px]">
+                    <div id="stickman-bubble" class="absolute bg-indigo-950/90 border border-indigo-500/40 text-white rounded-xl p-3 text-xs shadow-lg max-w-[280px] transition-all duration-300 opacity-0 scale-90 pointer-events-none z-10 top-[20px] left-[50%] -translate-x-[50%]">
+                        <!-- Storefront content injected dynamically -->
+                    </div>
+                    
+                    <svg id="stickman-svg" class="w-full h-28 mt-4" viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="0" y1="110" x2="600" y2="110" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 4" />
+                        
+                        <g id="stick-character" transform="translate(-100, 0)">
+                            <circle cx="50" cy="40" r="10" stroke="#818cf8" stroke-width="3" fill="#0f172a" />
+                            <line x1="50" y1="50" x2="50" y2="80" stroke="#818cf8" stroke-width="3" />
+                            <line id="arm-left" x1="50" y1="55" x2="35" y2="70" stroke="#818cf8" stroke-width="3" stroke-linecap="round" />
+                            <line id="arm-right" x1="50" y1="55" x2="65" y2="70" stroke="#818cf8" stroke-width="3" stroke-linecap="round" />
+                            <line id="leg-left" x1="50" y1="80" x2="40" y2="110" stroke="#818cf8" stroke-width="3" stroke-linecap="round" />
+                            <line id="leg-right" x1="50" y1="80" x2="60" y2="110" stroke="#818cf8" stroke-width="3" stroke-linecap="round" />
+                            
+                            <rect id="phone-device" x="65" y="55" width="10" height="18" rx="2" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5" class="opacity-0 transition-opacity duration-300" />
+                            <circle id="phone-glow" cx="70" cy="64" r="8" fill="#38bdf8" opacity="0" />
+                        </g>
+                    </svg>
+                    <div id="stickman-status-label" class="text-[11px] font-mono tracking-wider font-semibold text-indigo-400 mt-2 select-none uppercase">Waiting for simulation...</div>
+                </div>
+
                 <!-- ROW 1 -->
                 <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
-                    <div id="node-client" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-client" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                         <div class="text-xs sm:text-sm font-semibold text-white">Client</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Sends Request</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-1 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-1 locked-arrow">➔</div>
                     
-                    <div id="node-firewall" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-firewall" class="flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                         <div class="text-xs sm:text-sm font-semibold text-rose-400">Security Firewall</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Rate Limit & DDoS Check</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-2 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-2 locked-arrow">➔</div>
  
-                    <div id="node-backend" class="flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-backend" class="flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-indigo-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         <div class="text-xs sm:text-sm font-semibold text-indigo-300">Go Backend</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Validates Order</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-3 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-3 locked-arrow">➔</div>
  
-                    <div id="node-mongo" class="flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-mongo" class="flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-emerald-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
                         <div class="text-xs sm:text-sm font-semibold text-emerald-300">MongoDB</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Verifies Real Price</div>
                     </div>
                 </div>
                 
-                <div class="my-4 sm:my-6 text-indigo-500 text-xl sm:text-2xl arrow-4 opacity-[0.25]">⬇</div>
+                <div class="my-4 sm:my-6 text-indigo-500 text-xl sm:text-2xl arrow-4 locked-arrow">⬇</div>
  
                 <!-- ROW 2 -->
                 <div class="flex flex-col sm:flex-row items-center justify-center w-full gap-2 sm:gap-4">
-                    <div id="node-razorpay" class="flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-razorpay" class="flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                         <div class="text-xs sm:text-sm font-semibold text-blue-300">Razorpay</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Creates Payment Link</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-5 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-5 locked-arrow">➔</div>
                     
-                    <div id="node-success" class="flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-success" class="flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-green-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         <div class="text-xs sm:text-sm font-semibold text-green-300">Success</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Order PAID</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-6 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-6 locked-arrow">➔</div>
  
-                    <div id="node-shiprocket" class="flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-shiprocket" class="flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-orange-350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                         <div class="text-xs sm:text-sm font-semibold text-orange-300">Shiprocket</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Auto Dispatched</div>
                     </div>
-                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-7 opacity-[0.25]">➔</div>
+                    <div class="text-indigo-500 text-xl sm:text-2xl rotate-90 sm:rotate-0 py-1 sm:py-0 arrow-7 locked-arrow">➔</div>
  
-                    <div id="node-customer" class="flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all opacity-[0.25]">
+                    <div id="node-customer" class="flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all locked-node">
                         <svg class="w-8 h-8 mb-1 sm:mb-2 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <div class="text-xs sm:text-sm font-semibold text-purple-300">Customer</div>
                         <div class="text-[10px] sm:text-xs text-slate-400 mt-1 status-text">Delivered Safely</div>
@@ -1355,7 +1451,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         let activeTimeouts = [];
         
         function clearAllTimeouts() {
-            activeTimeouts.forEach(clearTimeout);
+            activeTimeouts.forEach(id => {
+                clearTimeout(id);
+                cancelAnimationFrame(id);
+            });
             activeTimeouts = [];
             // Remove any floating packets
             const packets = document.querySelectorAll('.flow-packet');
@@ -1364,52 +1463,58 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         function resetNodes() {
             clearAllTimeouts();
+            
+            // Hide stickman stage by default
+            const stage = document.getElementById('stickman-stage');
+            if (stage) stage.classList.add('hidden');
+            
             const allNodes = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
             const allArrows = ['arrow-1', 'arrow-2', 'arrow-3', 'arrow-4', 'arrow-5', 'arrow-6', 'arrow-7'];
             
             allNodes.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) {
-                    el.style.opacity = '1';
-                    el.classList.remove('animate-glow', 'animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                    el.style.opacity = '';
+                    el.classList.remove('animate-glow', 'animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50', 'unlocked-node');
+                    el.classList.add('locked-node');
                     
                     // restore original classes and text
                     if(id === 'node-client') { 
-                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Sends Request'; 
                     }
                     if(id === 'node-firewall') { 
-                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-rose-900/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Rate Limit & DDoS Check'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-backend') { 
-                        el.className = "flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-indigo-900/50 p-3 sm:p-4 rounded-xl border border-indigo-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Validates Order'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-mongo') { 
-                        el.className = "flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-emerald-900/50 p-3 sm:p-4 rounded-xl border border-emerald-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Verifies Real Price'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-razorpay') { 
-                        el.className = "flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-blue-900/50 p-3 sm:p-4 rounded-xl border border-blue-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Creates Payment Link'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-success') { 
-                        el.className = "flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-green-900/50 p-3 sm:p-4 rounded-xl border border-green-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Order PAID'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-shiprocket') { 
-                        el.className = "flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-orange-900/50 p-3 sm:p-4 rounded-xl border border-orange-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Auto Dispatched'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
                     if(id === 'node-customer') { 
-                        el.className = "flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all"; 
+                        el.className = "flex flex-col items-center bg-purple-900/50 p-3 sm:p-4 rounded-xl border border-purple-500/50 w-full sm:w-36 shadow-lg transition-all locked-node"; 
                         el.querySelector('.status-text').innerText = 'Delivered Safely'; 
                         el.querySelector('.status-text').className = 'text-[10px] sm:text-xs text-slate-400 mt-1 status-text'; 
                     }
@@ -1418,9 +1523,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             allArrows.forEach(cls => {
                 const els = document.querySelectorAll('.' + cls);
                 els.forEach(el => {
-                    el.style.opacity = '1';
-                    el.classList.remove('animate-pulse', 'text-indigo-400', 'text-rose-500', 'text-red-500');
-                    el.classList.add('text-indigo-500');
+                    el.style.opacity = '';
+                    el.classList.remove('animate-pulse', 'text-indigo-400', 'text-rose-500', 'text-red-500', 'unlocked-arrow');
+                    el.classList.add('locked-arrow', 'text-indigo-500');
                 });
             });
         }
@@ -1432,19 +1537,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             allNodes.forEach((id, idx) => {
                 if (idx >= nodeIndex) {
                     const el = document.getElementById(id);
-                    if (el) el.style.opacity = '0.2';
+                    if (el) {
+                        el.classList.remove('unlocked-node');
+                        el.classList.add('locked-node');
+                        el.style.opacity = '0.08';
+                    }
                 }
             });
-            // Gray out arrows that proceed from the blocked node
             allArrows.forEach((cls, idx) => {
                 if (idx >= (nodeIndex - 1)) {
                     const els = document.querySelectorAll('.' + cls);
-                    els.forEach(el => el.style.opacity = '0.2');
+                    els.forEach(el => {
+                        el.classList.remove('unlocked-arrow');
+                        el.classList.add('locked-arrow');
+                        el.style.opacity = '0.05';
+                    });
                 }
             });
         }
 
-        // Animates a traveling packet (emoji) along the nodes
+        // Animates a traveling packet (emoji) along the nodes and unlocks them sequentially
         function animateFlowPacket(path, emoji, onReachNode, onBlock, onComplete) {
             const container = document.getElementById('architecture-container');
             if (!container) return;
@@ -1485,11 +1597,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     activeTimeouts.push(setTimeout(() => {
                         packet.style.left = `${toRect.left - containerRect.left + toRect.width / 2 - 12}px`;
                         packet.style.top = `${toRect.top - containerRect.top + toRect.height / 2 - 12}px`;
+                        
+                        // Unlock the arrow pointing to the next node!
+                        const arrowClass = 'arrow-' + (currentStep + 1);
+                        document.querySelectorAll('.' + arrowClass).forEach(el => {
+                            el.classList.remove('locked-arrow');
+                            el.classList.add('unlocked-arrow', 'animate-pulse');
+                        });
                     }, 50));
 
                     // Once reached (after transition of 600ms)
                     activeTimeouts.push(setTimeout(() => {
-                        const targetNodeIndex = path.indexOf(toId);
+                        // Unlock target node!
+                        const targetNode = document.getElementById(toId);
+                        if (targetNode) {
+                            targetNode.classList.remove('locked-node');
+                            targetNode.classList.add('unlocked-node');
+                        }
                         
                         // Check if block occurs at this node
                         if (onBlock && onBlock(toId)) {
@@ -1512,114 +1636,479 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             moveToNext();
         }
 
+        function runStickmanAnimation(scenario, callback) {
+            const char = document.getElementById('stick-character');
+            const armLeft = document.getElementById('arm-left');
+            const armRight = document.getElementById('arm-right');
+            const legLeft = document.getElementById('leg-left');
+            const legRight = document.getElementById('leg-right');
+            const phoneDevice = document.getElementById('phone-device');
+            const phoneGlow = document.getElementById('phone-glow');
+            const bubble = document.getElementById('stickman-bubble');
+            const statusLabel = document.getElementById('stickman-status-label');
+
+            // Reset character elements
+            char.setAttribute('transform', 'translate(-100, 0)');
+            char.className = '';
+            armLeft.setAttribute('x2', '35');
+            armLeft.setAttribute('y2', '70');
+            armRight.setAttribute('x2', '65');
+            armRight.setAttribute('y2', '70');
+            phoneDevice.setAttribute('class', 'opacity-0 transition-opacity duration-300');
+            phoneGlow.setAttribute('opacity', '0');
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'translate(-50%, 0) scale(0.9)';
+            
+            // Set status
+            statusLabel.innerText = "Customer entering the shop...";
+
+            // 1. Walk in from left
+            char.classList.add('stickman-walking');
+            let startX = -100;
+            let targetX = 250;
+            if (scenario === 'ddos') {
+                targetX = 220; // Position differently for DDoS setup
+            }
+            let duration = 2000;
+            let startTime = null;
+
+            function animateWalk(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = timestamp - startTime;
+                let curX = startX + (targetX - startX) * Math.min(progress / duration, 1);
+                char.setAttribute('transform', `translate(${curX}, 0)`);
+                if (progress < duration) {
+                    const animationId = requestAnimationFrame(animateWalk);
+                    activeTimeouts.push(animationId);
+                } else {
+                    char.classList.remove('stickman-walking');
+                    onArrived();
+                }
+            }
+            const animationId = requestAnimationFrame(animateWalk);
+            activeTimeouts.push(animationId);
+
+            function onArrived() {
+                if (scenario === 'ddos') {
+                    // DDoS Attacker uses laptop to flood requests
+                    statusLabel.innerText = "Attacker sets up botnet script...";
+                    
+                    // Modify arms to look like typing on a laptop
+                    armLeft.setAttribute('x2', '65'); armLeft.setAttribute('y2', '65');
+                    armRight.setAttribute('x2', '65'); armRight.setAttribute('y2', '65');
+                    
+                    // Show a hacker laptop screen in bubble
+                    bubble.innerHTML = `
+                        <div class="flex flex-col gap-1 text-left font-mono bg-black text-red-500 border border-red-500 p-2 rounded text-[9px] w-56">
+                            <div class="text-[8px] border-b border-red-900 pb-1 text-slate-400"># ddos_exploit.py</div>
+                            <div>$ python3 ddos_exploit.py --threads 500</div>
+                            <div class="text-yellow-500 animate-pulse">[!] Targeting: https://shadowarrow.in/api/v1/orders/create</div>
+                            <div class="text-green-500 font-bold mt-1 text-center animate-pulse">FLOODING REQUESTS...</div>
+                        </div>
+                    `;
+                    bubble.style.opacity = '1';
+                    bubble.style.transform = 'translate(-50%, 0) scale(1)';
+                    
+                    // Spawn spam request packets rapidly!
+                    activeTimeouts.push(setTimeout(() => {
+                        statusLabel.innerText = "Flooding server with HTTP requests! 🤖";
+                        let packetCount = 0;
+                        const floodInterval = setInterval(() => {
+                            if (packetCount >= 8) {
+                                clearInterval(floodInterval);
+                                // Fade out stickman interface and trigger actual backend flow
+                                bubble.style.opacity = '0';
+                                callback();
+                                return;
+                            }
+                            
+                            // Create temporary packet emoji shooting out
+                            const p = document.createElement('div');
+                            p.className = 'flow-packet absolute z-[100] text-xl transition-all duration-[400ms] ease-out pointer-events-none';
+                            p.innerText = '🤖';
+                            p.style.left = '280px';
+                            p.style.top = '100px';
+                            document.getElementById('architecture-container').appendChild(p);
+                            
+                            setTimeout(() => {
+                                const clientEl = document.getElementById('node-client');
+                                const clientRect = clientEl.getBoundingClientRect();
+                                const containerRect = document.getElementById('architecture-container').getBoundingClientRect();
+                                p.style.left = `${clientRect.left - containerRect.left + clientRect.width/2 - 10}px`;
+                                p.style.top = `${clientRect.top - containerRect.top + clientRect.height/2 - 10}px`;
+                            }, 10);
+                            
+                            setTimeout(() => {
+                                p.remove();
+                                playTone(120, 'triangle', 0.05);
+                            }, 410);
+                            
+                            packetCount++;
+                        }, 180);
+                    }, 1200));
+                    
+                } else if (scenario === 'path_traversal') {
+                    // Path Traversal Attack
+                    statusLabel.innerText = "Hacker opens terminal to fetch .env...";
+                    
+                    // Arms typing
+                    armLeft.setAttribute('x2', '65'); armLeft.setAttribute('y2', '65');
+                    armRight.setAttribute('x2', '65'); armRight.setAttribute('y2', '65');
+                    
+                    bubble.innerHTML = `
+                        <div class="flex flex-col gap-1 text-left font-mono bg-black text-green-500 border border-green-500 p-2 rounded text-[9px] w-56">
+                            <div class="text-slate-400">Terminal - root@kali:~</div>
+                            <div>$ curl -X POST https://shadowarrow.in/api/v1/orders/create/../../.env</div>
+                            <div class="text-yellow-500 font-bold animate-pulse">Sending Traversal Payload...</div>
+                        </div>
+                    `;
+                    bubble.style.opacity = '1';
+                    bubble.style.transform = 'translate(-50%, 0) scale(1)';
+                    
+                    activeTimeouts.push(setTimeout(() => {
+                        // Left arm clicks enter
+                        armLeft.setAttribute('y2', '75');
+                        playTone(300, 'sine', 0.1);
+                        
+                        setTimeout(() => {
+                            armLeft.setAttribute('y2', '65');
+                            statusLabel.innerText = "Exploit request sent to server! 💀";
+                            
+                            // Shoot skull packet
+                            const p = document.createElement('div');
+                            p.className = 'flow-packet absolute z-[100] text-xl transition-all duration-[600ms] ease-out pointer-events-none';
+                            p.innerText = '💀';
+                            p.style.left = '280px';
+                            p.style.top = '100px';
+                            document.getElementById('architecture-container').appendChild(p);
+                            
+                            setTimeout(() => {
+                                const clientEl = document.getElementById('node-client');
+                                const clientRect = clientEl.getBoundingClientRect();
+                                const containerRect = document.getElementById('architecture-container').getBoundingClientRect();
+                                p.style.left = `${clientRect.left - containerRect.left + clientRect.width/2 - 10}px`;
+                                p.style.top = `${clientRect.top - containerRect.top + clientRect.height/2 - 10}px`;
+                            }, 10);
+                            
+                            setTimeout(() => {
+                                p.remove();
+                                bubble.style.opacity = '0';
+                                callback();
+                            }, 610);
+                            
+                        }, 200);
+                    }, 1500));
+                    
+                } else {
+                    // normal secure online / COD or price hack (smartphone flows)
+                    statusLabel.innerText = "Customer takes out phone...";
+                    
+                    // Right arm holds phone
+                    armRight.setAttribute('x2', '65');
+                    armRight.setAttribute('y2', '60');
+                    phoneDevice.classList.replace('opacity-0', 'opacity-100');
+                    
+                    activeTimeouts.push(setTimeout(() => {
+                        // Open storefront
+                        statusLabel.innerText = "Browsing Shadow Arrow website...";
+                        
+                        bubble.innerHTML = `
+                            <div class="flex flex-col gap-1 text-left w-52">
+                                <div class="flex items-center justify-between border-b border-indigo-900 pb-1 mb-0.5">
+                                    <span class="font-bold text-indigo-300 text-[9px] tracking-wide">SHADOW ARROW STORE</span>
+                                    <span class="text-[7px] bg-emerald-500/20 text-emerald-400 px-1 rounded">HTTPS</span>
+                                </div>
+                                <div class="text-[10px] text-white font-semibold">🛒 Shadow Arrow Stealth Hoodie</div>
+                                <div class="flex justify-between items-center text-[9px] mt-0.5">
+                                    <span class="text-indigo-400 font-bold">₹1,499</span>
+                                    <span class="text-emerald-400 text-[8px] font-bold">In Stock</span>
+                                </div>
+                                <button id="stick-action-btn-1" class="w-full bg-indigo-600 text-white rounded text-[9px] py-1 font-bold mt-1.5 shadow-md shadow-indigo-600/20 text-center select-none cursor-pointer">
+                                    ADD & CHECKOUT
+                                </button>
+                            </div>
+                        `;
+                        bubble.style.opacity = '1';
+                        bubble.style.transform = 'translate(-50%, 0) scale(1)';
+                        
+                        activeTimeouts.push(setTimeout(() => {
+                            // Left arm clicks checkout
+                            statusLabel.innerText = "Tapping add-to-cart...";
+                            armLeft.setAttribute('x2', '62');
+                            armLeft.setAttribute('y2', '65');
+                            playTone(400, 'sine', 0.05);
+                            
+                            setTimeout(() => {
+                                armLeft.setAttribute('x2', '35');
+                                armLeft.setAttribute('y2', '70');
+                                
+                                // Show checkout screen
+                                showCheckoutDetails();
+                            }, 200);
+                        }, 1200));
+                    }, 800));
+                }
+            }
+
+            function showCheckoutDetails() {
+                if (scenario === 'price_hack') {
+                    statusLabel.innerText = "Intercepting request using Proxy Hack Tool... 😈";
+                    
+                    bubble.innerHTML = `
+                        <div class="flex flex-col gap-1 text-left w-52 bg-slate-900 border border-rose-500/40 p-1.5 rounded">
+                            <div class="text-[8px] text-rose-400 font-mono font-bold tracking-wide uppercase border-b border-rose-900 pb-0.5 mb-1">
+                                ⚠️ Request Intercepted
+                            </div>
+                            <div class="text-[9px] font-mono text-slate-300">POST /api/v1/orders/create</div>
+                            <div class="text-[8px] font-mono bg-slate-950 p-1 rounded mt-0.5">
+                                <span class="text-slate-400">"total_amount": </span>
+                                <span class="text-rose-500 line-through">1499.00</span>
+                                <span class="text-emerald-400 font-bold">1.00</span>
+                            </div>
+                            <button id="stick-action-btn-2" class="w-full bg-rose-700 text-white rounded text-[9px] py-1 font-bold mt-1 text-center font-mono animate-pulse">
+                                INJECT PRICE TAMPER & SUBMIT
+                            </button>
+                        </div>
+                    `;
+                    
+                    activeTimeouts.push(setTimeout(() => {
+                        statusLabel.innerText = "Injecting tampered price (₹1.00)...";
+                        armLeft.setAttribute('x2', '62');
+                        armLeft.setAttribute('y2', '65');
+                        playTone(180, 'sawtooth', 0.1);
+                        
+                        setTimeout(() => {
+                            armLeft.setAttribute('x2', '35');
+                            armLeft.setAttribute('y2', '70');
+                            
+                            bubble.innerHTML = `
+                                <div class="flex flex-col items-center justify-center p-2 text-center">
+                                    <span class="text-xl">😈</span>
+                                    <div class="text-[10px] font-bold text-rose-500 mt-1">TAMPERED ORDER INJECTED!</div>
+                                    <div class="text-[8px] text-slate-500">Price: ₹1.00</div>
+                                </div>
+                            `;
+                            
+                            shootOrderPacket('💰');
+                        }, 250);
+                    }, 1800));
+                    
+                } else {
+                    // normal secure flows: prepaid/online or COD
+                    const payMethodName = scenario === 'cod' ? 'Cash On Delivery (COD)' : 'Prepaid (Online Payment)';
+                    const payBtnText = scenario === 'cod' ? '⚡ PLACE COD ORDER' : '💳 PLACE ORDER (RAZORPAY)';
+                    statusLabel.innerText = "Reviewing shipping and payment details...";
+                    
+                    bubble.innerHTML = `
+                        <div class="flex flex-col gap-1 text-left w-52">
+                            <div class="flex items-center justify-between border-b border-indigo-900 pb-0.5 mb-1">
+                                <span class="font-bold text-indigo-300 text-[9px]">SHADOW ARROW - CHECKOUT</span>
+                                <span class="text-[8px] text-slate-400">Total: ₹1,499</span>
+                            </div>
+                            <div class="text-[8px] text-slate-400">Name: <span class="text-white font-medium">Bijoy Lohar</span></div>
+                            <div class="text-[8px] text-slate-400">Addr: <span class="text-white font-medium">Bankura, PIN: 722157</span></div>
+                            <div class="text-[8px] text-slate-400">Pay via: <span class="text-emerald-400 font-bold">${payMethodName}</span></div>
+                            
+                            <button id="stick-action-btn-2" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9px] py-1 mt-1 font-bold text-center select-none cursor-pointer">
+                                ${payBtnText}
+                            </button>
+                        </div>
+                    `;
+                    
+                    activeTimeouts.push(setTimeout(() => {
+                        statusLabel.innerText = "Tapping place order button...";
+                        armLeft.setAttribute('x2', '62');
+                        armLeft.setAttribute('y2', '65');
+                        playTone(523.25, 'sine', 0.08); // C5 tick
+                        
+                        setTimeout(() => {
+                            armLeft.setAttribute('x2', '35');
+                            armLeft.setAttribute('y2', '70');
+                            
+                            bubble.innerHTML = `
+                                <div class="flex flex-col items-center justify-center p-2 text-center">
+                                    <span class="text-xl">🎉</span>
+                                    <div class="text-[10px] font-bold text-emerald-400 mt-1">ORDER PLACED!</div>
+                                    <div class="text-[7px] text-slate-500">Verifying on secure server...</div>
+                                </div>
+                            `;
+                            
+                            shootOrderPacket(scenario === 'cod' ? '📦' : '🛒');
+                        }, 250);
+                    }, 1800));
+                }
+            }
+
+            function shootOrderPacket(emoji) {
+                // Glow phone screen
+                phoneGlow.setAttribute('opacity', '0.6');
+                phoneGlow.setAttribute('class', 'phone-glow-active');
+                
+                statusLabel.innerText = "Order submitted! Connecting to gateway... 📡";
+                
+                activeTimeouts.push(setTimeout(() => {
+                    // Create floating packet emoji starting from stickman phone area
+                    const p = document.createElement('div');
+                    p.className = 'flow-packet absolute z-[100] text-2xl transition-all duration-[800ms] ease-out pointer-events-none';
+                    p.innerText = emoji;
+                    p.style.filter = 'drop-shadow(0 0 8px rgba(99,102,241,0.8))';
+                    p.style.left = '310px';
+                    p.style.top = '90px';
+                    document.getElementById('architecture-container').appendChild(p);
+                    
+                    // Animate packet to the Client box (node-client)
+                    setTimeout(() => {
+                        const clientEl = document.getElementById('node-client');
+                        const clientRect = clientEl.getBoundingClientRect();
+                        const containerRect = document.getElementById('architecture-container').getBoundingClientRect();
+                        p.style.left = `${clientRect.left - containerRect.left + clientRect.width/2 - 12}px`;
+                        p.style.top = `${clientRect.top - containerRect.top + clientRect.height/2 - 12}px`;
+                    }, 20);
+                    
+                    setTimeout(() => {
+                        p.remove();
+                        // Hide stickman bubble and trigger callback
+                        bubble.style.opacity = '0';
+                        callback();
+                    }, 820);
+                    
+                }, 800));
+            }
+        }
+
         function applyHack(scenario) {
             resetNodes();
             initAudio();
 
-            // Highlight the initial client node
-            const client = document.getElementById('node-client');
-            if (client) {
-                client.classList.add('animate-glow');
-                playClick();
+            if (scenario === 'select') {
+                return;
             }
 
-            let path = [];
-            let emoji = '🛒';
-
-            if (scenario === 'none') {
-                // Online Flow: Client -> Firewall -> Backend -> Mongo -> Razorpay -> Success -> Shiprocket -> Customer
-                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
-                emoji = '🛒';
-            } else if (scenario === 'cod') {
-                // COD Flow: Skip Razorpay
-                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-success', 'node-shiprocket', 'node-customer'];
-                emoji = '📦';
-            } else if (scenario === 'ddos') {
-                path = ['node-client', 'node-firewall'];
-                emoji = '🤖'; // Bot traffic
-            } else if (scenario === 'path_traversal') {
-                path = ['node-client', 'node-firewall'];
-                emoji = '💀'; // Hacker packet
-            } else if (scenario === 'price_hack') {
-                path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo'];
-                emoji = '💰'; // Price tempered request
+            // Show Stickman Stage
+            const stage = document.getElementById('stickman-stage');
+            if (stage) {
+                stage.classList.remove('hidden');
+                stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
 
-            // Start flow simulation
-            activeTimeouts.push(setTimeout(() => {
-                animateFlowPacket(
-                    path,
-                    emoji,
-                    // On reach node
-                    (nodeId) => {
-                        const el = document.getElementById(nodeId);
-                        if (el) {
-                            el.classList.add('animate-glow');
-                            
-                            // Specific node status updates
-                            if (nodeId === 'node-firewall') {
-                                el.querySelector('.status-text').innerText = 'Verified IP & Rate Limit ✅';
-                                playTone(440, 'sine', 0.08); // A4 tick
-                            } else if (nodeId === 'node-backend') {
-                                el.querySelector('.status-text').innerText = 'Sanitized Body ✅';
-                                playTone(493.88, 'sine', 0.08); // B4 tick
-                            } else if (nodeId === 'node-mongo') {
-                                el.querySelector('.status-text').innerText = 'Price Verified ✅';
-                                playTone(523.25, 'sine', 0.08); // C5 tick
-                            } else if (nodeId === 'node-razorpay') {
-                                el.querySelector('.status-text').innerText = 'Payment Successful ✅';
-                                playTone(587.33, 'sine', 0.1); // D5 tick
-                            } else if (nodeId === 'node-success') {
-                                if (scenario === 'cod') {
-                                    el.querySelector('.status-text').innerText = 'COD ORDER PLACED (UNPAID) ✅';
+            // Run Stickman animation first
+            runStickmanAnimation(scenario, () => {
+                // Stickman animation is complete! Start node path traversal.
+                
+                // First unlock client node
+                const clientNode = document.getElementById('node-client');
+                if (clientNode) {
+                    clientNode.classList.remove('locked-node');
+                    clientNode.classList.add('unlocked-node', 'animate-glow');
+                    playClick();
+                }
+
+                let path = [];
+                let emoji = '🛒';
+
+                if (scenario === 'none') {
+                    // Online Flow: Client -> Firewall -> Backend -> Mongo -> Razorpay -> Success -> Shiprocket -> Customer
+                    path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-razorpay', 'node-success', 'node-shiprocket', 'node-customer'];
+                    emoji = '🛒';
+                } else if (scenario === 'cod') {
+                    // COD Flow: Skip Razorpay
+                    path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo', 'node-success', 'node-shiprocket', 'node-customer'];
+                    emoji = '📦';
+                } else if (scenario === 'ddos') {
+                    path = ['node-client', 'node-firewall'];
+                    emoji = '🤖';
+                } else if (scenario === 'path_traversal') {
+                    path = ['node-client', 'node-firewall'];
+                    emoji = '💀';
+                } else if (scenario === 'price_hack') {
+                    path = ['node-client', 'node-firewall', 'node-backend', 'node-mongo'];
+                    emoji = '💰';
+                }
+
+                // Start flow simulation
+                activeTimeouts.push(setTimeout(() => {
+                    animateFlowPacket(
+                        path,
+                        emoji,
+                        // On reach node
+                        (nodeId) => {
+                            const el = document.getElementById(nodeId);
+                            if (el) {
+                                el.classList.remove('locked-node');
+                                el.classList.add('unlocked-node', 'animate-glow');
+                                
+                                // Specific node status updates
+                                if (nodeId === 'node-firewall') {
+                                    el.querySelector('.status-text').innerText = 'Verified IP & Rate Limit ✅';
+                                    playTone(440, 'sine', 0.08); // A4 tick
+                                } else if (nodeId === 'node-backend') {
+                                    el.querySelector('.status-text').innerText = 'Sanitized Body ✅';
+                                    playTone(493.88, 'sine', 0.08); // B4 tick
+                                } else if (nodeId === 'node-mongo') {
+                                    el.querySelector('.status-text').innerText = 'Price Verified ✅';
+                                    playTone(523.25, 'sine', 0.08); // C5 tick
+                                } else if (nodeId === 'node-razorpay') {
+                                    el.querySelector('.status-text').innerText = 'Payment Successful ✅';
+                                    playTone(587.33, 'sine', 0.1); // D5 tick
+                                } else if (nodeId === 'node-success') {
+                                    if (scenario === 'cod') {
+                                        el.querySelector('.status-text').innerText = 'COD ORDER PLACED (UNPAID) ✅';
+                                    } else {
+                                        el.querySelector('.status-text').innerText = 'PAID SUCCESS ✅';
+                                    }
+                                    playSuccessSound();
+                                } else if (nodeId === 'node-shiprocket') {
+                                    el.querySelector('.status-text').innerText = 'Tracking Created ✅';
+                                    playTone(698.46, 'sine', 0.1); // F5
+                                } else if (nodeId === 'node-customer') {
+                                    el.querySelector('.status-text').innerText = 'Order Delivered! 🎉';
+                                    playSuccessSound();
                                 } else {
-                                    el.querySelector('.status-text').innerText = 'PAID SUCCESS ✅';
+                                    el.querySelector('.status-text').innerText = 'Order Delivered Safely! 🎉';
+                                    playSuccessSound();
                                 }
-                                playSuccessSound();
-                            } else if (nodeId === 'node-shiprocket') {
-                                el.querySelector('.status-text').innerText = 'Tracking Created ✅';
-                                playTone(698.46, 'sine', 0.1); // F5
-                            } else if (nodeId === 'node-customer') {
-                                el.querySelector('.status-text').innerText = 'Order Delivered! 🎉';
-                                playSuccessSound();
-                            } else {
-                                el.querySelector('.status-text').innerText = 'Order Delivered Safely! 🎉';
-                                playSuccessSound();
                             }
+                        },
+                        // On Block
+                        (nodeId) => {
+                            if (nodeId === 'node-firewall' && (scenario === 'ddos' || scenario === 'path_traversal')) {
+                                const fw = document.getElementById('node-firewall');
+                                if (fw) {
+                                    fw.style.opacity = '1';
+                                    fw.classList.remove('locked-node');
+                                    fw.classList.add('unlocked-node', 'animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                                    const text = fw.querySelector('.status-text');
+                                    text.innerText = scenario === 'ddos' ? 'DDoS BLOCKED (Limit Exceeded) ❌' : 'ACCESS DENIED (Sensitive File Attack) ❌';
+                                    text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                                }
+                                playErrorSound();
+                                grayOutFrom(2);
+                                return true; // Blocked
+                            }
+                            if (nodeId === 'node-mongo' && scenario === 'price_hack') {
+                                const mongo = document.getElementById('node-mongo');
+                                if (mongo) {
+                                    mongo.style.opacity = '1';
+                                    mongo.classList.remove('locked-node');
+                                    mongo.classList.add('unlocked-node', 'animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
+                                    const text = mongo.querySelector('.status-text');
+                                    text.innerText = 'HACK REJECTED (Price Tampered) ❌';
+                                    text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
+                                }
+                                playErrorSound();
+                                grayOutFrom(4);
+                                return true; // Blocked
+                            }
+                            return false;
+                        },
+                        // On Complete
+                        () => {
+                            console.log("Simulation complete!");
+                            document.getElementById('stickman-status-label').innerText = "Simulation complete! All systems operational. ✅";
                         }
-                    },
-                    // On Block
-                    (nodeId) => {
-                        if (nodeId === 'node-firewall' && (scenario === 'ddos' || scenario === 'path_traversal')) {
-                            const fw = document.getElementById('node-firewall');
-                            fw.style.opacity = '1';
-                            fw.classList.add('animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
-                            const text = fw.querySelector('.status-text');
-                            text.innerText = scenario === 'ddos' ? 'DDoS BLOCKED (Limit Exceeded) ❌' : 'ACCESS DENIED (Sensitive File Attack) ❌';
-                            text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
-                            playErrorSound();
-                            grayOutFrom(2);
-                            return true; // Blocked
-                        }
-                        if (nodeId === 'node-mongo' && scenario === 'price_hack') {
-                            const mongo = document.getElementById('node-mongo');
-                            mongo.style.opacity = '1';
-                            mongo.classList.add('animate-shake', 'animate-flash-red', 'bg-red-900/50', 'border-red-500/50');
-                            const text = mongo.querySelector('.status-text');
-                            text.innerText = 'HACK REJECTED (Price Tampered) ❌';
-                            text.className = 'text-[10px] sm:text-xs text-red-500 mt-1 status-text font-bold';
-                            playErrorSound();
-                            grayOutFrom(4);
-                            return true; // Blocked
-                        }
-                        return false;
-                    },
-                    // On Complete
-                    () => {
-                        console.log("Simulation complete!");
-                    }
-                );
-            }, 3600));
+                    );
+                }, 1000));
+            });
         }
 
         if (simulatorDropdown) {

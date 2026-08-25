@@ -168,8 +168,8 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* FLOATING SUPPORT BUTTON (Bottom-Right) */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end space-y-3 font-sans">
+      {/* FLOATING SUPPORT BUTTON (Bottom-Right, Desktop Only) */}
+      <div className="hidden md:flex fixed bottom-6 right-6 z-40 flex-col items-end space-y-3 font-sans">
         
         {/* POPUP TOAST NOTIFICATION WHEN SUPPORT TEAM REPLIES */}
         {unreadReplyTicket && (

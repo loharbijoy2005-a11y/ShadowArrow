@@ -41,10 +41,10 @@ export default function TrackOrderBubbleModal() {
 
   return (
     <>
-      {/* Icon-Only Circular Floating Track Order Bubble at Bottom-Right */}
+      {/* Icon-Only Circular Floating Track Order Bubble at Bottom-Right (Desktop Only) */}
       <button
         onClick={() => setModalOpen(true)}
-        className="fixed bottom-24 right-6 z-40 bg-slate-900 hover:bg-slate-800 text-white p-3.5 rounded-full shadow-2xl border border-slate-700 transition-all hover:scale-105 flex items-center justify-center"
+        className="hidden md:flex fixed bottom-24 right-6 z-40 bg-slate-900 hover:bg-slate-800 text-white p-3.5 rounded-full shadow-2xl border border-slate-700 transition-all hover:scale-105 items-center justify-center"
         title="Track Order Status"
         aria-label="Track Order Status"
       >

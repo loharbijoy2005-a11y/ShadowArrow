@@ -260,77 +260,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stealth Series Horizontal Scroll (Mobile Only) */}
-      <section className="block md:hidden py-12 w-full bg-[#0d0e0f] border-y border-[#343535]/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 flex justify-between items-end border-b border-[#343535]/50 pb-4">
-          <div>
-            <span className="font-mono text-[10px] text-[#00e0ff] tracking-[0.2em] uppercase font-bold block mb-1">
-              LIMITED DROP
-            </span>
-            <h2 className="font-sora text-xl sm:text-2xl font-bold text-white uppercase tracking-tight">
-              Stealth Series
-            </h2>
-          </div>
-          <a href="#catalog" className="font-mono text-xs text-[#00e0ff] hover:text-white uppercase flex items-center gap-1.5 transition-colors">
-            View All <ArrowRight className="w-3.5 h-3.5" />
-          </a>
-        </div>
 
-        <div className="flex overflow-x-auto gap-6 px-4 sm:px-8 max-w-7xl mx-auto pb-6 hide-scrollbar snap-x snap-mandatory">
-          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
-            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
-              <img
-                src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800"
-                alt="Obsidian Shell"
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-              />
-              <span className="absolute top-3 left-3 bg-[#1e2020] text-[#00e0ff] font-mono text-[9px] px-2 py-1 uppercase tracking-widest border border-[#343535]">NEW</span>
-            </div>
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-sora font-semibold text-white text-base">Obsidian Shell</h3>
-                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">Lightweight Tactical Layer</p>
-              </div>
-              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹4,499</span>
-            </div>
-          </div>
-
-          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
-            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
-              <img
-                src="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800"
-                alt="Aegis Footwear"
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-              />
-              <span className="absolute top-3 left-3 bg-[#1e2020] text-[#00e0ff] font-mono text-[9px] px-2 py-1 uppercase tracking-widest border border-[#343535]">LIMITED</span>
-            </div>
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-sora font-semibold text-white text-base">Aegis Cyber Kicks</h3>
-                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">All-Terrain Cyber Footwear</p>
-              </div>
-              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹6,999</span>
-            </div>
-          </div>
-
-          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
-            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
-              <img
-                src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800"
-                alt="Phantom Trousers"
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-              />
-            </div>
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-sora font-semibold text-white text-base">Phantom Trousers</h3>
-                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">Articulated Cyber Cargos</p>
-              </div>
-              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹3,799</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Core Technology Bento Grid (Mobile Only) */}
       <section className="block md:hidden py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">

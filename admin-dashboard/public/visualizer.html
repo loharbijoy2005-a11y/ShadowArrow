@@ -217,6 +217,20 @@
         <!-- Network Background Container -->
         <div id="network-container" class="absolute inset-0"></div>
 
+        <!-- Floating Space Audio Widget (Bottom-Right, Always Visible) -->
+        <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2">
+            <button id="float-space-audio-btn" title="Toggle Space Ambient Audio & Sci-Fi SFX" class="px-4 py-2.5 bg-[#0f172a]/90 hover:bg-cyan-950 border border-cyan-500/60 text-cyan-400 hover:text-white rounded-full shadow-2xl backdrop-blur-md text-xs font-mono font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+                <svg id="float-sound-svg-off" class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                </svg>
+                <svg id="float-sound-svg-on" class="w-4 h-4 text-white shrink-0 hidden animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <span id="float-sound-label">Space Audio: OFF</span>
+            </button>
+        </div>
+
         <!-- Architecture Flow Container -->
         <div id="architecture-container" class="absolute inset-0 z-40 bg-[#0b0f19] hidden flex-col items-center justify-start sm:justify-center p-4 sm:p-8 overflow-y-auto pt-16 sm:pt-8">
             <div class="max-w-5xl w-full flex flex-col items-center text-center pb-10">
@@ -1000,14 +1014,17 @@
         }
 
         function setupEventListeners() {
-            // Space Audio Toggle
+            // Space Audio Toggle (Header Button & Floating Widget)
             const spaceAudioBtn = document.getElementById('space-audio-btn');
-            if (spaceAudioBtn) {
-                spaceAudioBtn.addEventListener('click', () => {
-                    playClick();
-                    toggleSpaceAudio();
-                });
-            }
+            const floatSpaceAudioBtn = document.getElementById('float-space-audio-btn');
+
+            const handleToggleAudio = () => {
+                playClick();
+                toggleSpaceAudio();
+            };
+
+            if (spaceAudioBtn) spaceAudioBtn.addEventListener('click', handleToggleAudio);
+            if (floatSpaceAudioBtn) floatSpaceAudioBtn.addEventListener('click', handleToggleAudio);
 
             // Auto-start ambient space sound on first user gesture
             document.addEventListener('click', () => {
@@ -1628,6 +1645,12 @@
             const svgOff = document.getElementById('sound-svg-off');
             const svgOn = document.getElementById('sound-svg-on');
             const label = document.getElementById('sound-label');
+
+            const floatBtn = document.getElementById('float-space-audio-btn');
+            const floatSvgOff = document.getElementById('float-sound-svg-off');
+            const floatSvgOn = document.getElementById('float-sound-svg-on');
+            const floatLabel = document.getElementById('float-sound-label');
+
             if (btn && label && svgOff && svgOn) {
                 if (active) {
                     btn.classList.remove('bg-indigo-950/80', 'text-indigo-300', 'border-indigo-500/50');
@@ -1641,6 +1664,22 @@
                     svgOff.classList.remove('hidden');
                     svgOn.classList.add('hidden');
                     label.innerText = 'Space Audio: OFF';
+                }
+            }
+
+            if (floatBtn && floatLabel && floatSvgOff && floatSvgOn) {
+                if (active) {
+                    floatBtn.classList.remove('bg-[#0f172a]/90', 'text-cyan-400', 'border-cyan-500/60');
+                    floatBtn.classList.add('bg-cyan-600', 'text-white', 'border-cyan-300', 'shadow-cyan-500/80');
+                    floatSvgOff.classList.add('hidden');
+                    floatSvgOn.classList.remove('hidden');
+                    floatLabel.innerText = 'Space Audio: ON';
+                } else {
+                    floatBtn.classList.remove('bg-cyan-600', 'text-white', 'border-cyan-300', 'shadow-cyan-500/80');
+                    floatBtn.classList.add('bg-[#0f172a]/90', 'text-cyan-400', 'border-cyan-500/60');
+                    floatSvgOff.classList.remove('hidden');
+                    floatSvgOn.classList.add('hidden');
+                    floatLabel.innerText = 'Space Audio: OFF';
                 }
             }
         }

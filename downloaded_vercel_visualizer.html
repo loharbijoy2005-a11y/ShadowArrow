@@ -186,6 +186,17 @@
             <div class="hidden sm:block">Dependencies: <span id="stat-deps" class="font-semibold text-indigo-400">0</span></div>
             <div class="hidden sm:block h-4 w-px bg-slate-800"></div>
             <div class="hidden sm:block">Languages: <span id="stat-langs" class="font-semibold text-indigo-400">0</span></div>
+            <!-- Space Audio Control Button with SVG Icons -->
+            <button id="space-audio-btn" title="Toggle Space Ambient Audio & Sci-Fi SFX" class="ml-2 px-3 py-2 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/50 text-indigo-300 hover:text-white rounded-lg shadow-lg text-xs font-mono font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+                <svg id="sound-svg-off" class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                </svg>
+                <svg id="sound-svg-on" class="w-4 h-4 text-white shrink-0 hidden animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <span id="sound-label">Space Audio: OFF</span>
+            </button>
             <!-- View Toggle Button (Compact Icon Button with Native Tooltip) -->
             <button id="view-toggle-btn" title="Toggle Graph / Flow View" class="ml-2 p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg border border-indigo-500/50 transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95" aria-label="Toggle View">
                 <!-- Default: Flow icon (Show Flow) -->
@@ -205,6 +216,20 @@
         
         <!-- Network Background Container -->
         <div id="network-container" class="absolute inset-0"></div>
+
+        <!-- Floating Space Audio Widget (Bottom-Right, Always Visible) -->
+        <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2">
+            <button id="float-space-audio-btn" title="Toggle Space Ambient Audio & Sci-Fi SFX" class="px-4 py-2.5 bg-[#0f172a]/90 hover:bg-cyan-950 border border-cyan-500/60 text-cyan-400 hover:text-white rounded-full shadow-2xl backdrop-blur-md text-xs font-mono font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+                <svg id="float-sound-svg-off" class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                </svg>
+                <svg id="float-sound-svg-on" class="w-4 h-4 text-white shrink-0 hidden animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <span id="float-sound-label">Space Audio: OFF</span>
+            </button>
+        </div>
 
         <!-- Architecture Flow Container -->
         <div id="architecture-container" class="absolute inset-0 z-40 bg-[#0b0f19] hidden flex-col items-center justify-start sm:justify-center p-4 sm:p-8 overflow-y-auto pt-16 sm:pt-8">
@@ -861,13 +886,20 @@
                 }, 100);
             });
 
-            // Network event handlers
+            // Network event handlers with interactive sci-fi audio
             network.on('click', (params) => {
+                startSpaceAmbient();
                 if (params.nodes.length > 0) {
+                    playNodeClick();
                     selectNode(params.nodes[0]);
                 } else {
+                    playPowerDown();
                     deselectNode();
                 }
+            });
+
+            network.on('hoverNode', () => {
+                playNodeHover();
             });
 
             // Real-time canvas particle flow and pulsing neon halo animations
@@ -982,18 +1014,38 @@
         }
 
         function setupEventListeners() {
+            // Space Audio Toggle (Header Button & Floating Widget)
+            const spaceAudioBtn = document.getElementById('space-audio-btn');
+            const floatSpaceAudioBtn = document.getElementById('float-space-audio-btn');
+
+            const handleToggleAudio = () => {
+                playClick();
+                toggleSpaceAudio();
+            };
+
+            if (spaceAudioBtn) spaceAudioBtn.addEventListener('click', handleToggleAudio);
+            if (floatSpaceAudioBtn) floatSpaceAudioBtn.addEventListener('click', handleToggleAudio);
+
+            // Auto-start ambient space sound on first user gesture
+            document.addEventListener('click', () => {
+                startSpaceAmbient();
+            }, { once: true });
+
             // Search Input
             searchInput.addEventListener('input', () => {
+                playKeyClick();
                 filterGraph();
             });
 
             // Physics Toggle
             physicsToggle.addEventListener('change', (e) => {
+                playClick();
                 network.setOptions({ physics: { enabled: e.target.checked } });
             });
 
             // Reset Button
             resetBtn.addEventListener('click', () => {
+                playPowerDown();
                 searchInput.value = '';
                 physicsToggle.checked = true;
                 network.setOptions({ physics: { enabled: true } });
@@ -1492,15 +1544,147 @@
             });
         }
 
-        // Attack Simulator Sound Effects using Web Audio API (Synthesizer)
+        // Web Audio API Synthesizer (Space Ambient Drone + Sci-Fi Action Sound FX)
         let audioCtx = null;
+        let ambientGainNode = null;
+        let ambientOsc1 = null;
+        let ambientOsc2 = null;
+        let spaceSoundActive = false;
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
         }
 
+        // Global User Gesture Unlocker for Browser Autoplay Policies
+        const unlockAudio = () => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        };
+        if (typeof window !== 'undefined') {
+            ['click', 'pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+                window.addEventListener(evt, unlockAudio, { passive: true });
+            });
+        }
+
+        // Continuous Sci-Fi Space Ambient Drone Loop
+        function startSpaceAmbient() {
+            initAudio();
+            if (!audioCtx) return;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (spaceSoundActive) return;
+
+            try {
+                ambientGainNode = audioCtx.createGain();
+                ambientGainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
+
+                // Low-pass filter for cosmic atmosphere
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(220, audioCtx.currentTime);
+
+                // Sub-space Oscillators
+                ambientOsc1 = audioCtx.createOscillator();
+                ambientOsc2 = audioCtx.createOscillator();
+
+                ambientOsc1.type = 'sine';
+                ambientOsc1.frequency.setValueAtTime(65, audioCtx.currentTime); // Sub-C
+
+                ambientOsc2.type = 'triangle';
+                ambientOsc2.frequency.setValueAtTime(130.8, audioCtx.currentTime); // Detuned resonance
+
+                ambientOsc1.connect(filter);
+                ambientOsc2.connect(filter);
+                filter.connect(ambientGainNode);
+                ambientGainNode.connect(audioCtx.destination);
+
+                ambientOsc1.start();
+                ambientOsc2.start();
+
+                spaceSoundActive = true;
+                updateSpaceAudioUI(true);
+            } catch (e) {
+                console.error("Space Audio start error:", e);
+            }
+        }
+
+        function stopSpaceAmbient() {
+            if (ambientGainNode && audioCtx) {
+                ambientGainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+                setTimeout(() => {
+                    if (ambientOsc1) { try { ambientOsc1.stop(); } catch(e){} }
+                    if (ambientOsc2) { try { ambientOsc2.stop(); } catch(e){} }
+                    spaceSoundActive = false;
+                    updateSpaceAudioUI(false);
+                }, 400);
+            }
+        }
+
+        function toggleSpaceAudio() {
+            unlockAudio();
+            if (spaceSoundActive) {
+                stopSpaceAmbient();
+            } else {
+                startSpaceAmbient();
+                playSuccessSound();
+            }
+        }
+
+        function updateSpaceAudioUI(active) {
+            const btn = document.getElementById('space-audio-btn');
+            const svgOff = document.getElementById('sound-svg-off');
+            const svgOn = document.getElementById('sound-svg-on');
+            const label = document.getElementById('sound-label');
+
+            const floatBtn = document.getElementById('float-space-audio-btn');
+            const floatSvgOff = document.getElementById('float-sound-svg-off');
+            const floatSvgOn = document.getElementById('float-sound-svg-on');
+            const floatLabel = document.getElementById('float-sound-label');
+
+            if (btn && label && svgOff && svgOn) {
+                if (active) {
+                    btn.classList.remove('bg-indigo-950/80', 'text-indigo-300', 'border-indigo-500/50');
+                    btn.classList.add('bg-cyan-600', 'text-white', 'border-cyan-400', 'shadow-cyan-500/50', 'shadow-lg');
+                    svgOff.classList.add('hidden');
+                    svgOn.classList.remove('hidden');
+                    label.innerText = 'Space Audio: ON';
+                } else {
+                    btn.classList.remove('bg-cyan-600', 'text-white', 'border-cyan-400', 'shadow-cyan-500/50', 'shadow-lg');
+                    btn.classList.add('bg-indigo-950/80', 'text-indigo-300', 'border-indigo-500/50');
+                    svgOff.classList.remove('hidden');
+                    svgOn.classList.add('hidden');
+                    label.innerText = 'Space Audio: OFF';
+                }
+            }
+
+            if (floatBtn && floatLabel && floatSvgOff && floatSvgOn) {
+                if (active) {
+                    floatBtn.classList.remove('bg-[#0f172a]/90', 'text-cyan-400', 'border-cyan-500/60');
+                    floatBtn.classList.add('bg-cyan-600', 'text-white', 'border-cyan-300', 'shadow-cyan-500/80');
+                    floatSvgOff.classList.add('hidden');
+                    floatSvgOn.classList.remove('hidden');
+                    floatLabel.innerText = 'Space Audio: ON';
+                } else {
+                    floatBtn.classList.remove('bg-cyan-600', 'text-white', 'border-cyan-300', 'shadow-cyan-500/80');
+                    floatBtn.classList.add('bg-[#0f172a]/90', 'text-cyan-400', 'border-cyan-500/60');
+                    floatSvgOff.classList.remove('hidden');
+                    floatSvgOn.classList.add('hidden');
+                    floatLabel.innerText = 'Space Audio: OFF';
+                }
+            }
+        }
+
+        // Action SFX Functions
         function playTone(freq, type, duration, delay = 0) {
             initAudio();
             if (!audioCtx) return;
@@ -1519,7 +1703,7 @@
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                     
-                    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.22, audioCtx.currentTime);
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
 
                     osc.start(audioCtx.currentTime);
@@ -1531,7 +1715,44 @@
         }
 
         function playClick() {
-            playTone(600, 'sine', 0.08);
+            playTone(700, 'sine', 0.06);
+        }
+
+        function playNodeClick() {
+            playTone(880, 'sine', 0.08); // A5 resonant ping
+            playTone(1760, 'sine', 0.04, 30); // Harmonic accent
+        }
+
+        function playNodeHover() {
+            playTone(1300, 'triangle', 0.02); // Laser scanner tick
+        }
+
+        function playWarpSound() {
+            playTone(160, 'sawtooth', 0.15, 0);
+            playTone(480, 'sine', 0.2, 60);
+            playTone(960, 'sine', 0.25, 120);
+        }
+
+        function playPowerDown() {
+            if (!audioCtx) return;
+            initAudio();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } catch(e) {}
+        }
+
+        function playKeyClick() {
+            playTone(950, 'sine', 0.02);
         }
 
         function playSuccessSound() {
@@ -2288,6 +2509,7 @@
 
         if (simulatorDropdown) {
             simulatorDropdown.addEventListener('change', (e) => {
+                playWarpSound();
                 applyHack(e.target.value);
             });
         }

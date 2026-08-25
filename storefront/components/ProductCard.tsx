@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, Star, Check, Coins } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { soundFx } from '@/utils/soundEffects';
 
 interface ProductCardProps {
   product: any;
@@ -19,6 +20,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
+
+    soundFx.playAddToCart();
 
     const btn = e.currentTarget as HTMLElement;
     const defaultSize = product.category === 'Apparel' ? 'L' : product.category === 'Footwear' ? 'UK 9' : '';

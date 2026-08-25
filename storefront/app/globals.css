@@ -234,7 +234,7 @@ html, body {
   background: #00e0ff;
 }
 
-/* Stitch Design System Utilities */
+/* Mobile Design Utilities */
 .glass-panel {
   background: rgba(13, 14, 15, 0.75);
   backdrop-filter: blur(24px);

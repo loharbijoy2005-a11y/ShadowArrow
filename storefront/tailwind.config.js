@@ -21,7 +21,7 @@ module.exports = {
           cardLight: '#ffffff',
           cardDark: '#1e293b',
         },
-        stitch: {
+        cyber: {
           bg: '#050505',
           surface: '#121414',
           container: '#1e2020',

@@ -151,14 +151,14 @@ export default function HomePage() {
   const activeSlide = heroSlides[currentSlide] || heroSlides[0] || DEFAULT_HERO_SLIDES[0];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] text-[#e3e2e2] font-body relative selection:bg-[#00e0ff] selection:text-[#050505]">
+    <div className="min-h-screen flex flex-col bg-[#050505] md:bg-slate-50 text-[#e3e2e2] md:text-slate-900 font-body relative selection:bg-[#00e0ff] selection:text-[#050505]">
       <GalaxyVFXBackground />
       <Header onSearch={setSearchQuery} onToggleAI={() => setAiOpen(!aiOpen)} />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden w-full py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="absolute inset-0 bg-cover bg-center w-full h-full opacity-30 mix-blend-luminosity rounded-3xl overflow-hidden" style={{ backgroundImage: `url('${activeSlide.image}')` }}></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent"></div>
+      {/* Mobile Hero Section (< md) */}
+      <section className="block md:hidden relative min-h-[85vh] flex items-center justify-center overflow-hidden w-full py-10 px-4 max-w-7xl mx-auto">
+        <div className="absolute inset-0 bg-cover bg-center w-full h-full opacity-25 mix-blend-luminosity rounded-3xl overflow-hidden" style={{ backgroundImage: `url('${activeSlide.image}')` }}></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent"></div>
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-6">
           <span className="font-mono text-xs text-[#00e0ff] bg-[#1e2020] border border-[#343535] px-4 py-1.5 rounded-full inline-block tracking-[0.25em] uppercase font-bold">
@@ -173,14 +173,14 @@ export default function HomePage() {
             {activeSlide.desc}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+          <div className="flex flex-col gap-4 justify-center items-center pt-4">
             <button
               onClick={() => {
                 if (activeSlide.categoryFilter) setCategory(activeSlide.categoryFilter);
                 const el = document.getElementById('catalog');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-[#00e0ff] text-[#050505] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:bg-[#00daf8] transition-colors duration-300 active:scale-95 w-full sm:w-auto flex items-center justify-center space-x-2 shadow-lg"
+              className="bg-[#00e0ff] text-[#050505] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:bg-[#00daf8] transition-colors duration-300 active:scale-95 w-full flex items-center justify-center space-x-2"
             >
               <span>{activeSlide.ctaText || 'Explore Collection'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -188,7 +188,7 @@ export default function HomePage() {
 
             <button
               onClick={() => setAiOpen(true)}
-              className="bg-[#121414]/80 border border-[#343535] text-[#e3e2e2] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:border-[#00e0ff] hover:text-[#00e0ff] transition-all duration-300 active:scale-95 w-full sm:w-auto flex items-center justify-center space-x-2 backdrop-blur-sm"
+              className="bg-[#121414]/80 border border-[#343535] text-[#e3e2e2] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:border-[#00e0ff] hover:text-[#00e0ff] transition-all duration-300 active:scale-95 w-full flex items-center justify-center space-x-2 backdrop-blur-sm"
             >
               <Bot className="w-4 h-4 text-[#00e0ff]" />
               <span>Shadow AI Lab</span>
@@ -197,8 +197,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stealth Series Horizontal Scroll */}
-      <section className="py-12 w-full bg-[#0d0e0f] border-y border-[#343535]/50">
+      {/* Desktop Hero Section (md+) */}
+      <section className="hidden md:block relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 min-h-[360px] transition-all duration-700">
+          
+          {/* Text Content */}
+          <div className="space-y-4 max-w-xl z-10">
+            <span className="px-3.5 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-mono font-bold rounded-full inline-block">
+              {activeSlide.tag}
+            </span>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-none uppercase">
+              {activeSlide.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+              {activeSlide.desc}
+            </p>
+            <div className="pt-2 flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  if (activeSlide.categoryFilter) setCategory(activeSlide.categoryFilter);
+                  const el = document.getElementById('catalog');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg flex items-center space-x-2"
+              >
+                <span>{activeSlide.ctaText}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setAiOpen(true)}
+                className="flex items-center space-x-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 transition"
+              >
+                <Bot className="w-4 h-4 text-blue-400" />
+                <span>Shadow AI</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Banner Image */}
+          <div className="w-full md:w-1/2 aspect-video md:aspect-square max-h-64 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 shrink-0 relative group">
+            <img
+              src={activeSlide.image}
+              alt={activeSlide.title}
+              className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-105"
+            />
+          </div>
+
+          {/* Controls */}
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition flex"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition flex"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </section>
+
+      {/* Stealth Series Horizontal Scroll (Mobile Only) */}
+      <section className="block md:hidden py-12 w-full bg-[#0d0e0f] border-y border-[#343535]/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 flex justify-between items-end border-b border-[#343535]/50 pb-4">
           <div>
             <span className="font-mono text-[10px] text-[#00e0ff] tracking-[0.2em] uppercase font-bold block mb-1">
@@ -269,60 +332,44 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Core Technology Bento Grid */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
+      {/* Core Technology Bento Grid (Mobile Only) */}
+      <section className="block md:hidden py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2">
           <span className="font-mono text-xs text-[#00e0ff] tracking-[0.25em] uppercase font-bold block">
             CORE ENGINEERING
           </span>
-          <h2 className="font-sora text-2xl sm:text-4xl font-extrabold text-white uppercase tracking-tight">
+          <h2 className="font-sora text-2xl font-extrabold text-white uppercase tracking-tight">
             Performance Technology
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[280px] sm:auto-rows-[340px]">
-          {/* Large Feature Card */}
-          <div className="md:col-span-2 glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-8 border-l-4 border-l-[#00e0ff]">
+        <div className="grid grid-cols-1 gap-6 auto-rows-[260px]">
+          <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-l-4 border-l-[#00e0ff]">
             <div className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-700 mix-blend-overlay" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800')" }}></div>
-            <div className="relative z-10 max-w-lg">
-              <h3 className="font-sora text-xl font-bold text-white mb-2">Aero-Weave Fabric</h3>
-              <p className="font-hanken text-xs text-[#bac9cd] mb-6 leading-relaxed">Proprietary hyper-breathable membrane regulating microclimate while providing environmental shielding.</p>
-              <span className="font-mono text-xs text-[#00e0ff] border-b border-[#00e0ff] pb-1 uppercase tracking-widest">Discover Tech</span>
+            <div className="relative z-10">
+              <h3 className="font-sora text-lg font-bold text-white mb-1">Aero-Weave Fabric</h3>
+              <p className="font-hanken text-xs text-[#bac9cd] mb-4">Hyper-breathable membrane regulating microclimate.</p>
+              <span className="font-mono text-[10px] text-[#00e0ff] border-b border-[#00e0ff] pb-0.5 uppercase tracking-widest">Discover Tech</span>
             </div>
           </div>
 
-          {/* Small Feature 1 */}
           <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-t border-[#343535] hover:border-[#00e0ff]/60 transition-colors">
             <h3 className="font-sora text-lg font-bold text-white mb-1">Magnetic Lock</h3>
             <p className="font-hanken text-xs text-[#bac9cd]">Silent, instantaneous magnetic fastening.</p>
           </div>
 
-          {/* Small Feature 2 */}
           <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-b border-[#343535] hover:border-[#00e0ff]/60 transition-colors">
             <h3 className="font-sora text-lg font-bold text-[#e3e2e2] mb-1">DWR Hydro-Shield</h3>
             <p className="font-hanken text-xs text-[#bac9cd]">Extreme hydrophobic rain repellency.</p>
-          </div>
-
-          {/* Medium Feature */}
-          <div className="md:col-span-2 glass-panel relative overflow-hidden group cursor-pointer flex items-center p-8 bg-[#121414]/60">
-            <div className="relative z-10 w-full flex justify-between items-center">
-              <div>
-                <h3 className="font-sora text-xl font-bold text-white mb-2">Bespoke Custom Lab</h3>
-                <p className="font-hanken text-xs text-[#bac9cd] max-w-md">Tailored sizing & custom cyber fit engineered specifically for your body silhouette.</p>
-              </div>
-              <div className="h-16 w-16 rounded-full border border-[#00e0ff]/50 flex items-center justify-center text-[#00e0ff] shrink-0 font-mono font-bold text-xs">
-                LAB
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Main Catalog */}
-      <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 bg-[#050505]">
+      <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 bg-[#050505] md:bg-slate-50">
         
         {/* Category Tabs & Filter */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#343535]/50">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#343535]/50 md:border-slate-200">
           <div className="flex space-x-3 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
             {CATEGORY_ITEMS.map((item) => {
               const IconComp = item.icon;
@@ -332,10 +379,10 @@ export default function HomePage() {
                   key={item.id}
                   onClick={() => setCategory(item.id)}
                   title={item.title}
-                  className={`px-4 py-2.5 font-mono text-xs font-bold uppercase transition-all duration-300 flex items-center space-x-2 shrink-0 border ${
+                  className={`px-4 py-2.5 font-mono text-xs font-bold uppercase transition-all duration-300 flex items-center space-x-2 shrink-0 border md:rounded-2xl ${
                     isActive
-                      ? 'bg-[#00e0ff] text-[#050505] border-[#00e0ff] shadow-lg'
-                      : 'bg-[#121414] text-[#bac9cd] border-[#343535] hover:text-white hover:border-[#00e0ff]/50'
+                      ? 'bg-[#00e0ff] text-[#050505] border-[#00e0ff] md:bg-slate-900 md:text-white md:border-slate-900 shadow-lg'
+                      : 'bg-[#121414] text-[#bac9cd] border-[#343535] hover:text-white hover:border-[#00e0ff]/50 md:bg-white md:text-slate-700 md:border-slate-200 md:hover:bg-slate-100'
                   }`}
                 >
                   <IconComp className="w-4 h-4" />
@@ -346,11 +393,11 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center space-x-2 text-xs font-mono self-end sm:self-auto">
-            <SlidersHorizontal className="w-4 h-4 text-[#00e0ff]" />
+            <SlidersHorizontal className="w-4 h-4 text-[#00e0ff] md:text-slate-500" />
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="bg-[#121414] border border-[#343535] text-xs text-[#e3e2e2] px-3 py-2 focus:outline-none focus:border-[#00e0ff]"
+              className="bg-[#121414] md:bg-white border border-[#343535] md:border-slate-300 text-xs text-[#e3e2e2] md:text-slate-800 px-3 py-2 md:rounded-lg focus:outline-none focus:border-[#00e0ff] md:focus:ring-2 md:focus:ring-blue-500"
             >
               <option value="">Sort: Featured</option>
               <option value="asc">Price: Low to High</option>
@@ -362,16 +409,16 @@ export default function HomePage() {
         {/* Product Grid */}
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00e0ff]" />
-            <p className="text-xs font-mono font-bold text-[#bac9cd] uppercase">Fetching Drops...</p>
+            <Loader2 className="w-8 h-8 animate-spin text-[#00e0ff] md:text-slate-900" />
+            <p className="text-xs font-mono font-bold text-[#bac9cd] md:text-slate-500 uppercase">Fetching Drops...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="py-20 text-center space-y-3">
-            <div className="w-16 h-16 bg-[#121414] border border-[#343535] flex items-center justify-center mx-auto text-[#00e0ff]">
+            <div className="w-16 h-16 bg-[#121414] md:bg-white border border-[#343535] md:border-slate-200 md:rounded-full flex items-center justify-center mx-auto text-[#00e0ff] md:text-slate-400">
               <Package className="w-8 h-8" />
             </div>
-            <h3 className="font-sora font-bold text-white">No items match your query</h3>
-            <p className="text-xs text-[#bac9cd]">Try adjusting your search query or category filter.</p>
+            <h3 className="font-sora font-bold text-white md:text-slate-900">No items match your query</h3>
+            <p className="text-xs text-[#bac9cd] md:text-slate-500">Try adjusting your search query or category filter.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -387,7 +434,7 @@ export default function HomePage() {
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-8 py-3 bg-[#121414] hover:bg-[#1e2020] border border-[#00e0ff]/60 text-[#00e0ff] font-mono text-xs uppercase tracking-widest transition flex items-center space-x-2 disabled:opacity-50"
+              className="px-8 py-3 bg-[#121414] md:bg-white hover:bg-[#1e2020] md:hover:bg-slate-100 border border-[#00e0ff]/60 md:border-slate-300 text-[#00e0ff] md:text-slate-900 font-mono text-xs uppercase tracking-widest md:rounded-full shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
             >
               {loadingMore ? (
                 <>

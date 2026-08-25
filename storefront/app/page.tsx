@@ -151,90 +151,178 @@ export default function HomePage() {
   const activeSlide = heroSlides[currentSlide] || heroSlides[0] || DEFAULT_HERO_SLIDES[0];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
+    <div className="min-h-screen flex flex-col bg-[#050505] text-[#e3e2e2] font-body relative selection:bg-[#00e0ff] selection:text-[#050505]">
       <GalaxyVFXBackground />
       <Header onSearch={setSearchQuery} onToggleAI={() => setAiOpen(!aiOpen)} />
 
-      {/* Hero Banner Section */}
-      <section className="relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 min-h-[360px] transition-all duration-700">
+      {/* Stitch Hero Section */}
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden w-full py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="absolute inset-0 bg-cover bg-center w-full h-full opacity-25 mix-blend-luminosity rounded-3xl overflow-hidden" style={{ backgroundImage: `url('${activeSlide.image}')` }}></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent"></div>
+        
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-6">
+          <span className="font-mono text-xs text-[#00e0ff] bg-[#1e2020] border border-[#343535] px-4 py-1.5 rounded-full inline-block tracking-[0.25em] uppercase font-bold">
+            {activeSlide.tag || 'PHASE 01 / INITIATION'}
+          </span>
           
-          {/* Text Content */}
-          <div className="space-y-4 max-w-xl z-10">
-            <span className="px-3.5 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-mono font-bold rounded-full inline-block">
-              {activeSlide.tag}
-            </span>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-none uppercase">
-              {activeSlide.title}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
-              {activeSlide.desc}
-            </p>
-            <div className="pt-2 flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  if (activeSlide.categoryFilter) setCategory(activeSlide.categoryFilter);
-                  const el = document.getElementById('catalog');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg flex items-center space-x-2"
-              >
-                <span>{activeSlide.ctaText}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+          <h1 className="font-sora font-extrabold text-3xl sm:text-6xl text-white tracking-tight leading-tight uppercase drop-shadow-2xl">
+            {activeSlide.title}
+          </h1>
+          
+          <p className="font-hanken text-sm sm:text-base text-[#bac9cd] max-w-2xl mx-auto leading-relaxed">
+            {activeSlide.desc}
+          </p>
 
-              <button
-                onClick={() => setAiOpen(true)}
-                className="flex items-center space-x-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 transition"
-              >
-                <Bot className="w-4 h-4 text-blue-400" />
-                <span>Shadow AI</span>
-              </button>
-            </div>
-          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+            <button
+              onClick={() => {
+                if (activeSlide.categoryFilter) setCategory(activeSlide.categoryFilter);
+                const el = document.getElementById('catalog');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-[#00e0ff] text-[#050505] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:bg-[#00daf8] transition-colors duration-300 active:scale-95 w-full sm:w-auto flex items-center justify-center space-x-2"
+            >
+              <span>{activeSlide.ctaText || 'Explore Collection'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
 
-          {/* Banner Image */}
-          <div className="w-full md:w-1/2 aspect-video md:aspect-square max-h-64 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 shrink-0 relative group">
-            <img
-              src={activeSlide.image}
-              alt={activeSlide.title}
-              className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-105"
-            />
-          </div>
-
-          {/* Controls */}
-          <button
-            onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition hidden sm:flex"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition hidden sm:flex"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-            {heroSlides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentSlide(idx)}
-                className={`h-1.5 rounded-full transition-all ${
-                  currentSlide === idx ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'
-                }`}
-              />
-            ))}
+            <button
+              onClick={() => setAiOpen(true)}
+              className="bg-[#121414]/80 border border-[#343535] text-[#e3e2e2] font-sora font-bold text-xs px-8 py-4 uppercase tracking-[0.1em] hover:border-[#00e0ff] hover:text-[#00e0ff] transition-all duration-300 active:scale-95 w-full sm:w-auto flex items-center justify-center space-x-2 backdrop-blur-sm"
+            >
+              <Bot className="w-4 h-4 text-[#00e0ff]" />
+              <span>Shadow AI Lab</span>
+            </button>
           </div>
         </div>
       </section>
 
-      {/* Crisp Amazon-Style Product Catalog */}
-      <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 bg-slate-50">
+      {/* Stealth Series Horizontal Scroll (Stitch Component) */}
+      <section className="py-12 w-full bg-[#0d0e0f] border-y border-[#343535]/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 flex justify-between items-end border-b border-[#343535]/50 pb-4">
+          <div>
+            <span className="font-mono text-[10px] text-[#00e0ff] tracking-[0.2em] uppercase font-bold block mb-1">
+              LIMITED DROP
+            </span>
+            <h2 className="font-sora text-xl sm:text-2xl font-bold text-white uppercase tracking-tight">
+              Stealth Series
+            </h2>
+          </div>
+          <a href="#catalog" className="font-mono text-xs text-[#00e0ff] hover:text-white uppercase flex items-center gap-1.5 transition-colors">
+            View All <ArrowRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <div className="flex overflow-x-auto gap-6 px-4 sm:px-8 max-w-7xl mx-auto pb-6 hide-scrollbar snap-x snap-mandatory">
+          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
+            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
+              <img
+                src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800"
+                alt="Obsidian Shell"
+                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+              />
+              <span className="absolute top-3 left-3 bg-[#1e2020] text-[#00e0ff] font-mono text-[9px] px-2 py-1 uppercase tracking-widest border border-[#343535]">NEW</span>
+            </div>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-sora font-semibold text-white text-base">Obsidian Shell</h3>
+                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">Lightweight Tactical Layer</p>
+              </div>
+              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹4,499</span>
+            </div>
+          </div>
+
+          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
+            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
+              <img
+                src="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800"
+                alt="Aegis Footwear"
+                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+              />
+              <span className="absolute top-3 left-3 bg-[#1e2020] text-[#00e0ff] font-mono text-[9px] px-2 py-1 uppercase tracking-widest border border-[#343535]">LIMITED</span>
+            </div>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-sora font-semibold text-white text-base">Aegis Cyber Kicks</h3>
+                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">All-Terrain Cyber Footwear</p>
+              </div>
+              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹6,999</span>
+            </div>
+          </div>
+
+          <div className="min-w-[280px] sm:min-w-[360px] flex-shrink-0 snap-center group cursor-pointer bg-[#121414] border border-[#343535] hover:border-[#00e0ff]/60 transition-all p-4">
+            <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-[#050505]">
+              <img
+                src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800"
+                alt="Phantom Trousers"
+                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+              />
+            </div>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-sora font-semibold text-white text-base">Phantom Trousers</h3>
+                <p className="font-hanken text-xs text-[#bac9cd] mt-0.5">Articulated Cyber Cargos</p>
+              </div>
+              <span className="font-mono text-xs font-bold text-[#00e0ff] bg-[#1e2020] px-2.5 py-1 border border-[#343535]">₹3,799</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Technology Bento Grid (Stitch Feature) */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
+        <div className="text-center max-w-xl mx-auto space-y-2">
+          <span className="font-mono text-xs text-[#00e0ff] tracking-[0.25em] uppercase font-bold block">
+            CORE ENGINEERING
+          </span>
+          <h2 className="font-sora text-2xl sm:text-4xl font-extrabold text-white uppercase tracking-tight">
+            Performance Technology
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[280px] sm:auto-rows-[340px]">
+          {/* Large Feature Card */}
+          <div className="md:col-span-2 glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-8 border-l-4 border-l-[#00e0ff]">
+            <div className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-700 mix-blend-overlay" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800')" }}></div>
+            <div className="relative z-10 max-w-lg">
+              <h3 className="font-sora text-xl font-bold text-white mb-2">Aero-Weave Fabric</h3>
+              <p className="font-hanken text-xs text-[#bac9cd] mb-6 leading-relaxed">Proprietary hyper-breathable membrane regulating microclimate while providing environmental shielding.</p>
+              <span className="font-mono text-xs text-[#00e0ff] border-b border-[#00e0ff] pb-1 uppercase tracking-widest">Discover Tech</span>
+            </div>
+          </div>
+
+          {/* Small Feature 1 */}
+          <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-t border-[#343535] hover:border-[#00e0ff]/60 transition-colors">
+            <h3 className="font-sora text-lg font-bold text-white mb-1">Magnetic Lock</h3>
+            <p className="font-hanken text-xs text-[#bac9cd]">Silent, instantaneous magnetic fastening.</p>
+          </div>
+
+          {/* Small Feature 2 */}
+          <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-b border-[#343535] hover:border-[#00e0ff]/60 transition-colors">
+            <h3 className="font-sora text-lg font-bold text-white mb-1">DWR Hydro-Shield</h3>
+            <p className="font-hanken text-xs text-[#bac9cd]">Extreme hydrophobic rain repellency.</p>
+          </div>
+
+          {/* Medium Feature */}
+          <div className="md:col-span-2 glass-panel relative overflow-hidden group cursor-pointer flex items-center p-8 bg-[#121414]/60">
+            <div className="relative z-10 w-full flex justify-between items-center">
+              <div>
+                <h3 className="font-sora text-xl font-bold text-white mb-2">Bespoke Custom Lab</h3>
+                <p className="font-hanken text-xs text-[#bac9cd] max-w-md">Tailored sizing & custom cyber fit engineered specifically for your body silhouette.</p>
+              </div>
+              <div className="h-16 w-16 rounded-full border border-[#00e0ff]/50 flex items-center justify-center text-[#00e0ff] shrink-0 font-mono font-bold text-xs">
+                LAB
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Catalog */}
+      <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
         
-        {/* Category Tabs & Filter - Icons Only */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-200">
+        {/* Category Tabs & Filter */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#343535]/50">
           <div className="flex space-x-3 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
             {CATEGORY_ITEMS.map((item) => {
               const IconComp = item.icon;
@@ -244,26 +332,27 @@ export default function HomePage() {
                   key={item.id}
                   onClick={() => setCategory(item.id)}
                   title={item.title}
-                  className={`p-3 rounded-2xl transition-all duration-300 flex items-center justify-center shrink-0 border ${
+                  className={`px-4 py-2.5 font-mono text-xs font-bold uppercase transition-all duration-300 flex items-center space-x-2 shrink-0 border ${
                     isActive
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                      ? 'bg-[#00e0ff] text-[#050505] border-[#00e0ff] shadow-lg'
+                      : 'bg-[#121414] text-[#bac9cd] border-[#343535] hover:text-white hover:border-[#00e0ff]/50'
                   }`}
                 >
-                  <IconComp className="w-5 h-5" />
+                  <IconComp className="w-4 h-4" />
+                  <span>{item.title}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex items-center space-x-2 text-xs font-medium self-end sm:self-auto">
-            <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center space-x-2 text-xs font-mono self-end sm:self-auto">
+            <SlidersHorizontal className="w-4 h-4 text-[#00e0ff]" />
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-[#121414] border border-[#343535] text-xs text-[#e3e2e2] px-3 py-2 focus:outline-none focus:border-[#00e0ff]"
             >
-              <option value="">Featured Sort</option>
+              <option value="">Sort: Featured</option>
               <option value="asc">Price: Low to High</option>
               <option value="desc">Price: High to Low</option>
             </select>
@@ -273,16 +362,16 @@ export default function HomePage() {
         {/* Product Grid */}
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
-            <p className="text-xs font-mono font-bold text-slate-500 uppercase">Fetching Catalog Items...</p>
+            <Loader2 className="w-8 h-8 animate-spin text-[#00e0ff]" />
+            <p className="text-xs font-mono font-bold text-[#bac9cd] uppercase">Fetching Drops...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="py-20 text-center space-y-3">
-            <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto text-slate-400">
+            <div className="w-16 h-16 bg-[#121414] border border-[#343535] flex items-center justify-center mx-auto text-[#00e0ff]">
               <Package className="w-8 h-8" />
             </div>
-            <h3 className="font-bold text-slate-900">No items match your criteria</h3>
-            <p className="text-xs text-slate-500">Try adjusting your search query or category filter.</p>
+            <h3 className="font-sora font-bold text-white">No items match your query</h3>
+            <p className="text-xs text-[#bac9cd]">Try adjusting your search query or category filter.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -294,11 +383,11 @@ export default function HomePage() {
 
         {/* Load More Button */}
         {hasMore && (
-          <div className="pt-8 pb-12 flex justify-center">
+          <div className="pt-8 pb-16 flex justify-center">
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-8 py-3 bg-white hover:bg-slate-100 border border-slate-300 text-slate-900 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+              className="px-8 py-3 bg-[#121414] hover:bg-[#1e2020] border border-[#00e0ff]/60 text-[#00e0ff] font-mono text-xs uppercase tracking-widest transition flex items-center space-x-2 disabled:opacity-50"
             >
               {loadingMore ? (
                 <>
@@ -306,7 +395,7 @@ export default function HomePage() {
                   <span>Loading Items...</span>
                 </>
               ) : (
-                <span>Load More Products</span>
+                <span>Load More Drops</span>
               )}
             </button>
           </div>
@@ -318,3 +407,4 @@ export default function HomePage() {
     </div>
   );
 }
+

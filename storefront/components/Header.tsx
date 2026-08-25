@@ -96,15 +96,15 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 shadow-xl transition-colors duration-500 text-white">
+    <header className="sticky top-0 z-40 bg-[#0d0e0f]/80 backdrop-blur-xl border-b border-[#343535]/50 shadow-2xl transition-colors duration-500 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="sa_logo_badge w-9 h-9 rounded-lg text-sm tracking-tight font-black shadow-lg">
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="sa_logo_badge w-9 h-9 border border-[#00e0ff]/60 bg-[#121414] text-[#00e0ff] font-sora font-black text-sm tracking-tight flex items-center justify-center shadow-lg">
             SA
           </div>
-          <span className="shadow_arrow_logo font-black text-xl tracking-tighter text-white uppercase">
+          <span className="font-sora font-extrabold text-lg sm:text-xl tracking-widest text-white uppercase group-hover:text-[#00e0ff] transition-colors">
             SHADOW ARROW
           </span>
         </Link>

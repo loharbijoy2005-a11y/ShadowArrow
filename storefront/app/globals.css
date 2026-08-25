@@ -222,10 +222,65 @@ html, body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #0d0e0f;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94A3B8;
-  border-radius: 4px;
+  background: #343535;
+  border-radius: 0px;
 }
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00e0ff;
+}
+
+/* Stitch Design System Utilities */
+.glass-panel {
+  background: rgba(13, 14, 15, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(52, 53, 53, 0.5);
+}
+
+.electric-glow:hover {
+  box-shadow: 0 0 24px rgba(0, 224, 255, 0.3);
+  border-color: rgba(0, 224, 255, 0.6);
+}
+
+.ambient-shadow {
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.85);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.font-display-lg {
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.font-headline-md {
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.font-label-caps {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.font-label-tech {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.font-body-md {
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+

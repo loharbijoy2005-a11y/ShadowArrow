@@ -7,10 +7,50 @@ import Footer from '@/components/Footer';
 import TrackOrderBubbleModal from '@/components/TrackOrderBubbleModal';
 import ThemeProvider from '@/components/ThemeProvider';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shadowarrow.com';
+
 export const metadata: Metadata = {
-  title: 'SHADOW ARROW | Prime Marketplace Streetwear & Techwear',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'SHADOW ARROW | Prime Marketplace Streetwear & Techwear',
+    template: '%s | SHADOW ARROW',
+  },
   description: 'Official online store for SHADOW ARROW. Heavyweight 280-450 GSM French Terry cotton t-shirts, hoodies, cargo pants, and cyber footwear.',
+  keywords: ['streetwear', 'techwear', 'oversized t-shirts', 'heavyweight cotton', 'cargo pants', 'cyber footwear', 'street fashion', 'baggy fits'],
+  authors: [{ name: 'SHADOW ARROW' }],
+  creator: 'SHADOW ARROW',
+  publisher: 'SHADOW ARROW',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'SHADOW ARROW | Prime Marketplace Streetwear & Techwear',
+    description: 'Official online store for SHADOW ARROW. Heavyweight 280-450 GSM French Terry cotton t-shirts, hoodies, cargo pants, and cyber footwear.',
+    url: SITE_URL,
+    siteName: 'SHADOW ARROW',
+    images: [
+      {
+        url: '/icon.jpg', // Using our brand logo as the default sharing image
+        width: 800,
+        height: 800,
+        alt: 'SHADOW ARROW Brand Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SHADOW ARROW | Streetwear & Techwear',
+    description: 'Official online store for SHADOW ARROW. Heavyweight 280-450 GSM French Terry cotton t-shirts, hoodies, cargo pants, and cyber footwear.',
+    images: ['/icon.jpg'],
+  },
+  icons: {
+    icon: '/icon.jpg',
+    apple: '/icon.jpg',
+  },
 };
+
 
 export default function RootLayout({
   children,

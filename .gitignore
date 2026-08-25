@@ -41,11 +41,7 @@ Thumbs.db
 brain.md
 SECURITY_REMEDIATION.md
 
-# Codebase Knowledge Graph files
+# Codebase Knowledge Graph generated files
 scripts/code_graph/code_graph_index.json
 scripts/code_graph/visualizer.html
 run_graph.bat
-
-# Admin Panel (Exclude from Git tracking - Frontend Storefront only)
-admin-dashboard/
-downloaded_vercel_visualizer.html

@@ -580,7 +580,7 @@ def main():
         hf.write(html_content)
     print(f"Interactive visualizer generated at: {html_path}")
     
-    # Write to admin-dashboard public folder for local Next.js rendering
+    # Write to admin-dashboard public folder for Next.js rendering
     admin_public_dir = os.path.join(root_dir, 'admin-dashboard', 'public')
     try:
         os.makedirs(admin_public_dir, exist_ok=True)
@@ -590,6 +590,28 @@ def main():
         print(f"Interactive visualizer copied to admin-dashboard at: {admin_html_path}")
     except Exception as e:
         print(f"Warning: Could not copy visualizer to admin-dashboard/public: {e}")
+
+    # Write to storefront public folder for Vercel storefront rendering
+    storefront_public_dir = os.path.join(root_dir, 'storefront', 'public')
+    try:
+        os.makedirs(storefront_public_dir, exist_ok=True)
+        storefront_html_path = os.path.join(storefront_public_dir, 'visualizer.html')
+        with open(storefront_html_path, 'w', encoding='utf-8') as hf:
+            hf.write(html_content)
+        print(f"Interactive visualizer copied to storefront at: {storefront_html_path}")
+    except Exception as e:
+        print(f"Warning: Could not copy visualizer to storefront/public: {e}")
+
+    # Write to root public folder for root static Vercel serving
+    root_public_dir = os.path.join(root_dir, 'public')
+    try:
+        os.makedirs(root_public_dir, exist_ok=True)
+        root_html_path = os.path.join(root_public_dir, 'visualizer.html')
+        with open(root_html_path, 'w', encoding='utf-8') as hf:
+            hf.write(html_content)
+        print(f"Interactive visualizer copied to root public at: {root_html_path}")
+    except Exception as e:
+        print(f"Warning: Could not copy visualizer to root public: {e}")
 
     # Write to root downloaded_vercel_visualizer.html
     try:

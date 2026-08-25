@@ -1,0 +1,7 @@
+# GitHub Linguist Configuration
+# Mark generated HTML visualizer files as generated so TypeScript remains the primary repository language (>75%)
+
+*.html linguist-generated=true
+downloaded_vercel_visualizer.html linguist-generated=true
+admin-dashboard/public/visualizer.html linguist-generated=true
+scripts/code_graph/code_graph_index.json linguist-generated=true

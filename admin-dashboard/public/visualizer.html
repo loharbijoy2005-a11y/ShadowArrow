@@ -1537,29 +1537,48 @@
             }
         }
 
+        // Global User Gesture Unlocker for Browser Autoplay Policies
+        const unlockAudio = () => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        };
+        if (typeof window !== 'undefined') {
+            ['click', 'pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+                window.addEventListener(evt, unlockAudio, { passive: true });
+            });
+        }
+
         // Continuous Sci-Fi Space Ambient Drone Loop
         function startSpaceAmbient() {
             initAudio();
-            if (!audioCtx || spaceSoundActive) return;
+            if (!audioCtx) return;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (spaceSoundActive) return;
 
             try {
                 ambientGainNode = audioCtx.createGain();
-                ambientGainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                ambientGainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
 
                 // Low-pass filter for cosmic atmosphere
                 const filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(150, audioCtx.currentTime);
+                filter.frequency.setValueAtTime(220, audioCtx.currentTime);
 
                 // Sub-space Oscillators
                 ambientOsc1 = audioCtx.createOscillator();
                 ambientOsc2 = audioCtx.createOscillator();
 
                 ambientOsc1.type = 'sine';
-                ambientOsc1.frequency.setValueAtTime(55, audioCtx.currentTime); // Sub-A
+                ambientOsc1.frequency.setValueAtTime(65, audioCtx.currentTime); // Sub-C
 
                 ambientOsc2.type = 'triangle';
-                ambientOsc2.frequency.setValueAtTime(110.4, audioCtx.currentTime); // Subtle detuned resonance
+                ambientOsc2.frequency.setValueAtTime(130.8, audioCtx.currentTime); // Detuned resonance
 
                 ambientOsc1.connect(filter);
                 ambientOsc2.connect(filter);
@@ -1589,10 +1608,12 @@
         }
 
         function toggleSpaceAudio() {
+            unlockAudio();
             if (spaceSoundActive) {
                 stopSpaceAmbient();
             } else {
                 startSpaceAmbient();
+                playSuccessSound();
             }
         }
 
@@ -1634,7 +1655,7 @@
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                     
-                    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.22, audioCtx.currentTime);
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
 
                     osc.start(audioCtx.currentTime);

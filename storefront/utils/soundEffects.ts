@@ -19,6 +19,13 @@ class SoundSystem {
     return this.ctx;
   }
 
+  public unlock() {
+    const ctx = this.getContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+  }
+
   public toggleSound(): boolean {
     this.enabled = !this.enabled;
     return this.enabled;
@@ -39,10 +46,10 @@ class SoundSystem {
 
     osc.type = 'sine';
     osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
+    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
 
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
 
     osc.connect(gain);
     gain.connect(ctx.destination);

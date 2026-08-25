@@ -27,10 +27,10 @@
 }
 
 html, body {
-  background-color: var(--color-bg, #020617) !important;
-  color: var(--color-text-primary, #ffffff) !important;
+  background-color: #050505;
+  color: #e3e2e2;
   min-height: 100vh;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Amazon-Style Crisp White Card Container */

@@ -106,11 +106,12 @@ export default function ProductDetailClient({ product, relatedProducts, id }: Pr
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(imgUrl)}
+                    aria-label={`View ${product.title || 'Product'} thumbnail ${idx + 1}`}
                     className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition ${
                       selectedImage === imgUrl ? 'border-blue-500 shadow-lg scale-105' : 'border-slate-800 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                    <img src={imgUrl} alt={`${product.title || 'Product'} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

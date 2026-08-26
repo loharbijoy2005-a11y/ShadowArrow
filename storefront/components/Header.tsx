@@ -242,6 +242,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
           {/* Shadow AI Stylist Button */}
           <button
             onClick={onToggleAI}
+            aria-label="Open Shadow AI Assistant"
             className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3.5 py-2 rounded-full text-xs font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all active:scale-95"
           >
             <Bot className="w-3.5 h-3.5" />
@@ -251,6 +252,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
           {/* User Account / Profile Button */}
           <Link
             href="/account"
+            aria-label="User Account & Orders"
             className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-full border border-slate-800 transition active:scale-95 relative"
             title="User Account & Orders"
           >
@@ -277,6 +279,7 @@ export default function Header({ onSearch, onToggleAI }: HeaderProps) {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             className="md:hidden p-2 text-slate-300"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

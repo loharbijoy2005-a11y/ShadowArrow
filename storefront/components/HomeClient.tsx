@@ -25,7 +25,7 @@ const DEFAULT_HERO_SLIDES = [
     desc: 'Crafted from heavy 350-450 GSM French Terry cotton. Signature drop-shoulder boxy fits engineered for urban comfort.',
     ctaText: 'Shop New Drops',
     ctaLink: '#catalog',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&q=75',
   },
   {
     tag: 'CYBER TECHWEAR & FOOTWEAR',
@@ -34,7 +34,7 @@ const DEFAULT_HERO_SLIDES = [
     ctaText: 'Explore Footwear',
     ctaLink: '#catalog',
     categoryFilter: 'Footwear',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800',
+    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&auto=format&q=75',
   },
 ];
 
@@ -251,7 +251,7 @@ export default function HomeClient({ initialBanners, initialProducts, initialHas
 
         <div className="grid grid-cols-1 gap-6 auto-rows-[260px]">
           <div className="glass-panel relative overflow-hidden group cursor-pointer flex flex-col justify-end p-6 border-l-4 border-l-[#00e0ff]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-700 mix-blend-overlay" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800')" }}></div>
+            <div className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-700 mix-blend-overlay" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&q=75')" }}></div>
             <div className="relative z-10">
               <h3 className="font-sora text-lg font-bold text-white mb-1">Aero-Weave Fabric</h3>
               <p className="font-hanken text-xs text-[#bac9cd] mb-4">Hyper-breathable membrane regulating microclimate.</p>

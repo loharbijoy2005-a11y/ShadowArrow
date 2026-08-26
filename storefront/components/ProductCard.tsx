@@ -7,13 +7,19 @@ import { useCart } from '@/context/CartContext';
 import { soundFx } from '@/utils/soundEffects';
 
 const optimizeImageUrl = (url: string) => {
-  if (url && url.includes('images.unsplash.com')) {
-    // If width is specified in the URL (e.g. w=800), replace it with w=400
-    if (url.includes('w=')) {
-      return url.replace(/[?&]w=\d+/, (match) => match[0] + '400');
+  if (!url) return '';
+  if (url.includes('images.unsplash.com')) {
+    try {
+      const u = new URL(url);
+      u.searchParams.set('w', '400');
+      u.searchParams.set('auto', 'format');
+      u.searchParams.set('q', '75');
+      u.searchParams.delete('400');
+      return u.toString();
+    } catch {
+      const sep = url.includes('?') ? '&' : '?';
+      return `${url}${sep}w=400&auto=format&q=75`;
     }
-    // Otherwise append w=400
-    return url.includes('?') ? `${url}&w=400` : `${url}?w=400`;
   }
   return url;
 };
@@ -86,7 +92,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.category}
             </span>
             {isOutOfStock ? (
-              <span className="px-2.5 py-1 bg-red-950/90 md:bg-red-600 text-red-200 md:text-white border border-red-800/50 md:border-none text-[10px] font-mono font-bold uppercase tracking-wider animate-pulse md:rounded-full">
+              <span className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-mono font-bold uppercase tracking-wider animate-pulse md:rounded-full">
                 SOLDOUT
               </span>
             ) : (

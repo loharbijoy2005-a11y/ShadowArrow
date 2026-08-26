@@ -1,47 +1,38 @@
-PROPRIETARY AND CONFIDENTIAL SOURCE CODE LICENSE
-=================================================
+<div align="center">
+# 🛡️ PROPRIETARY & RESTRICTED SOURCE CODE LICENSE
+[![License: All Rights Reserved](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg?style=for-the-badge&logo=shield)](https://github.com/loharbijoy2005-a11y)
+[![Status: Private Property](https://img.shields.io/badge/Status-Restricted_Access-critical.svg?style=for-the-badge&logo=lock)](https://github.com/loharbijoy2005-a11y)
+[![Legal: DMCA Protected](https://img.shields.io/badge/Legal-DMCA_Protected-blueviolet.svg?style=for-the-badge&logo=guard)](https://github.com/loharbijoy2005-a11y)
+---
+### ⚠️ **STRICT WARNING: NOT OPEN SOURCE SOFTWARE** ⚠️
+*This codebase is proprietary intellectual property. Unauthorized copying, distribution, or modification will result in legal action.*
+---
+</div>
+## 📌 1. Ownership & Copyright Notice
+> **Copyright © 2026 Bijoy Lohar (ShadowArrow Enterprises). All Rights Reserved.**
+This repository and all its contents—including but not limited to source code, algorithms, backend architecture, frontend designs, graphics, and documentation—are the exclusive property of **Bijoy Lohar**. 
+This repository is made publicly viewable solely for **portfolio demonstration and technical review**.
+---
+## 🚫 2. Prohibited Actions (Strictly Enforced)
+By viewing or accessing this repository, you explicitly agree **NOT** to:
+- ❌ **Copy or Clone:** No duplicating, scraping, or mirroring the code for personal or commercial use.
+- ❌ **Modify or Re-engineer:** No decompiling, modifying, or creating derivative works from this logic.
+- ❌ **Redistribute or Host:** No re-uploading, packaging, or hosting this codebase on any cloud, VPS, or public repository.
+- ❌ **Commercial Exploitation:** No selling, renting, sublicensing, or monetizing any portion of this software.
+- ❌ **AI & Model Training:** No using this codebase for dataset collection, LLM training, or machine learning input.
+---
+## ⚖️ 3. Legal Consequences & Enforcement
+Any unauthorized breach of this license is a direct violation of international copyright laws and will trigger immediate legal recourse:
 
-Copyright (c) 2026 Bijoy Lohar (ShadowArrow Enterprises). All Rights Reserved.
+| Action Level | Remedy / Legal Step |
+| :--- | :--- |
+| 🚨 **Level 1** | Immediate **DMCA Takedown Notice** to hosting providers, GitHub, domain registrars, and cloud CDNs. |
+| 📑 **Level 2** | Formal legal **Cease & Desist** dispatch to infringing parties and associated entities. |
+| ⚖️ **Level 3** | Filing for civil litigation seeking statutory damages, full profits recovery, and attorney costs. |
 
-NOTICE TO ALL USERS:
---------------------
-This repository, its source code, assets, documentation, logic, algorithms, 
-and design structures are the exclusive intellectual property of the Copyright Owner. 
-This repository is hosted publicly on GitHub SOLELY for inspection and portfolio 
-viewing purposes. It is NOT open-source software.
-
-1. PROHIBITED USES:
--------------------
-By accessing, viewing, or interacting with this repository, you explicitly agree that 
-you shall NOT, under any circumstances, directly or indirectly:
-- Copy, duplicate, reproduce, clone, or scrape any part of this source code or assets.
-- Modify, adapt, translate, reverse engineer, decompile, or create derivative works.
-- Host, deploy, redistribute, republish, mirror, or re-upload this software on any 
-  server, cloud platform, website, or hosting provider.
-- Use this code, in whole or in part, for personal, educational, commercial, non-profit, 
-  or AI-training / machine learning model training purposes.
-- Sub-license, sell, lease, monetize, or package any portion of this codebase.
-
-2. ENFORCEMENT & LEGAL CONSEQUENCES:
------------------------------------
-Any unauthorized use, copying, reproduction, or deployment of this software constitutes 
-direct intellectual property theft and willful copyright infringement. In the event of 
-a violation, the Copyright Owner reserves the right to immediately pursue all available 
-legal remedies without prior notice, including but not limited to:
-- Instant filing of Digital Millennium Copyright Act (DMCA) takedown notices with GitHub, 
-  hosting providers, domain registrars, payment gateways, and search engines.
-- Issuance of formal Cease and Desist orders.
-- Initiation of civil litigation for maximum statutory damages, financial losses, profits 
-  derived from unauthorized use, and full recovery of legal/attorney fees.
-- Criminal complaints under applicable cybercrime and copyright laws.
-
-3. DISCLAIMER OF WARRANTY:
---------------------------
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY 
-CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE VIEWING OR UNAUTHORIZED USE OF THIS CODE.
-
--------------------------------------------------------------------------------
-For written permission inquiries or commercial licensing requests, contact the 
-copyright owner directly via their official GitHub profile.
+---
+## 📜 4. Disclaimer of Liability
+```text
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DAMAGES, 
+CLAIMS, OR LIABILITIES ARISING FROM THE CODE OR ITS VIEWING.

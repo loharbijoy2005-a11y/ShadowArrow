@@ -3,8 +3,8 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRe
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyB7ZcKqTou5FOXFfKVK0N4YRY_hEZ6CAEI",
-  authDomain: "shadowarrow.firebaseapp.com",
-  projectId: "shadowarrow",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "shadowarrow.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "shadowarrow",
   storageBucket: "shadowarrow.firebasestorage.app",
   messagingSenderId: "466133114360",
   appId: "1:466133114360:web:956df256f2e78e17ed8a0d"

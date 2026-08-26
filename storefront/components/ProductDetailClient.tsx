@@ -151,7 +151,7 @@ export default function ProductDetailClient({ product, relatedProducts, id }: Pr
                   <span className="text-3xl font-black text-white">₹{currentPrice}</span>
                   {comparePrice > currentPrice && (
                     <>
-                      <span className="text-base text-slate-500 line-through font-semibold">₹{comparePrice}</span>
+                      <span className="text-base text-slate-400 line-through font-semibold">₹{comparePrice}</span>
                       <span className="px-3 py-1 bg-red-500/20 text-red-400 font-bold font-sans border border-red-500/30 text-xs rounded-full flex items-center space-x-1">
                         <span>-{discountPercent}% OFF</span>
                         {savingsAmount > 0 && <span className="text-[10px] text-red-300 opacity-90">(Save ₹{savingsAmount.toLocaleString('en-IN')})</span>}

@@ -224,12 +224,14 @@ export default function HomeClient({ initialBanners, initialProducts, initialHas
           <button
             onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition flex"
+            aria-label="Previous Slide"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-slate-950/80 hover:bg-black text-white rounded-full border border-slate-700 transition flex"
+            aria-label="Next Slide"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -271,6 +273,7 @@ export default function HomeClient({ initialBanners, initialProducts, initialHas
 
       {/* Main Catalog */}
       <main id="catalog" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 bg-[#050505] md:bg-slate-50">
+        <h2 className="sr-only">Product Catalog</h2>
         
         {/* Category Tabs & Filter */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#343535]/50 md:border-slate-200">
@@ -298,10 +301,13 @@ export default function HomeClient({ initialBanners, initialProducts, initialHas
 
           <div className="flex items-center space-x-2 text-xs font-mono self-end sm:self-auto">
             <SlidersHorizontal className="w-4 h-4 text-[#00e0ff] md:text-slate-500" />
+            <label htmlFor="sort-select" className="sr-only">Sort products</label>
             <select
+              id="sort-select"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
               className="bg-[#121414] md:bg-white border border-[#343535] md:border-slate-300 text-xs text-[#e3e2e2] md:text-slate-800 px-3 py-2 md:rounded-lg focus:outline-none focus:border-[#00e0ff] md:focus:ring-2 md:focus:ring-blue-500"
+              aria-label="Sort products"
             >
               <option value="">Sort: Featured</option>
               <option value="asc">Price: Low to High</option>

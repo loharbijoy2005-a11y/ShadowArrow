@@ -290,8 +290,9 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold uppercase mb-1 font-mono">Your Contact Phone / Email</label>
+                  <label htmlFor="support-contact" className="block text-slate-700 font-bold uppercase mb-1 font-mono">Your Contact Phone / Email</label>
                   <input
+                    id="support-contact"
                     type="text"
                     required
                     value={contact}
@@ -302,8 +303,9 @@ export default function SupportWidgetModal({ isOpen, onClose, initialCategory }:
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold uppercase mb-1 font-mono">Issue Description</label>
+                  <label htmlFor="support-description" className="block text-slate-700 font-bold uppercase mb-1 font-mono">Issue Description</label>
                   <textarea
+                    id="support-description"
                     required
                     rows={3}
                     value={description}

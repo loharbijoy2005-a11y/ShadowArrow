@@ -162,7 +162,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar with Copyright */}
-        <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">
+        <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-mono gap-4">
           <p>© {new Date().getFullYear()} SHADOW ARROW Inc. All rights reserved.</p>
           <p>Support: support.shadowarrow@gmail.com</p>
         </div>

@@ -6,6 +6,18 @@ import { ShoppingBag, Star, Check, Coins } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { soundFx } from '@/utils/soundEffects';
 
+const optimizeImageUrl = (url: string) => {
+  if (url && url.includes('images.unsplash.com')) {
+    // If width is specified in the URL (e.g. w=800), replace it with w=400
+    if (url.includes('w=')) {
+      return url.replace(/[?&]w=\d+/, (match) => match[0] + '400');
+    }
+    // Otherwise append w=400
+    return url.includes('?') ? `${url}&w=400` : `${url}?w=400`;
+  }
+  return url;
+};
+
 interface ProductCardProps {
   product: any;
 }
@@ -31,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       price: product.price,
       quantity: 1,
       size: defaultSize,
-      image: product.images && product.images[0] ? product.images[0] : 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
+      image: product.images && product.images[0] ? optimizeImageUrl(product.images[0]) : optimizeImageUrl('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800'),
       category: product.category,
     }, btn);
 
@@ -58,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Image Container */}
         <div className="relative aspect-[3/4] md:aspect-square overflow-hidden bg-[#121414] md:bg-slate-100">
           <img
-            src={product.images && product.images[0] ? product.images[0] : 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800'}
+            src={product.images && product.images[0] ? optimizeImageUrl(product.images[0]) : optimizeImageUrl('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800')}
             alt={product.title}
             className={`w-full h-full object-cover opacity-85 md:opacity-100 group-hover:opacity-100 transition-all duration-500 ${
               isOutOfStock ? 'opacity-30 grayscale' : 'group-hover:scale-105'
@@ -71,7 +83,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.category}
             </span>
             {isOutOfStock ? (
-              <span className="px-2.5 py-1 bg-red-950/90 md:bg-red-600 text-red-400 md:text-white border border-red-800/50 md:border-none text-[10px] font-mono font-bold uppercase tracking-wider animate-pulse md:rounded-full">
+              <span className="px-2.5 py-1 bg-red-950/90 md:bg-red-600 text-red-200 md:text-white border border-red-800/50 md:border-none text-[10px] font-mono font-bold uppercase tracking-wider animate-pulse md:rounded-full">
                 SOLDOUT
               </span>
             ) : (
@@ -109,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="font-mono">
               <span className="text-base md:text-lg font-bold text-[#00e0ff] md:text-slate-900 bg-[#1e2020] md:bg-transparent px-2.5 md:px-0 py-1 md:py-0 border border-[#343535] md:border-none">₹{product.price}</span>
               {comparePrice > currentPrice && (
-                <span className="text-xs text-slate-500 md:text-slate-400 line-through ml-2">₹{comparePrice}</span>
+                <span className="text-xs text-slate-400 md:text-slate-600 line-through ml-2">₹{comparePrice}</span>
               )}
             </div>
 

@@ -1082,10 +1082,11 @@ export default function AccountPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-800 mb-1 font-bold uppercase font-mono text-[11px]">
+                  <label htmlFor="deletion-reason" className="block text-slate-800 mb-1 font-bold uppercase font-mono text-[11px]">
                     Primary Reason for Deletion <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="deletion-reason"
                     value={deletionReasonInput}
                     onChange={(e) => setDeletionReasonInput(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono"

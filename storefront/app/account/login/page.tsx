@@ -81,6 +81,7 @@ export default function AccountLoginPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError('');
+    setGoogleFailed(false);
     try {
       const result = await signInWithGoogle();
       if (!result) return; // Mobile redirect — result will come via useEffect
@@ -92,7 +93,10 @@ export default function AccountLoginPage() {
       console.error('Message:', err.message);
       console.error('Full Error:', JSON.stringify(err, null, 2));
 
-      if (err.code === 'auth/internal-error' || err.code === 'auth/popup-blocked') {
+      if (err.code === 'auth/internal-error' || err.code === 'auth/unauthorized-domain') {
+        // Google sign-in is misconfigured/unavailable — show phone login prompt
+        setGoogleFailed(true);
+      } else if (err.code === 'auth/popup-blocked') {
         // Auto fallback: try redirect instead of popup
         try {
           const { signInWithRedirect } = await import('firebase/auth');
@@ -101,9 +105,11 @@ export default function AccountLoginPage() {
           return; // Page will reload, result comes in useEffect
         } catch (redirectErr: any) {
           console.error('Redirect fallback also failed:', redirectErr);
+          setGoogleFailed(true);
         }
+      } else {
+        setError(getFirebaseErrorMessage(err.code || err.message));
       }
-      setError(getFirebaseErrorMessage(err.code || err.message));
     } finally {
       setGoogleLoading(false);
     }
@@ -195,6 +201,8 @@ export default function AccountLoginPage() {
     }
   };
 
+  const [googleFailed, setGoogleFailed] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       <Header onToggleAI={() => {}} />
@@ -210,7 +218,16 @@ export default function AccountLoginPage() {
             <p className="text-xs text-slate-500">Sign in via 1-Click Google or Direct 10-Digit Phone Login.</p>
           </div>
 
-          {error && (
+          {/* Google error banner — show only when Google failed */}
+          {googleFailed && (
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs text-center font-mono space-y-1">
+              <p className="font-bold">⚠️ Google Sign-In temporarily unavailable</p>
+              <p>Please use Phone Login below — it's instant & secure!</p>
+            </div>
+          )}
+
+          {/* Non-blocking error (e.g. popup closed) */}
+          {error && !googleFailed && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs text-center font-mono">
               {error}
             </div>

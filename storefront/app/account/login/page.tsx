@@ -43,12 +43,12 @@ export default function AccountLoginPage() {
 
   const getFirebaseErrorMessage = (code: string) => {
     switch (code) {
-      case 'auth/popup-blocked': return 'Browser ne Google popup block kar diya. Please popups allow karo ya dobara try karo.';
-      case 'auth/popup-closed-by-user': return 'Google sign-in cancel ho gaya. Dobara try karo.';
-      case 'auth/network-request-failed': return 'Network error! Internet connection check karo aur dobara try karo.';
-      case 'auth/internal-error': return 'Firebase internal error. Thodi der baad dobara try karo ya phone login use karo.';
-      case 'auth/unauthorized-domain': return 'Ye domain Firebase mein authorized nahi hai. Admin se contact karo.';
-      default: return `Sign-in fail hua: ${code}. Dobara try karo ya phone login use karo.`;
+      case 'auth/popup-blocked': return '⚠️ Popup block hua. Allow karo aur dobara try karo.';
+      case 'auth/popup-closed-by-user': return '❌ Sign-in cancel ho gaya. Dobara try karo.';
+      case 'auth/network-request-failed': return '🌐 Network error! Internet check karo.';
+      case 'auth/unauthorized-domain': return '🚫 Domain authorized nahi hai Firebase mein.';
+      case 'auth/internal-error': return '⚠️ Google sign-in abhi available nahi. Neeche Phone Login use karo — ekdam fast hai!';
+      default: return `❌ Google sign-in fail: ${code}. Phone Login use karo.`;
     }
   };
 
@@ -86,7 +86,23 @@ export default function AccountLoginPage() {
       if (!result) return; // Mobile redirect — result will come via useEffect
       await handleGoogleUserResult(result.user);
     } catch (err: any) {
-      console.error('Google Sign-In Error:', err);
+      // Log full error for debugging
+      console.error('=== Firebase Auth Error ===');
+      console.error('Code:', err.code);
+      console.error('Message:', err.message);
+      console.error('Full Error:', JSON.stringify(err, null, 2));
+
+      if (err.code === 'auth/internal-error' || err.code === 'auth/popup-blocked') {
+        // Auto fallback: try redirect instead of popup
+        try {
+          const { signInWithRedirect } = await import('firebase/auth');
+          const { auth: fbAuth, googleProvider: gProv } = await import('@/lib/firebase');
+          await signInWithRedirect(fbAuth, gProv);
+          return; // Page will reload, result comes in useEffect
+        } catch (redirectErr: any) {
+          console.error('Redirect fallback also failed:', redirectErr);
+        }
+      }
       setError(getFirebaseErrorMessage(err.code || err.message));
     } finally {
       setGoogleLoading(false);

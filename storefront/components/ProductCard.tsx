@@ -65,16 +65,19 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/product/${id}`} className="group block h-full">
-      <div className="bg-[#0d0e0f] md:bg-white border border-[#343535] md:border-slate-200 group-hover:border-[#00e0ff]/60 md:group-hover:border-blue-500/30 md:rounded-2xl transition-all duration-300 flex flex-col h-full relative overflow-hidden md:shadow-sm md:hover:shadow-xl transform md:group-hover:-translate-y-1">
+      <div className="bg-[#0d0e0f] md:bg-white border border-[#343535] md:border-slate-200 group-hover:border-[#00e0ff]/60 md:group-hover:border-blue-500/30 md:rounded-2xl transition-all duration-300 flex flex-col h-full relative md:shadow-sm md:hover:shadow-xl md:group-hover:-translate-y-1 isolate" style={{ transform: 'translateZ(0)' }}>
         
         {/* Image Container */}
-        <div className="relative aspect-[3/4] md:aspect-square overflow-hidden bg-[#121414] md:bg-slate-100">
+        <div className="relative aspect-[3/4] md:aspect-square overflow-hidden bg-[#121414] md:bg-slate-100" style={{ transform: 'translateZ(0)' }}>
           <img
             src={product.images && product.images[0] ? optimizeImageUrl(product.images[0]) : optimizeImageUrl('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800')}
             alt={product.title}
-            className={`w-full h-full object-cover opacity-85 md:opacity-100 group-hover:opacity-100 transition-all duration-500 ${
+            loading="lazy"
+            decoding="async"
+            className={`w-full h-full object-cover opacity-85 md:opacity-100 group-hover:opacity-100 transition-all duration-500 backface-hidden ${
               isOutOfStock ? 'opacity-30 grayscale' : 'group-hover:scale-105'
             }`}
+            style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
           />
 
           {/* Badges */}

@@ -33,6 +33,27 @@ html, body {
   font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* ============================================================
+   SCROLL PERFORMANCE: Prevent image clipping & tearing
+   when fast-scrolling through product grids
+   ============================================================ */
+img {
+  /* Promote every image to its own GPU compositor layer 
+     so they don't get clipped by ancestor overflow:hidden during scroll */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  image-rendering: auto;
+}
+
+/* Prevent stacking context conflicts on cards containing 
+   overflow:hidden + CSS transforms together */
+.product-card-root {
+  contain: layout style;
+  transform: translateZ(0);
+}
+
 /* Amazon-Style Crisp White Card Container */
 .amazon-card {
   background-color: #FFFFFF;

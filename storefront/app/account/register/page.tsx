@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { UserPlus, Smartphone, ArrowRight, Loader2 } from 'lucide-react';
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, signInWithGoogle, getRedirectResult } from '@/lib/firebase';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -18,13 +18,40 @@ export default function AccountRegisterPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Handle redirect result on page load (mobile Google Sign-In)
+  useEffect(() => {
+    setGoogleLoading(true);
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (!result) return;
+        const user = result.user;
+        const userObj = {
+          uid: user.uid,
+          name: user.displayName || user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          phone: user.phoneNumber || '',
+          photoURL: user.photoURL || '',
+          isLoggedIn: true,
+          loginTime: new Date().toISOString(),
+        };
+        try { await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj); } catch (e) {}
+        localStorage.setItem('shadow_user', JSON.stringify(userObj));
+        router.push('/account');
+      })
+      .catch((err) => {
+        if (err.code !== 'auth/no-current-user') setError(err.message || 'Google sign-in fail hua.');
+      })
+      .finally(() => setGoogleLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithGoogle();
+      if (!result) return; // Mobile redirect — result comes via useEffect
       const user = result.user;
-      
       const userObj = {
         uid: user.uid,
         name: user.displayName || user.email?.split('@')[0] || 'User',
@@ -34,13 +61,11 @@ export default function AccountRegisterPage() {
         isLoggedIn: true,
         loginTime: new Date().toISOString(),
       };
-
       try {
         await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj);
       } catch (err) {
         console.warn('Backend sync note:', err);
       }
-
       localStorage.setItem('shadow_user', JSON.stringify(userObj));
       router.push('/account');
     } catch (err: any) {

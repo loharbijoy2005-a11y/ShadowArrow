@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { User, Smartphone, ArrowRight, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, signInWithGoogle, getRedirectResult, googleProvider } from '@/lib/firebase';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -24,53 +24,70 @@ export default function AccountLoginPage() {
   const [googleMobileError, setGoogleMobileError] = useState('');
   const [linkingLoading, setLinkingLoading] = useState(false);
 
-  // Option 1: Firebase Google Sign-In with MongoDB Profile Sync & Mandatory Mobile Prompt
+  // Handle redirect result on page load (mobile Google Sign-In)
+  useEffect(() => {
+    setGoogleLoading(true);
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (!result) return;
+        await handleGoogleUserResult(result.user);
+      })
+      .catch((err) => {
+        if (err.code !== 'auth/no-current-user') {
+          setError(getFirebaseErrorMessage(err.code || err.message));
+        }
+      })
+      .finally(() => setGoogleLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getFirebaseErrorMessage = (code: string) => {
+    switch (code) {
+      case 'auth/popup-blocked': return 'Browser ne Google popup block kar diya. Please popups allow karo ya dobara try karo.';
+      case 'auth/popup-closed-by-user': return 'Google sign-in cancel ho gaya. Dobara try karo.';
+      case 'auth/network-request-failed': return 'Network error! Internet connection check karo aur dobara try karo.';
+      case 'auth/internal-error': return 'Firebase internal error. Thodi der baad dobara try karo ya phone login use karo.';
+      case 'auth/unauthorized-domain': return 'Ye domain Firebase mein authorized nahi hai. Admin se contact karo.';
+      default: return `Sign-in fail hua: ${code}. Dobara try karo ya phone login use karo.`;
+    }
+  };
+
+  const handleGoogleUserResult = async (user: any) => {
+    const baseUserPayload = {
+      uid: user.uid,
+      name: user.displayName || user.email?.split('@')[0] || 'Customer',
+      email: user.email || '',
+      phone: user.phoneNumber || '',
+      photo_url: user.photoURL || '',
+    };
+    let existingPhone = user.phoneNumber || '';
+    try {
+      const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, baseUserPayload);
+      if (syncRes.data && syncRes.data.phone) existingPhone = syncRes.data.phone;
+    } catch (err) {
+      console.warn('Initial google sync offline fallback', err);
+    }
+    if (!existingPhone || !/^[6-9]\d{9}$/.test(existingPhone)) {
+      setPendingGoogleUser(baseUserPayload);
+      setShowPhoneModal(true);
+      return;
+    }
+    const mergedUser = { ...baseUserPayload, phone: existingPhone, isLoggedIn: true, loginTime: new Date().toISOString() };
+    localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
+    router.push('/account');
+  };
+
+  // Option 1: Firebase Google Sign-In (popup on desktop, redirect on mobile)
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      const baseUserPayload = {
-        uid: user.uid,
-        name: user.displayName || user.email?.split('@')[0] || 'Customer',
-        email: user.email || '',
-        phone: user.phoneNumber || '',
-        photo_url: user.photoURL || '',
-      };
-
-      // Try initial sync with backend
-      let existingPhone = user.phoneNumber || '';
-      try {
-        const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, baseUserPayload);
-        if (syncRes.data && syncRes.data.phone) {
-          existingPhone = syncRes.data.phone;
-        }
-      } catch (err) {
-        console.warn('Initial google sync offline fallback', err);
-      }
-
-      // If user has no phone number linked, prompt them to enter mobile number
-      if (!existingPhone || !/^[6-9]\d{9}$/.test(existingPhone)) {
-        setPendingGoogleUser(baseUserPayload);
-        setShowPhoneModal(true);
-        setGoogleLoading(false);
-        return;
-      }
-
-      // If phone is already linked, complete login
-      const mergedUser = {
-        ...baseUserPayload,
-        phone: existingPhone,
-        isLoggedIn: true,
-        loginTime: new Date().toISOString(),
-      };
-      localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
-      router.push('/account');
+      const result = await signInWithGoogle();
+      if (!result) return; // Mobile redirect — result will come via useEffect
+      await handleGoogleUserResult(result.user);
     } catch (err: any) {
       console.error('Google Sign-In Error:', err);
-      setError(err.message || 'Failed to sign in with Google.');
+      setError(getFirebaseErrorMessage(err.code || err.message));
     } finally {
       setGoogleLoading(false);
     }

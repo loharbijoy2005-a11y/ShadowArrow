@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyB7ZcKqTou5FOXFfKVK0N4YRY_hEZ6CAEI",
@@ -13,5 +13,17 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export { auth, googleProvider, signInWithPopup };
+/** Use redirect on mobile (popup gets blocked), popup on desktop */
+export const signInWithGoogle = async () => {
+  const isMobile = typeof window !== 'undefined' &&
+    /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  if (isMobile) {
+    await signInWithRedirect(auth, googleProvider);
+    return null; // result comes via getRedirectResult on next page load
+  }
+  return signInWithPopup(auth, googleProvider);
+};
+
+export { auth, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult };

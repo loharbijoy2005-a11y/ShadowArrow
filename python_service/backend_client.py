@@ -39,7 +39,7 @@ def track_order(order_id_or_phone: str) -> dict:
         return {"error": True, "message": "Backend service unavailable. Please try again shortly."}
 
 
-def create_support_ticket(customer_phone: str, issue_text: str, priority: str = "HIGH") -> dict:
+def create_support_ticket(customer_phone: str = "", issue_text: str = "", priority: str = "HIGH", customer_email: str = "", category: str = "Customer Support Inquiry") -> dict:
     """
     POST /api/v1/tickets/create
     Creates a support ticket in the Go backend.
@@ -47,7 +47,9 @@ def create_support_ticket(customer_phone: str, issue_text: str, priority: str = 
     """
     url = f"{BACKEND_URL}/api/v1/tickets/create"
     payload = {
-        "customer_phone": customer_phone,
+        "customer_phone": customer_phone or "",
+        "customer_email": customer_email or "",
+        "category": category,
         "issue_text": issue_text,
         "priority": priority,
         "status": "OPEN",
@@ -60,7 +62,7 @@ def create_support_ticket(customer_phone: str, issue_text: str, priority: str = 
         logger.warning("[BACKEND CLIENT] Ticket creation failed (%s)", resp.status_code)
         return {"error": True, "message": "Could not log the support ticket automatically."}
     except httpx.TimeoutException:
-        logger.error("[BACKEND CLIENT] Timeout creating support ticket for: %s", customer_phone)
+        logger.error("[BACKEND CLIENT] Timeout creating support ticket for: %s", customer_phone or customer_email)
         return {"error": True, "message": "Support service is temporarily slow. Please try again."}
     except Exception as exc:
         logger.error("[BACKEND CLIENT] Unexpected error creating ticket: %s", exc)

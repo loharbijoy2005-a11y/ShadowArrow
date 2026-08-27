@@ -263,10 +263,15 @@ export default function AIChatWindow({ isOpen, onClose }: AIChatWindowProps) {
           </div>
           <div>
             <h3 className="font-bold text-sm leading-none text-white tracking-wide">Shadow Arrow AI</h3>
-            <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-              <span>Online &middot; Fashion &amp; Support</span>
-            </span>
+            <div className="flex flex-col space-y-0.5 mt-0.5">
+              <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                <span>Online &middot; Fashion &amp; Support</span>
+              </span>
+              <span className="text-[9px] text-slate-400 font-medium tracking-wide">
+                Powered by AeroxAi
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-1">

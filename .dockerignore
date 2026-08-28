@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.vscode
+*.exe
+brain.md
+downloaded_vercel_visualizer.html
+README.md
+SECURITY_REMEDIATION.md
+render.yaml
+node_modules
+.next
+__pycache__
+venv
+.venv
+.env
+.env.*

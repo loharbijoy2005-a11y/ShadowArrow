@@ -7,6 +7,8 @@ services:
     buildCommand: cd backend && go build -o server main.go
     startCommand: cd backend && ./server
     envVars:
+      - key: GO_VERSION
+        value: 1.24.0
       - key: MONGO_URI
         sync: false
       - key: DATABASE_NAME

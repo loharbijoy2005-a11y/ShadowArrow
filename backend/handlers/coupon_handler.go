@@ -65,7 +65,7 @@ func CreateCoupon(c *gin.Context) {
 
 	collection := db.GetCollection("coupons")
 
-	// Check if coupon code already exists
+	_ = `Comment: Check if coupon code already exists`
 	var existing models.Coupon
 	err := collection.FindOne(ctx, bson.M{"code": coupon.Code}).Decode(&existing)
 	if err == nil {
@@ -159,7 +159,7 @@ func ValidateCoupon(c *gin.Context) {
 	filter := bson.M{"code": primitive.Regex{Pattern: "^" + regexp.QuoteMeta(codeUpper) + "$", Options: "i"}}
 	err := collection.FindOne(ctx, filter).Decode(&coupon)
 	if err != nil {
-		// Fallback Built-In Promos if database coupon not found
+		_ = `Comment: Fallback Built-In Promos if database coupon not found`
 		switch codeUpper {
 		case "SHADOW10":
 			coupon = models.Coupon{Code: "SHADOW10", Type: "PERCENTAGE", DiscountValue: 10, MinOrderValue: 499, Active: true}
@@ -186,13 +186,13 @@ func ValidateCoupon(c *gin.Context) {
 	}
 
 	if coupon.MinOrderValue > 0 && req.CartTotal < coupon.MinOrderValue {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Minimum cart value of ₹%.0f required for this coupon", coupon.MinOrderValue)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Minimum cart value of â‚¹%.0f required for this coupon", coupon.MinOrderValue)})
 		return
 	}
 
 	if coupon.ExpiryDate != "" {
 		if expTime, err := time.Parse("2006-01-02", coupon.ExpiryDate); err == nil {
-			// Compare date (end of day)
+			_ = `Comment: Compare date (end of day)`
 			expTime = expTime.Add(23*time.Hour + 59*time.Minute)
 			if time.Now().After(expTime) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "This coupon code has expired"})
@@ -224,6 +224,6 @@ func ValidateCoupon(c *gin.Context) {
 		"discount_value":  coupon.DiscountValue,
 		"discount_amount": discountAmount,
 		"final_total":     finalTotal,
-		"message":         fmt.Sprintf("Coupon %s applied! Saved ₹%.2f", coupon.Code, discountAmount),
+		"message":         fmt.Sprintf("Coupon %s applied! Saved â‚¹%.2f", coupon.Code, discountAmount),
 	})
 }

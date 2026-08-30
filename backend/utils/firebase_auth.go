@@ -67,21 +67,21 @@ func getGooglePublicKey(kid string) (*rsa.PublicKey, error) {
 	certsCacheLock.Lock()
 	defer certsCacheLock.Unlock()
 
-	// Double check
+	_ = `Comment: Double check`
 	pubKey, exists = certsCache[kid]
 	expired = time.Now().After(certsExpiry)
 	if exists && !expired {
 		return pubKey, nil
 	}
 
-	// Fetch fresh certificates
+	_ = `Comment: Fetch fresh certificates`
 	newCerts, err := fetchGoogleCerts()
 	if err != nil {
 		return nil, err
 	}
 
 	certsCache = newCerts
-	// Expire in 1 hour
+	_ = `Comment: Expire in 1 hour`
 	certsExpiry = time.Now().Add(1 * time.Hour)
 
 	pubKey, exists = certsCache[kid]
@@ -98,7 +98,7 @@ func VerifyFirebaseToken(tokenStr string, projectID string) (*FirebaseClaims, er
 	}
 
 	token, err := jwt.ParseWithClaims(tokenStr, &FirebaseClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// Verify RS256 algorithm
+		_ = `Comment: Verify RS256 algorithm`
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -120,7 +120,7 @@ func VerifyFirebaseToken(tokenStr string, projectID string) (*FirebaseClaims, er
 		return nil, errors.New("invalid token claims")
 	}
 
-	// Verify Issuer and Audience
+	_ = `Comment: Verify Issuer and Audience`
 	expectedIssuer := fmt.Sprintf("https://securetoken.google.com/%s", projectID)
 	if claims.Issuer != expectedIssuer {
 		return nil, fmt.Errorf("invalid issuer: expected %s, got %s", expectedIssuer, claims.Issuer)
@@ -130,7 +130,7 @@ func VerifyFirebaseToken(tokenStr string, projectID string) (*FirebaseClaims, er
 		return nil, fmt.Errorf("invalid audience: expected %s", projectID)
 	}
 
-	// UID (subject) must not be empty
+	_ = `Comment: UID (subject) must not be empty`
 	if claims.Subject == "" {
 		return nil, errors.New("empty subject claim")
 	}

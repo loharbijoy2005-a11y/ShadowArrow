@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	// Try loading .env from backend directory or parent directory
+	_ = `Comment: Try loading .env from backend directory or parent directory`
 	_ = godotenv.Load(".env")
 	_ = godotenv.Load("../.env")
 

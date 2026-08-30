@@ -91,7 +91,7 @@ func GetAbandonedCarts(c *gin.Context) {
 	seenKeys := make(map[string]bool)
 	var combinedLeads []models.AbandonedCart
 
-	// 1. Fetch only CANCELLED or FAILED payment popup orders (where payment modal was dismissed or failed)
+	_ = `Comment: 1. Fetch only CANCELLED or FAILED payment popup orders (where payment modal was dismissed or failed)`
 	orderOpts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(100)
 	orderFilter := bson.M{
 		"$or": []bson.M{
@@ -142,7 +142,7 @@ func GetAbandonedCarts(c *gin.Context) {
 		orderCursor.Close(ctx)
 	}
 
-	// 2. Fetch active abandoned cart sessions (where items were added to cart but order was not completed)
+	_ = `Comment: 2. Fetch active abandoned cart sessions (where items were added to cart but order was not completed)`
 	cartOpts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}).SetLimit(100)
 	cartFilter := bson.M{
 		"items":  bson.M{"$not": bson.M{"$size": 0}},

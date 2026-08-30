@@ -18,7 +18,7 @@ func GetDefaultThemeSettings() models.SiteThemeSettings {
 		StoreName:          "SHADOW ARROW",
 		SupportEmail:       "support.shadowarrow@gmail.com",
 		SupportPhone:       "+91 9002376609",
-		CurrencySymbol:     "₹",
+		CurrencySymbol:     "â‚¹",
 		
 		AccentHue:          217,
 		BgDarkness:         96,

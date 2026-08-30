@@ -364,7 +364,6 @@ export default function CheckoutPage() {
           },
           modal: {
             ondismiss: async function () {
-              console.log('Payment modal dismissed by user without paying');
               setLoading(false);
               try {
                 // Instantly update backend order status to CANCELLED so unpaid ghost order is cancelled

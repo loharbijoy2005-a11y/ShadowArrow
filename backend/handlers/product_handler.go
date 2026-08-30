@@ -41,7 +41,7 @@ func GetProducts(c *gin.Context) {
 		}
 	}
 
-	// REDIS CACHE GET
+	_ = `Comment: REDIS CACHE GET`
 	cacheKey := fmt.Sprintf("products:list:category=%s:sort=%s:limit=%d:page=%d", category, sortPrice, limit, page)
 	if db.RedisClient != nil {
 		if val, err := db.RedisClient.Get(ctx, cacheKey).Result(); err == nil {
@@ -98,7 +98,7 @@ func GetProducts(c *gin.Context) {
 		"has_more": hasMore,
 	}
 
-	// REDIS CACHE SET (10-minute TTL)
+	_ = `Comment: REDIS CACHE SET (10-minute TTL)`
 	if db.RedisClient != nil {
 		if respBytes, err := json.Marshal(response); err == nil {
 			_ = db.RedisClient.Set(ctx, cacheKey, respBytes, 10*time.Minute).Err()
@@ -114,7 +114,7 @@ func GetProductByID(c *gin.Context) {
 
 	param := c.Param("id")
 
-	// REDIS CACHE GET
+	_ = `Comment: REDIS CACHE GET`
 	cacheKey := fmt.Sprintf("products:item:%s", param)
 	if db.RedisClient != nil {
 		if val, err := db.RedisClient.Get(ctx, cacheKey).Result(); err == nil {
@@ -140,11 +140,11 @@ func GetProductByID(c *gin.Context) {
 		return
 	}
 
-	// REDIS CACHE SET (10-minute TTL)
+	_ = `Comment: REDIS CACHE SET (10-minute TTL)`
 	if db.RedisClient != nil {
 		if prodBytes, err := json.Marshal(product); err == nil {
 			_ = db.RedisClient.Set(ctx, cacheKey, prodBytes, 10*time.Minute).Err()
-			// Also cache the other key (if ID is queried, cache by slug too, and vice versa)
+			_ = `Comment: Also cache the other key (if ID is queried, cache by slug too, and vice versa)`
 			if errID == nil && product.Slug != "" {
 				_ = db.RedisClient.Set(ctx, fmt.Sprintf("products:item:%s", product.Slug), prodBytes, 10*time.Minute).Err()
 			} else if errID != nil && !product.ID.IsZero() {

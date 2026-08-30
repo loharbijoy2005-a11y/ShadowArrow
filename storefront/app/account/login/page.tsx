@@ -200,16 +200,7 @@ export default function AccountLoginPage() {
       localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
       router.push('/account');
     } catch (err: any) {
-      // Local fallback
-      const fallbackUser = {
-        name: fullName.toUpperCase().trim(),
-        phone: phone.trim(),
-        email: '',
-        isLoggedIn: true,
-        loginTime: new Date().toISOString(),
-      };
-      localStorage.setItem('shadow_user', JSON.stringify(fallbackUser));
-      router.push('/account');
+      setError(err.response?.data?.error || 'Login failed. Please check your details and try again.');
     } finally {
       setLoading(false);
     }

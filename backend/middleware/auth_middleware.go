@@ -21,7 +21,7 @@ func AdminAuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// Fallback to HttpOnly cookie if Authorization header is absent
+		_ = `Comment: Fallback to HttpOnly cookie if Authorization header is absent`
 		if tokenStr == "" {
 			if cookie, err := c.Cookie("ops_admin_token"); err == nil && cookie != "" {
 				tokenStr = cookie

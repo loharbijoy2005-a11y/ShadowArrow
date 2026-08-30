@@ -37,7 +37,7 @@ func GetBanners(c *gin.Context) {
 
 	var banners []BannerItem
 	if err := cursor.All(ctx, &banners); err != nil || len(banners) == 0 {
-		// Default Initial Hero Banners
+		_ = `Comment: Default Initial Hero Banners`
 		banners = []BannerItem{
 			{
 				ID:         "1",
@@ -48,7 +48,7 @@ func GetBanners(c *gin.Context) {
 			},
 			{
 				ID:         "2",
-				Heading:    "FESTIVE URBAN DROP • UP TO 40% OFF",
+				Heading:    "FESTIVE URBAN DROP â€¢ UP TO 40% OFF",
 				Subtext:    "Ergonomic dual-density EVA midsoles paired with ballistic nylon uppers. All-terrain durability and street performance.",
 				ImageURL:   "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800",
 				TargetLink: "/checkout",
@@ -71,7 +71,7 @@ func SaveBanners(c *gin.Context) {
 
 	collection := db.GetCollection("cms_banners")
 
-	// Wipe existing and insert new active banners list
+	_ = `Comment: Wipe existing and insert new active banners list`
 	_, _ = collection.DeleteMany(ctx, bson.M{})
 
 	if len(req.Banners) > 0 {

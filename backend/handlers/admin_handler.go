@@ -39,7 +39,7 @@ func AdminLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Set HttpOnly, SameSite=Lax cookie for enhanced XSS defense
+		_ = `Comment: Set HttpOnly, SameSite=Lax cookie for enhanced XSS defense`
 		isSecure := strings.HasPrefix(c.Request.Host, "shadowarrow") || strings.Contains(c.Request.Host, "onrender.com") || c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
 		c.SetSameSite(http.SameSiteLaxMode)
 		c.SetCookie("ops_admin_token", token, 86400, "/", "", isSecure, true)
@@ -66,13 +66,13 @@ func GetAnalytics(c *gin.Context) {
 	ordersColl := db.GetCollection("orders")
 	productsColl := db.GetCollection("products")
 
-	// Total orders count
+	_ = `Comment: Total orders count`
 	totalOrders, err := ordersColl.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		totalOrders = 0
 	}
 
-	// Fetch all orders for revenue calculation
+	_ = `Comment: Fetch all orders for revenue calculation`
 	cursor, err := ordersColl.Find(ctx, bson.M{})
 	var totalRevenue float64 = 0
 	confirmedCount, processingCount, shippedCount, deliveredCount, cancelledCount := 0, 0, 0, 0, 0
@@ -99,7 +99,7 @@ func GetAnalytics(c *gin.Context) {
 		}
 	}
 
-	// Fetch low stock items (< 10)
+	_ = `Comment: Fetch low stock items (< 10)`
 	lowStockCursor, err := productsColl.Find(ctx, bson.M{"stock": bson.M{"$lt": 10}})
 	var lowStockProducts []models.Product
 	if err == nil {
@@ -149,21 +149,21 @@ func GetAdminCustomers(c *gin.Context) {
 	usersColl := db.GetCollection("users")
 	ordersColl := db.GetCollection("orders")
 
-	// 1. Fetch all users from MongoDB
+	_ = `Comment: 1. Fetch all users from MongoDB`
 	usersCursor, err := usersColl.Find(ctx, bson.M{})
 	var users []models.UserProfile
 	if err == nil {
 		_ = usersCursor.All(ctx, &users)
 	}
 
-	// 2. Fetch all orders for aggregation
+	_ = `Comment: 2. Fetch all orders for aggregation`
 	ordersCursor, err := ordersColl.Find(ctx, bson.M{})
 	var orders []models.Order
 	if err == nil {
 		_ = ordersCursor.All(ctx, &orders)
 	}
 
-	// Map to keep track of processed users by email and phone
+	_ = `Comment: Map to keep track of processed users by email and phone`
 	customerMap := make(map[string]*AdminCustomerItem)
 
 	for _, u := range users {
@@ -208,7 +208,7 @@ func GetAdminCustomers(c *gin.Context) {
 		customerMap[key] = item
 	}
 
-	// Calculate totals & customer behavior stats from orders
+	_ = `Comment: Calculate totals & customer behavior stats from orders`
 	for _, o := range orders {
 		matched := false
 		for _, item := range customerMap {
@@ -276,10 +276,10 @@ func GetAdminCustomers(c *gin.Context) {
 			item.Name = "Customer"
 		}
 
-		// Determine customer trust/loyalty score badge
-		// 1-9 cancellations -> HIGH (1 single cancellation will NEVER drop to Medium)
-		// 10-19 cancellations OR high ratio -> MEDIUM
-		// 20+ cancellations -> RISK
+		_ = `Comment: Determine customer trust/loyalty score badge`
+		_ = `Comment: 1-9 cancellations -> HIGH (1 single cancellation will NEVER drop to Medium)`
+		_ = `Comment: 10-19 cancellations OR high ratio -> MEDIUM`
+		_ = `Comment: 20+ cancellations -> RISK`
 		cancels := item.OrdersCancelled
 		total := item.TotalOrders
 
@@ -302,7 +302,7 @@ func GetAdminCustomers(c *gin.Context) {
 		customerList = append(customerList, *item)
 	}
 
-	// Sort customers by highest coin balance first, then highest total spent
+	_ = `Comment: Sort customers by highest coin balance first, then highest total spent`
 	sort.Slice(customerList, func(i, j int) bool {
 		if customerList[i].CoinBalance != customerList[j].CoinBalance {
 			return customerList[i].CoinBalance > customerList[j].CoinBalance

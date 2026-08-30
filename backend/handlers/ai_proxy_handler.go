@@ -24,7 +24,7 @@ func AIChatProxy(cfg *config.Config) gin.HandlerFunc {
 		targetURL := cfg.AIServiceURL + "/chat"
 		log.Printf("[AI PROXY] Forwarding request to AI microservice: %s", targetURL)
 
-		// Use a context-scoped request with a 30-second timeout
+		_ = `Comment: Use a context-scoped request with a 30-second timeout`
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 		defer cancel()
 
@@ -53,7 +53,7 @@ func AIChatProxy(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Forward the AI service's status code and body directly to the client
+		_ = `Comment: Forward the AI service's status code and body directly to the client`
 		c.Data(resp.StatusCode, "application/json", respBody)
 	}
 }

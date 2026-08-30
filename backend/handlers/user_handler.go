@@ -24,8 +24,8 @@ type PhoneLoginPayload struct {
 	Email string `json:"email"`
 }
 
-// mergeUserProfiles merges the secondary user account into the primary user account.
-// It combines coin balances, merges addresses, retains the highest tier, and deletes the secondary profile.
+var _ = `Comment: mergeUserProfiles merges the secondary user account into the primary user account.`
+var _ = `Comment: It combines coin balances, merges addresses, retains the highest tier, and deletes the secondary profile.`
 func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primary *models.UserProfile, secondary *models.UserProfile) (*models.UserProfile, error) {
 	now := time.Now()
 
@@ -44,7 +44,7 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 
 	primary.CoinBalance += secondary.CoinBalance
 
-	// Merge unique addresses
+	_ = `Comment: Merge unique addresses`
 	seen := make(map[string]bool)
 	mergedAddresses := []models.SavedAddress{}
 	for _, a := range primary.Addresses {
@@ -61,7 +61,7 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 	}
 	primary.Addresses = mergedAddresses
 
-	// Retain the highest loyalty tier
+	_ = `Comment: Retain the highest loyalty tier`
 	highestTier := "SILVER"
 	if primary.Tier.CurrentTier == "PLATINUM" || secondary.Tier.CurrentTier == "PLATINUM" {
 		highestTier = "PLATINUM"
@@ -73,7 +73,7 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 		primary.Tier.LastEvaluatedAt = secondary.Tier.LastEvaluatedAt
 	}
 
-	// Merge soft deletion flags
+	_ = `Comment: Merge soft deletion flags`
 	primary.DeletionRequested = primary.DeletionRequested || secondary.DeletionRequested
 	if !primary.DeletionRequested && secondary.DeletionRequested {
 		primary.DeletionRequestedAt = secondary.DeletionRequestedAt
@@ -82,7 +82,7 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 
 	primary.UpdatedAt = now
 
-	// Update the primary account
+	_ = `Comment: Update the primary account`
 	_, err := collection.UpdateOne(ctx, bson.M{"_id": primary.ID}, bson.M{"$set": bson.M{
 		"uid":                   primary.UID,
 		"email":                 primary.Email,
@@ -100,7 +100,7 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 		return nil, err
 	}
 
-	// Delete the secondary account
+	_ = `Comment: Delete the secondary account`
 	_, err = collection.DeleteOne(ctx, bson.M{"_id": secondary.ID})
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 		collection := db.GetCollection("users")
 		now := time.Now()
 
-		// 1. Search for existing Google user by Email or UID
+		_ = `Comment: 1. Search for existing Google user by Email or UID`
 		var emailUser models.UserProfile
 		emailUserFound := false
 		emailConditions := []bson.M{}
@@ -144,7 +144,7 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// 2. Search for existing Phone user by normalized phone number
+		_ = `Comment: 2. Search for existing Phone user by normalized phone number`
 		var phoneUser models.UserProfile
 		phoneUserFound := false
 		cleanP := CleanPhoneDigits(payload.Phone)
@@ -156,19 +156,19 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		if phoneUserFound {
-			// If phoneUser already has a UID and it's different from the payload's UID, it's owned by another Google user.
+			_ = `Comment: If phoneUser already has a UID and it's different from the payload's UID, it's owned by another Google user.`
 			if phoneUser.UID != "" && phoneUser.UID != payload.UID {
 				c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another Google account"})
 				return
 			}
-			// If phoneUser has a non-fallback email that is different from the payload's email
+			_ = `Comment: If phoneUser has a non-fallback email that is different from the payload's email`
 			if phoneUser.Email != "" && !strings.HasSuffix(phoneUser.Email, "@shadowarrow.com") && phoneUser.Email != payload.Email {
 				c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another account"})
 				return
 			}
 		}
 
-		// Case 1: Neither exists -> Create new user profile
+		_ = `Comment: Case 1: Neither exists -> Create new user profile`
 		if !emailUserFound && !phoneUserFound {
 			payload.UpdatedAt = now
 			if payload.Addresses == nil {
@@ -192,7 +192,7 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 4: Both exist and they are different documents -> Merge them!
+		_ = `Comment: Case 4: Both exist and they are different documents -> Merge them!`
 		if emailUserFound && phoneUserFound && emailUser.ID != phoneUser.ID {
 			merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
 			if err != nil {
@@ -207,9 +207,9 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 2: Only emailUser exists OR both exist and are the same document
+		_ = `Comment: Case 2: Only emailUser exists OR both exist and are the same document`
 		if emailUserFound {
-			// Update emailUser with payload details
+			_ = `Comment: Update emailUser with payload details`
 			updateFields := bson.M{
 				"updated_at": now,
 			}
@@ -240,9 +240,9 @@ func GoogleSync(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 3: Only phoneUser exists
+		_ = `Comment: Case 3: Only phoneUser exists`
 		if phoneUserFound {
-			// Update phoneUser with Google credentials
+			_ = `Comment: Update phoneUser with Google credentials`
 			updateFields := bson.M{
 				"updated_at": now,
 			}
@@ -292,7 +292,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 		collection := db.GetCollection("users")
 		now := time.Now()
 
-		// 1. Search STRICTLY by normalized 10-digit phone number
+		_ = `Comment: 1. Search STRICTLY by normalized 10-digit phone number`
 		var phoneUser models.UserProfile
 		phoneUserFound := false
 		phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
@@ -300,7 +300,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 			phoneUserFound = true
 		}
 
-		// 2. Search by email if email is provided in payload
+		_ = `Comment: 2. Search by email if email is provided in payload`
 		var emailUser models.UserProfile
 		emailUserFound := false
 		if payload.Email != "" {
@@ -309,7 +309,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// Case 1: Neither exists -> Create new user profile
+		_ = `Comment: Case 1: Neither exists -> Create new user profile`
 		if !phoneUserFound && !emailUserFound {
 			newUser := models.UserProfile{
 				Name:        payload.Name,
@@ -337,7 +337,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 4: Both exist and they are different documents -> Merge them!
+		_ = `Comment: Case 4: Both exist and they are different documents -> Merge them!`
 		if phoneUserFound && emailUserFound && phoneUser.ID != emailUser.ID {
 			merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
 			if err != nil {
@@ -352,7 +352,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 2: Only phoneUser exists OR both exist and are the same document
+		_ = `Comment: Case 2: Only phoneUser exists OR both exist and are the same document`
 		if phoneUserFound {
 			updateFields := bson.M{
 				"phone":      payload.Phone,
@@ -376,7 +376,7 @@ func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Case 3: Only emailUser exists
+		_ = `Comment: Case 3: Only emailUser exists`
 		if emailUserFound {
 			updateFields := bson.M{
 				"phone":      payload.Phone,
@@ -413,7 +413,7 @@ func UpdateUserProfile(c *gin.Context) {
 	vPhone, _ := c.Get("user_phone")
 	vUID, _ := c.Get("user_uid")
 
-	// Verify that the user is updating their own profile
+	_ = `Comment: Verify that the user is updating their own profile`
 	if payload.Email != "" && vEmail != "" && payload.Email != vEmail.(string) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot modify another user's profile"})
 		return
@@ -434,7 +434,7 @@ func UpdateUserProfile(c *gin.Context) {
 
 	collection := db.GetCollection("users")
 
-	// 1. Identify the user we are updating
+	_ = `Comment: 1. Identify the user we are updating`
 	var existing models.UserProfile
 	userFound := false
 
@@ -456,7 +456,7 @@ func UpdateUserProfile(c *gin.Context) {
 		}
 	}
 
-	// 2. Strict Phone Uniqueness Check
+	_ = `Comment: 2. Strict Phone Uniqueness Check`
 	if payload.Phone != "" {
 		cleanP := CleanPhoneDigits(payload.Phone)
 		if cleanP != "" {
@@ -506,7 +506,7 @@ func UpdateUserProfile(c *gin.Context) {
 		return
 	}
 
-	// Insert if not found
+	_ = `Comment: Insert if not found`
 	payload.UpdatedAt = now
 	res, err := collection.InsertOne(ctx, payload)
 	if err != nil {
@@ -530,7 +530,7 @@ func GetUserProfile(c *gin.Context) {
 	email := c.Query("email")
 	phone := c.Query("phone")
 
-	// Verify that the user is accessing their own profile
+	_ = `Comment: Verify that the user is accessing their own profile`
 	if email != "" && verifiedEmail != "" && email != verifiedEmail {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot access another user's profile"})
 		return
@@ -540,7 +540,7 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	// Use verified credentials as fallback
+	_ = `Comment: Use verified credentials as fallback`
 	if email == "" {
 		email = verifiedEmail
 	}
@@ -605,7 +605,7 @@ func RequestAccountDeletion(c *gin.Context) {
 		return
 	}
 
-	// Check for active/in-transit orders — collect their details for admin review (no longer blocking)
+	_ = `Comment: Check for active/in-transit orders â€” collect their details for admin review (no longer blocking)`
 	ordersCol := db.GetCollection("orders")
 	activeOrderFilter := bson.M{
 		"$or": []bson.M{
@@ -623,17 +623,17 @@ func RequestAccountDeletion(c *gin.Context) {
 	}
 	activeCount := len(activeOrders)
 
-	// Build active order summary for ticket message
+	_ = `Comment: Build active order summary for ticket message`
 	activeOrderNote := ""
 	if activeCount > 0 {
-		activeOrderNote = fmt.Sprintf("\n\n⚠️ ADMIN REVIEW REQUIRED: User has %d active/in-transit order(s) at time of request:", activeCount)
+		activeOrderNote = fmt.Sprintf("\n\nâš ï¸ ADMIN REVIEW REQUIRED: User has %d active/in-transit order(s) at time of request:", activeCount)
 		for _, o := range activeOrders {
-			activeOrderNote += fmt.Sprintf("\n  • Order %s — Status: %s — Amount: ₹%.2f", o.OrderID, o.OrderStatus, o.TotalAmount)
+			activeOrderNote += fmt.Sprintf("\n  â€¢ Order %s â€” Status: %s â€” Amount: â‚¹%.2f", o.OrderID, o.OrderStatus, o.TotalAmount)
 		}
 		activeOrderNote += "\n\nAdmin must verify all orders are DELIVERED or CANCELLED before approving this deletion request."
 	}
 
-	// Update user soft deletion flag — always proceed
+	_ = `Comment: Update user soft deletion flag â€” always proceed`
 	now := time.Now()
 	_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{
 		"$set": bson.M{
@@ -644,7 +644,7 @@ func RequestAccountDeletion(c *gin.Context) {
 		},
 	})
 
-	// Create high-priority Ticket in support ticket system
+	_ = `Comment: Create high-priority Ticket in support ticket system`
 	ticketID := generateTicketID()
 	ticketsCol := db.GetCollection("support_tickets")
 
@@ -691,7 +691,7 @@ func RequestAccountDeletion(c *gin.Context) {
 	})
 }
 
-// GetCloneAccounts returns all user profiles sharing the same normalized phone number.
+var _ = `Comment: GetCloneAccounts returns all user profiles sharing the same normalized phone number.`
 func GetCloneAccounts(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -738,7 +738,7 @@ type SetDefaultPayload struct {
 	Phone     string `json:"phone" binding:"required"`
 }
 
-// SetDefaultAccount sets one account as the default profile for a phone number and clears the phone from other profiles.
+var _ = `Comment: SetDefaultAccount sets one account as the default profile for a phone number and clears the phone from other profiles.`
 func SetDefaultAccount(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -769,7 +769,7 @@ func SetDefaultAccount(c *gin.Context) {
 
 	collection := db.GetCollection("users")
 
-	// 1. Clear phone field for all accounts with this phone number EXCEPT the default one
+	_ = `Comment: 1. Clear phone field for all accounts with this phone number EXCEPT the default one`
 	phoneFilter := bson.M{
 		"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}},
 		"_id":   bson.M{"$ne": defaultObjID},
@@ -780,14 +780,14 @@ func SetDefaultAccount(c *gin.Context) {
 		return
 	}
 
-	// 2. Ensure the default account has the phone number set correctly
+	_ = `Comment: 2. Ensure the default account has the phone number set correctly`
 	_, err = collection.UpdateOne(ctx, bson.M{"_id": defaultObjID}, bson.M{"$set": bson.M{"phone": payload.Phone, "updated_at": time.Now()}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to set phone on default account"})
 		return
 	}
 
-	// 3. Return the updated default profile
+	_ = `Comment: 3. Return the updated default profile`
 	var updatedProfile models.UserProfile
 	err = collection.FindOne(ctx, bson.M{"_id": defaultObjID}).Decode(&updatedProfile)
 	if err != nil {
@@ -802,7 +802,7 @@ type UnlinkClonePayload struct {
 	AccountID string `json:"account_id" binding:"required"`
 }
 
-// UnlinkPhoneFromAccount clears the phone field for a specific user profile.
+var _ = `Comment: UnlinkPhoneFromAccount clears the phone field for a specific user profile.`
 func UnlinkPhoneFromAccount(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -821,7 +821,7 @@ func UnlinkPhoneFromAccount(c *gin.Context) {
 
 	collection := db.GetCollection("users")
 
-	// Verify ownership of the account to unlink
+	_ = `Comment: Verify ownership of the account to unlink`
 	vPhone, _ := c.Get("user_phone")
 	vEmail, _ := c.Get("user_email")
 
@@ -846,7 +846,7 @@ func UnlinkPhoneFromAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Phone unlinked successfully"})
 }
 
-// CheckAccountExists verifies if an account with a specific email or phone already exists.
+var _ = `Comment: CheckAccountExists verifies if an account with a specific email or phone already exists.`
 func CheckAccountExists(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -37,7 +37,7 @@ func CustomerAuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			userEmail = claims.Email
 			userPhone = claims.Phone
 		} else {
-			// Try validating as Firebase ID token
+			_ = `Comment: Try validating as Firebase ID token`
 			fbClaims, err := utils.VerifyFirebaseToken(tokenStr, "shadowarrow")
 			if err == nil {
 				userUID = fbClaims.UID
@@ -52,7 +52,7 @@ func CustomerAuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Set variables in context
+		_ = `Comment: Set variables in context`
 		c.Set("user_uid", userUID)
 		c.Set("user_email", userEmail)
 		c.Set("user_phone", userPhone)

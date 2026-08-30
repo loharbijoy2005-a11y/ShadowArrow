@@ -42,24 +42,24 @@ func getShiprocketPickupLocation() string {
 	return "warehouse"
 }
 
-// ParseAddressDetails parses shipping address to extract pincode, city, and state.
-// It tries to parse pincode using regex and fetch details from India Post API,
-// falling back to parsed pincode and default state/city if the API fails or is slow.
+var _ = `Comment: ParseAddressDetails parses shipping address to extract pincode, city, and state.`
+var _ = `Comment: It tries to parse pincode using regex and fetch details from India Post API,`
+var _ = `Comment: falling back to parsed pincode and default state/city if the API fails or is slow.`
 func ParseAddressDetails(address string) (string, string, string) {
 	defaultPincode := "722157"
 	defaultCity := "Bankura"
 	defaultState := "West Bengal"
 
-	// Find 6 digit pincode using regex
+	_ = `Comment: Find 6 digit pincode using regex`
 	re := regexp.MustCompile(`\b\d{6}\b`)
 	pincodes := re.FindAllString(address, -1)
 	pincode := defaultPincode
 	if len(pincodes) > 0 {
-		// Use the last match which is usually the pincode (e.g. PIN: 722157)
+		_ = `Comment: Use the last match which is usually the pincode (e.g. PIN: 722157)`
 		pincode = pincodes[len(pincodes)-1]
 	}
 
-	// Try fetching city/state from postal API with 2 second timeout
+	_ = `Comment: Try fetching city/state from postal API with 2 second timeout`
 	type PostOfficeInfo struct {
 		Name     string `json:"Name"`
 		District string `json:"District"`
@@ -90,7 +90,7 @@ func ParseAddressDetails(address string) (string, string, string) {
 		}
 	}
 
-	// Fallback if API fails
+	_ = `Comment: Fallback if API fails`
 	return pincode, defaultCity, defaultState
 }
 
@@ -138,8 +138,8 @@ func GetShiprocketToken() (string, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
 
-	// Shiprocket JWT token is valid for 240 hours.
-	// We check if cached token is still valid with a 2-hour buffer safety margin.
+	_ = `Comment: Shiprocket JWT token is valid for 240 hours.`
+	_ = `Comment: We check if cached token is still valid with a 2-hour buffer safety margin.`
 	if cachedToken != "" && time.Now().Before(tokenExpiryTime) {
 		return cachedToken, nil
 	}

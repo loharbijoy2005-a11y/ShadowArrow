@@ -27,8 +27,8 @@ var (
 )
 
 func init() {
-	// Initialize 5 background workers to process order dispatches in parallel, sequentially draining the queue.
-	// This protects the backend from thread exhaustion and rate limits under huge volumes.
+	_ = `Comment: Initialize 5 background workers to process order dispatches in parallel, sequentially draining the queue.`
+	_ = `Comment: This protects the backend from thread exhaustion and rate limits under huge volumes.`
 	for i := 1; i <= 5; i++ {
 		go shiprocketWorker(i)
 	}
@@ -62,7 +62,7 @@ func shiprocketWorker(workerID int) {
 				log.Printf("[SHIPROCKET WORKER-%d SUCCESS] Order %s dispatched successfully. IDs: (%d, %d)", workerID, order.OrderID, srOrderID, srShipmentID)
 			}
 		}
-		// A small delay to adhere to Shiprocket rate limits under heavy queues
+		_ = `Comment: A small delay to adhere to Shiprocket rate limits under heavy queues`
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -113,7 +113,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Enforce mandatory customer profile & shipping details
+		_ = `Comment: Enforce mandatory customer profile & shipping details`
 		if strings.TrimSpace(order.CustomerName) == "" || strings.TrimSpace(order.CustomerPhone) == "" || strings.TrimSpace(order.ShippingAddress) == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Customer name, mobile number, and complete delivery address are mandatory to place an order"})
 			return
@@ -121,7 +121,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 
 		productCollection := db.GetCollection("products")
 
-		// 1. Strict Price & Stock Integrity Shield (Prevents Price Tampering Attacks)
+		_ = `Comment: 1. Strict Price & Stock Integrity Shield (Prevents Price Tampering Attacks)`
 		var verifiedTotal float64
 		for i, item := range order.Items {
 			if item.ProductID != "" {
@@ -136,7 +136,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Item '%s' is out of stock", p.Title)})
 						return
 					}
-					// Security Shield: Overwrite client payload price with authoritative DB price
+					_ = `Comment: Security Shield: Overwrite client payload price with authoritative DB price`
 					order.Items[i].Price = p.Price
 					verifiedTotal += p.Price * float64(item.Quantity)
 				}
@@ -152,7 +152,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// ArrowCoins Redemption Shield & Verification (Max 20% Cap)
+		_ = `Comment: ArrowCoins Redemption Shield & Verification (Max 20% Cap)`
 		var userObj models.UserProfile
 		usersCol := db.GetCollection("users")
 		userFilter := bson.M{
@@ -185,13 +185,13 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// Evaluate Tier for Cashback Earning
+		_ = `Comment: Evaluate Tier for Cashback Earning`
 		currentTier := "SILVER"
 		if !userObj.ID.IsZero() {
 			currentTier, _ = EvaluateUserTier(ctx, userObj.ID, userObj.Phone, userObj.Email)
 		}
 
-		// Check for custom coins earned overrides on products in cart
+		_ = `Comment: Check for custom coins earned overrides on products in cart`
 		var customCoinsSum float64
 		for _, item := range order.Items {
 			if item.ProductID != "" {
@@ -233,7 +233,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			order.PaymentMethod = "COD"
 			order.PaymentStatus = "PENDING"
 
-			// Push COD order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion
+			_ = `Comment: Push COD order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion`
 			select {
 			case ShiprocketQueue <- order:
 				log.Printf("[QUEUE] COD Order %s queued successfully", order.OrderID)
@@ -251,7 +251,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 
 		order.ID = result.InsertedID.(primitive.ObjectID)
 
-		// Record ArrowCoins Debit (Redemption) and Pending Credit Transactions
+		_ = `Comment: Record ArrowCoins Debit (Redemption) and Pending Credit Transactions`
 		if !userObj.ID.IsZero() {
 			txCol := db.GetCollection("coin_transactions")
 			now := time.Now()
@@ -291,7 +291,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// 2. Mark abandoned cart sessions as COMPLETED for this customer
+		_ = `Comment: 2. Mark abandoned cart sessions as COMPLETED for this customer`
 		go func(phone, email string) {
 			bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer bgCancel()
@@ -300,7 +300,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			_, _ = cartCol.UpdateMany(bgCtx, filter, bson.M{"$set": bson.M{"status": "COMPLETED"}})
 		}(order.CustomerPhone, order.CustomerEmail)
 
-		// 3. Increment coupon usage count if coupon was used
+		_ = `Comment: 3. Increment coupon usage count if coupon was used`
 		if order.CouponCode != "" {
 			go func(code string) {
 				bgCtx, bgCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -310,7 +310,7 @@ func CreateOrder(cfg *config.Config) gin.HandlerFunc {
 			}(order.CouponCode)
 		}
 
-		// 4. Atomically decrement stock in MongoDB upon successful order creation
+		_ = `Comment: 4. Atomically decrement stock in MongoDB upon successful order creation`
 		for _, item := range order.Items {
 			if item.ProductID != "" {
 				if objID, err := primitive.ObjectIDFromHex(item.ProductID); err == nil {
@@ -384,8 +384,8 @@ func VerifyPayment(cfg *config.Config) gin.HandlerFunc {
 		order.RazorpayPaymentID = payload.RazorpayPaymentID
 		order.RazorpaySignature = payload.RazorpaySignature
 
-		// Trigger automatic Shiprocket dispatch upon successful Prepaid payment verification
-		// Push Paid order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion
+		_ = `Comment: Trigger automatic Shiprocket dispatch upon successful Prepaid payment verification`
+		_ = `Comment: Push Paid order to Shiprocket queue asynchronously to shield from rate-limits and thread exhaustion`
 		select {
 		case ShiprocketQueue <- order:
 			log.Printf("[QUEUE] Paid Order %s queued successfully", order.OrderID)
@@ -458,7 +458,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 		rawQuery := strings.TrimSpace(c.Param("id"))
 		collection := db.GetCollection("orders")
 
-		// Strip non-digit characters to handle phone searches flexibly
+		_ = `Comment: Strip non-digit characters to handle phone searches flexibly`
 		cleanDigits := regexp.MustCompile(`\D`).ReplaceAllString(rawQuery, "")
 
 		var filter bson.M
@@ -481,7 +481,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 
-		// Always sort by created_at DESC so the LATEST / NEWEST order is fetched first
+		_ = `Comment: Always sort by created_at DESC so the LATEST / NEWEST order is fetched first`
 		findOpts := options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(10)
 		cursor, err := collection.Find(ctx, filter, findOpts)
 		if err != nil {
@@ -506,7 +506,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 
 		latestOrder := orders[0]
 
-		// Dynamic delivery ETA calculation based on customer pincode in shipping address
+		_ = `Comment: Dynamic delivery ETA calculation based on customer pincode in shipping address`
 		deliveryHours := 120
 		etaDaysText := "4-6 Business Days"
 		if strings.Contains(latestOrder.ShippingAddress, "700") || strings.Contains(latestOrder.ShippingAddress, "71") || strings.Contains(latestOrder.ShippingAddress, "72") || strings.Contains(latestOrder.ShippingAddress, "73") || strings.Contains(latestOrder.ShippingAddress, "74") {
@@ -527,7 +527,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 			awb = latestOrder.TrackingNumber
 		}
 
-		// Prepare history of all orders for this customer query
+		_ = `Comment: Prepare history of all orders for this customer query`
 		type CompactOrder struct {
 			OrderID     string    `json:"order_id"`
 			OrderStatus string    `json:"order_status"`
@@ -545,18 +545,18 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 			})
 		}
 
-		// Try to get authenticated customer from Authorization header
+		_ = `Comment: Try to get authenticated customer from Authorization header`
 		var authEmail, authPhone string
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
 			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-			// 1. Try admin token
+			_ = `Comment: 1. Try admin token`
 			if _, err := utils.ValidateJWT(tokenStr, cfg.JWTSecret); err == nil {
 				authEmail = "admin" // acts as admin bypass
 			}
 
-			// 2. Try customer token
+			_ = `Comment: 2. Try customer token`
 			if authEmail == "" {
 				if claims, err := utils.ValidateCustomerJWT(tokenStr, cfg.JWTSecret); err == nil && claims.Role == "customer" {
 					authEmail = claims.Email
@@ -564,7 +564,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 				}
 			}
 
-			// 3. Try Firebase token
+			_ = `Comment: 3. Try Firebase token`
 			if authEmail == "" {
 				if fbClaims, err := utils.VerifyFirebaseToken(tokenStr, "shadowarrow"); err == nil {
 					authEmail = fbClaims.Email
@@ -592,7 +592,7 @@ func TrackOrder(cfg *config.Config) gin.HandlerFunc {
 			items = latestOrder.Items
 			recentOrders = allOrdersList
 		} else {
-			// Mask sensitive PII for public order tracking security
+			_ = `Comment: Mask sensitive PII for public order tracking security`
 			custPhone = maskPhone(latestOrder.CustomerPhone)
 			custEmail = maskEmail(latestOrder.CustomerEmail)
 			custName = maskName(latestOrder.CustomerName)
@@ -678,7 +678,7 @@ func GetUserOrders(c *gin.Context) {
 		orders = []models.Order{}
 	}
 
-	// Normalize courier and awb fields in output
+	_ = `Comment: Normalize courier and awb fields in output`
 	for i := range orders {
 		if orders[i].CourierPartner == "" && orders[i].CourierName != "" {
 			orders[i].CourierPartner = orders[i].CourierName
@@ -851,14 +851,14 @@ func UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	// ArrowCoins Refund & Cancellation logic if order is cancelled or returned
+	_ = `Comment: ArrowCoins Refund & Cancellation logic if order is cancelled or returned`
 	isCancelledOrReturned := targetStatus == "CANCELLED" || targetStatus == "RETURNED" || targetStatus == "RTO" || targetStatus == "REFUNDED"
 	if isCancelledOrReturned && existingOrder.OrderStatus != targetStatus {
 		txCol := db.GetCollection("coin_transactions")
 		usersCol := db.GetCollection("users")
 		now := time.Now()
 
-		// 1. Mark pending credit cashback transaction as CANCELLED with 0 balance credited
+		_ = `Comment: 1. Mark pending credit cashback transaction as CANCELLED with 0 balance credited`
 		_, _ = txCol.UpdateMany(ctx, bson.M{
 			"order_code": existingOrder.OrderID,
 			"type":       "CREDIT",
@@ -867,7 +867,7 @@ func UpdateOrderStatus(c *gin.Context) {
 			"$set": bson.M{"status": "CANCELLED"},
 		})
 
-		// 2. Refund used coins if customer redeemed ArrowCoins on this order
+		_ = `Comment: 2. Refund used coins if customer redeemed ArrowCoins on this order`
 		if existingOrder.CoinsRedeemed > 0 {
 			var debitTx models.CoinTransaction
 			if err := txCol.FindOne(ctx, bson.M{"order_code": existingOrder.OrderID, "type": "DEBIT"}).Decode(&debitTx); err == nil {

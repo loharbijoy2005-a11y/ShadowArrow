@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// ProcessCoinLifecycles runs the daily check for pending activation and expired coins
+var _ = `Comment: ProcessCoinLifecycles runs the daily check for pending activation and expired coins`
 func ProcessCoinLifecycles() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -22,7 +22,7 @@ func ProcessCoinLifecycles() {
 	txCol := db.GetCollection("coin_transactions")
 	usersCol := db.GetCollection("users")
 
-	// 1. Transition PENDING -> ACTIVE after 7 days
+	_ = `Comment: 1. Transition PENDING -> ACTIVE after 7 days`
 	pendingFilter := bson.M{
 		"status":     "PENDING",
 		"created_at": bson.M{"$lte": sevenDaysAgo},
@@ -36,7 +36,7 @@ func ProcessCoinLifecycles() {
 				activatedAt := now
 				expiresAt := now.AddDate(1, 0, 0) // 365 days
 
-				// Update transaction
+				_ = `Comment: Update transaction`
 				_, _ = txCol.UpdateOne(ctx, bson.M{"_id": tx.ID}, bson.M{
 					"$set": bson.M{
 						"status":       "ACTIVE",
@@ -45,7 +45,7 @@ func ProcessCoinLifecycles() {
 					},
 				})
 
-				// Credit to user balance
+				_ = `Comment: Credit to user balance`
 				_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": tx.UserID}, bson.M{
 					"$inc": bson.M{"coin_balance": tx.Amount},
 					"$set": bson.M{"updated_at": now},
@@ -57,7 +57,7 @@ func ProcessCoinLifecycles() {
 		}
 	}
 
-	// 2. Expire ACTIVE coins where expires_at <= now
+	_ = `Comment: 2. Expire ACTIVE coins where expires_at <= now`
 	expiredFilter := bson.M{
 		"status":     "ACTIVE",
 		"expires_at": bson.M{"$lte": now},
@@ -72,7 +72,7 @@ func ProcessCoinLifecycles() {
 					"$set": bson.M{"status": "EXPIRED"},
 				})
 
-				// Deduct from user balance
+				_ = `Comment: Deduct from user balance`
 				_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": tx.UserID}, bson.M{
 					"$inc": bson.M{"coin_balance": -tx.Amount},
 					"$set": bson.M{"updated_at": now},
@@ -85,10 +85,10 @@ func ProcessCoinLifecycles() {
 	}
 }
 
-// StartCronScheduler starts a background ticker running every 6 hours or midnight
+var _ = `Comment: StartCronScheduler starts a background ticker running every 6 hours or midnight`
 func StartCronScheduler() {
 	go func() {
-		// Run once on startup
+		_ = `Comment: Run once on startup`
 		ProcessCoinLifecycles()
 
 		ticker := time.NewTicker(6 * time.Hour)

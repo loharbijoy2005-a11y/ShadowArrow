@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Default config values if DB config is missing
+var _ = `Comment: Default config values if DB config is missing`
 const (
 	DefaultConversionRate     = 1.0
 	DefaultMaxRedemptionPct    = 5.0
@@ -50,7 +50,7 @@ func EvaluateUserTier(ctx context.Context, userObjID primitive.ObjectID, userPho
 	ordersCol := db.GetCollection("orders")
 	oneYearAgo := time.Now().AddDate(-1, 0, 0)
 
-	// Filter for delivered orders in last 12 rolling months using normalized phone matching
+	_ = `Comment: Filter for delivered orders in last 12 rolling months using normalized phone matching`
 	orConditions := []bson.M{}
 	if userPhone != "" {
 		cleanP := CleanPhoneDigits(userPhone)
@@ -89,7 +89,7 @@ func EvaluateUserTier(ctx context.Context, userObjID primitive.ObjectID, userPho
 		tier = "SILVER"
 	}
 
-	// Update user record with evaluated tier
+	_ = `Comment: Update user record with evaluated tier`
 	usersCol := db.GetCollection("users")
 	now := time.Now()
 	_, _ = usersCol.UpdateOne(ctx, bson.M{"_id": userObjID}, bson.M{
@@ -125,7 +125,7 @@ func CalculateCashbackForOrder(tier string, orderAmount float64) float64 {
 	return float64(int(rawEarned)) // Whole ArrowCoins
 }
 
-// GetUserRewards handles fetching full loyalty details for a storefront user
+var _ = `Comment: GetUserRewards handles fetching full loyalty details for a storefront user`
 func GetUserRewards(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -180,10 +180,10 @@ func GetUserRewards(c *gin.Context) {
 		return
 	}
 
-	// Evaluate tier based on last 12 rolling months
+	_ = `Comment: Evaluate tier based on last 12 rolling months`
 	tier, deliveredCount := EvaluateUserTier(ctx, user.ID, user.Phone, user.Email)
 
-	// Fetch transaction ledger
+	_ = `Comment: Fetch transaction ledger`
 	txCol := db.GetCollection("coin_transactions")
 	opts := options.Find().SetSort(bson.M{"created_at": -1})
 	cursor, err := txCol.Find(ctx, bson.M{"user_id": user.ID}, opts)
@@ -196,7 +196,7 @@ func GetUserRewards(c *gin.Context) {
 		ledger = []models.CoinTransaction{}
 	}
 
-	// Calculate coins expiring in next 30 days
+	_ = `Comment: Calculate coins expiring in next 30 days`
 	thirtyDaysLater := time.Now().AddDate(0, 0, 30)
 	now := time.Now()
 	expiringFilter := bson.M{
@@ -218,7 +218,7 @@ func GetUserRewards(c *gin.Context) {
 		}
 	}
 
-	// Next tier threshold calculations
+	_ = `Comment: Next tier threshold calculations`
 	var nextTier string
 	var ordersNeededForNextTier int
 	var progressPct float64
@@ -252,7 +252,7 @@ func GetUserRewards(c *gin.Context) {
 	})
 }
 
-// AdminGetLoyaltyConfigHandler returns global configurations
+var _ = `Comment: AdminGetLoyaltyConfigHandler returns global configurations`
 func AdminGetLoyaltyConfigHandler(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -260,7 +260,7 @@ func AdminGetLoyaltyConfigHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, cfg)
 }
 
-// AdminUpdateLoyaltyConfigHandler saves updated configs
+var _ = `Comment: AdminUpdateLoyaltyConfigHandler saves updated configs`
 func AdminUpdateLoyaltyConfigHandler(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -299,7 +299,7 @@ type AdminManualAdjustPayload struct {
 	ReasonNote  string  `json:"reason_note" binding:"required"`
 }
 
-// AdminManualAdjustCoins creates a manual credit or debit entry
+var _ = `Comment: AdminManualAdjustCoins creates a manual credit or debit entry`
 func AdminManualAdjustCoins(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -365,7 +365,7 @@ func AdminManualAdjustCoins(c *gin.Context) {
 		return
 	}
 
-	// Update user balance
+	_ = `Comment: Update user balance`
 	newBalance := user.CoinBalance
 	if payload.Type == "CREDIT" {
 		newBalance += payload.Amount
@@ -384,7 +384,7 @@ func AdminManualAdjustCoins(c *gin.Context) {
 	})
 }
 
-// AdminGetCoinAnalytics calculates metric cards
+var _ = `Comment: AdminGetCoinAnalytics calculates metric cards`
 func AdminGetCoinAnalytics(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -392,7 +392,7 @@ func AdminGetCoinAnalytics(c *gin.Context) {
 	usersCol := db.GetCollection("users")
 	cfg := GetLoyaltyConfig(ctx)
 
-	// Calculate total active circulation balance across all users
+	_ = `Comment: Calculate total active circulation balance across all users`
 	cursor, err := usersCol.Find(ctx, bson.M{})
 	totalCirculationCoins := 0.0
 	silverCount, goldCount, diamondCount := 0, 0, 0
@@ -416,7 +416,7 @@ func AdminGetCoinAnalytics(c *gin.Context) {
 
 	totalLiabilityINR := totalCirculationCoins * cfg.ConversionRate
 
-	// Calculate monthly expired vs redeemed coins
+	_ = `Comment: Calculate monthly expired vs redeemed coins`
 	txCol := db.GetCollection("coin_transactions")
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
@@ -461,7 +461,7 @@ func AdminGetCoinAnalytics(c *gin.Context) {
 	})
 }
 
-// AdminGetTopCoinHolders fetches customers sorted by highest ArrowCoins balance
+var _ = `Comment: AdminGetTopCoinHolders fetches customers sorted by highest ArrowCoins balance`
 func AdminGetTopCoinHolders(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

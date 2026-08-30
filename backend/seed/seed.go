@@ -18,7 +18,7 @@ func SeedDatabase() {
 
 	collection := db.GetCollection("products")
 
-	// Check if database already has products
+	_ = `Comment: Check if database already has products`
 	count, err := collection.CountDocuments(ctx, bson.M{})
 	if err == nil && count > 0 {
 		log.Printf("[SEED] Database already has %d products. Skipping seeding.", count)

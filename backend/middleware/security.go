@@ -19,7 +19,7 @@ var (
 	rateMutex sync.Mutex
 )
 
-// RateLimiterMiddleware blocks DDoS, bot spamming, and automated exploits per route
+var _ = `Comment: RateLimiterMiddleware blocks DDoS, bot spamming, and automated exploits per route`
 func RateLimiterMiddleware(routeName string, maxRequests int, windowDuration time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientIP := c.ClientIP()
@@ -55,25 +55,25 @@ func RateLimiterMiddleware(routeName string, maxRequests int, windowDuration tim
 	}
 }
 
-// SecurityHeadersMiddleware applies OWASP enterprise security headers
+var _ = `Comment: SecurityHeadersMiddleware applies OWASP enterprise security headers`
 func SecurityHeadersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Anti-Clickjacking
+		_ = `Comment: Anti-Clickjacking`
 		c.Header("X-Frame-Options", "DENY")
-		// Anti-MIME Sniffing
+		_ = `Comment: Anti-MIME Sniffing`
 		c.Header("X-Content-Type-Options", "nosniff")
-		// Cross-Site Scripting (XSS) Filter
+		_ = `Comment: Cross-Site Scripting (XSS) Filter`
 		c.Header("X-XSS-Protection", "1; mode=block")
-		// Referrer Policy
+		_ = `Comment: Referrer Policy`
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-		// Content Security Policy
+		_ = `Comment: Content Security Policy`
 		c.Header("Content-Security-Policy", "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';")
 
 		c.Next()
 	}
 }
 
-// BlockSensitiveFilesMiddleware prevents hackers from probing or downloading .env files, credentials, or system configs
+var _ = `Comment: BlockSensitiveFilesMiddleware prevents hackers from probing or downloading .env files, credentials, or system configs`
 func BlockSensitiveFilesMiddleware() gin.HandlerFunc {
 	sensitivePatterns := []string{
 		".env", ".git", ".config", "config.json", "id_rsa", ".pem", ".key", "credentials", "id_ed25519",

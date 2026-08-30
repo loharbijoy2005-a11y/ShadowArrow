@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,8 +21,6 @@ import (
 func GetProducts(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	collection := db.GetCollection("products")
 
 	category := c.Query("category")
 	sortPrice := c.Query("sort") // asc or desc
@@ -41,6 +41,16 @@ func GetProducts(c *gin.Context) {
 		}
 	}
 
+	// REDIS CACHE GET
+	cacheKey := fmt.Sprintf("products:list:category=%s:sort=%s:limit=%d:page=%d", category, sortPrice, limit, page)
+	if db.RedisClient != nil {
+		if val, err := db.RedisClient.Get(ctx, cacheKey).Result(); err == nil {
+			c.Data(http.StatusOK, "application/json", []byte(val))
+			return
+		}
+	}
+
+	collection := db.GetCollection("products")
 	skip := int64((page - 1) * limit)
 
 	filter := bson.M{}
@@ -80,13 +90,22 @@ func GetProducts(c *gin.Context) {
 	totalCount, _ := collection.CountDocuments(ctx, filter)
 	hasMore := (skip + int64(len(products))) < totalCount
 
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"products": products,
 		"total":    totalCount,
 		"page":     page,
 		"limit":    limit,
 		"has_more": hasMore,
-	})
+	}
+
+	// REDIS CACHE SET (10-minute TTL)
+	if db.RedisClient != nil {
+		if respBytes, err := json.Marshal(response); err == nil {
+			_ = db.RedisClient.Set(ctx, cacheKey, respBytes, 10*time.Minute).Err()
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func GetProductByID(c *gin.Context) {
@@ -94,6 +113,16 @@ func GetProductByID(c *gin.Context) {
 	defer cancel()
 
 	param := c.Param("id")
+
+	// REDIS CACHE GET
+	cacheKey := fmt.Sprintf("products:item:%s", param)
+	if db.RedisClient != nil {
+		if val, err := db.RedisClient.Get(ctx, cacheKey).Result(); err == nil {
+			c.Data(http.StatusOK, "application/json", []byte(val))
+			return
+		}
+	}
+
 	collection := db.GetCollection("products")
 
 	var product models.Product
@@ -109,6 +138,19 @@ func GetProductByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
+	}
+
+	// REDIS CACHE SET (10-minute TTL)
+	if db.RedisClient != nil {
+		if prodBytes, err := json.Marshal(product); err == nil {
+			_ = db.RedisClient.Set(ctx, cacheKey, prodBytes, 10*time.Minute).Err()
+			// Also cache the other key (if ID is queried, cache by slug too, and vice versa)
+			if errID == nil && product.Slug != "" {
+				_ = db.RedisClient.Set(ctx, fmt.Sprintf("products:item:%s", product.Slug), prodBytes, 10*time.Minute).Err()
+			} else if errID != nil && !product.ID.IsZero() {
+				_ = db.RedisClient.Set(ctx, fmt.Sprintf("products:item:%s", product.ID.Hex()), prodBytes, 10*time.Minute).Err()
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, product)
@@ -137,6 +179,7 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	product.ID = result.InsertedID.(primitive.ObjectID)
+	invalidateProductCache()
 	c.JSON(http.StatusCreated, product)
 }
 
@@ -180,6 +223,7 @@ func UpdateProduct(c *gin.Context) {
 	}
 
 	product.ID = objID
+	invalidateProductCache()
 	c.JSON(http.StatusOK, product)
 }
 
@@ -201,5 +245,29 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
+	invalidateProductCache()
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+}
+
+func invalidateProductCache() {
+	if db.RedisClient == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var cursor uint64
+	for {
+		keys, nextCursor, err := db.RedisClient.Scan(ctx, cursor, "products:*", 100).Result()
+		if err != nil {
+			break
+		}
+		if len(keys) > 0 {
+			db.RedisClient.Del(ctx, keys...)
+		}
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
 }

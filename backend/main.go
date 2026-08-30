@@ -25,6 +25,9 @@ func main() {
 	// 2. Connect to MongoDB
 	db.ConnectDB(cfg)
 
+	// 2.5 Connect to Redis
+	db.ConnectRedis(cfg)
+
 	// 3. Seed Database if empty
 	seed.SeedDatabase()
 

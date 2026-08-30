@@ -19,6 +19,8 @@ type Config struct {
 	ShiprocketEmail        string
 	ShiprocketPassword     string
 	ShiprocketPickupLoc    string
+	RedisAddr              string
+	RedisPassword          string
 }
 
 func LoadConfig() *Config {
@@ -37,6 +39,8 @@ func LoadConfig() *Config {
 	srEmail := getEnv("SHIPROCKET_EMAIL", "shiprocket_email@example.com")
 	srPass := getEnv("SHIPROCKET_PASSWORD", "shiprocket_password_placeholder")
 	srPickup := getEnv("SHIPROCKET_PICKUP_LOCATION", "warehouse")
+	redisAddr := getEnv("REDIS_ADDR", "localhost:6379")
+	redisPassword := getEnv("REDIS_PASSWORD", "")
 
 	log.Printf("[CONFIG] Loaded configuration. Database: %s, Port: %s", dbName, port)
 
@@ -52,6 +56,8 @@ func LoadConfig() *Config {
 		ShiprocketEmail:     srEmail,
 		ShiprocketPassword:  srPass,
 		ShiprocketPickupLoc: srPickup,
+		RedisAddr:           redisAddr,
+		RedisPassword:       redisPassword,
 	}
 }
 

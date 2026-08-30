@@ -12,12 +12,98 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PhoneLoginPayload struct {
 	Name  string `json:"name"`
 	Phone string `json:"phone" binding:"required"`
 	Email string `json:"email"`
+}
+
+// mergeUserProfiles merges the secondary user account into the primary user account.
+// It combines coin balances, merges addresses, retains the highest tier, and deletes the secondary profile.
+func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primary *models.UserProfile, secondary *models.UserProfile) (*models.UserProfile, error) {
+	now := time.Now()
+
+	if primary.UID == "" {
+		primary.UID = secondary.UID
+	}
+	if primary.Email == "" {
+		primary.Email = secondary.Email
+	}
+	if primary.Name == "" {
+		primary.Name = secondary.Name
+	}
+	if primary.PhotoURL == "" {
+		primary.PhotoURL = secondary.PhotoURL
+	}
+
+	primary.CoinBalance += secondary.CoinBalance
+
+	// Merge unique addresses
+	seen := make(map[string]bool)
+	mergedAddresses := []models.SavedAddress{}
+	for _, a := range primary.Addresses {
+		if a.ID != "" && !seen[a.ID] {
+			seen[a.ID] = true
+			mergedAddresses = append(mergedAddresses, a)
+		}
+	}
+	for _, a := range secondary.Addresses {
+		if a.ID != "" && !seen[a.ID] {
+			seen[a.ID] = true
+			mergedAddresses = append(mergedAddresses, a)
+		}
+	}
+	primary.Addresses = mergedAddresses
+
+	// Retain the highest loyalty tier
+	highestTier := "SILVER"
+	if primary.Tier.CurrentTier == "PLATINUM" || secondary.Tier.CurrentTier == "PLATINUM" {
+		highestTier = "PLATINUM"
+	} else if primary.Tier.CurrentTier == "GOLD" || secondary.Tier.CurrentTier == "GOLD" {
+		highestTier = "GOLD"
+	}
+	primary.Tier.CurrentTier = highestTier
+	if primary.Tier.LastEvaluatedAt == nil {
+		primary.Tier.LastEvaluatedAt = secondary.Tier.LastEvaluatedAt
+	}
+
+	// Merge soft deletion flags
+	primary.DeletionRequested = primary.DeletionRequested || secondary.DeletionRequested
+	if !primary.DeletionRequested && secondary.DeletionRequested {
+		primary.DeletionRequestedAt = secondary.DeletionRequestedAt
+		primary.DeletionReason = secondary.DeletionReason
+	}
+
+	primary.UpdatedAt = now
+
+	// Update the primary account
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": primary.ID}, bson.M{"$set": bson.M{
+		"uid":                   primary.UID,
+		"email":                 primary.Email,
+		"name":                  primary.Name,
+		"photo_url":             primary.PhotoURL,
+		"addresses":             primary.Addresses,
+		"coin_balance":          primary.CoinBalance,
+		"tier":                  primary.Tier,
+		"deletion_requested":    primary.DeletionRequested,
+		"deletion_requested_at": primary.DeletionRequestedAt,
+		"deletion_reason":       primary.DeletionReason,
+		"updated_at":            primary.UpdatedAt,
+	}})
+	if err != nil {
+		return nil, err
+	}
+
+	// Delete the secondary account
+	_, err = collection.DeleteOne(ctx, bson.M{"_id": secondary.ID})
+	if err != nil {
+		return nil, err
+	}
+
+	return primary, nil
 }
 
 func GoogleSync(c *gin.Context) {
@@ -36,27 +122,69 @@ func GoogleSync(c *gin.Context) {
 	}
 
 	collection := db.GetCollection("users")
+	now := time.Now()
 
-	// Search by email, phone, or UID
-	orConditions := []bson.M{}
+	// 1. Search for existing Google user by Email or UID
+	var emailUser models.UserProfile
+	emailUserFound := false
+	emailConditions := []bson.M{}
 	if payload.Email != "" {
-		orConditions = append(orConditions, bson.M{"email": payload.Email})
-	}
-	if payload.Phone != "" {
-		orConditions = append(orConditions, bson.M{"phone": payload.Phone})
+		emailConditions = append(emailConditions, bson.M{"email": payload.Email})
 	}
 	if payload.UID != "" {
-		orConditions = append(orConditions, bson.M{"uid": payload.UID})
+		emailConditions = append(emailConditions, bson.M{"uid": payload.UID})
+	}
+	if len(emailConditions) > 0 {
+		if err := collection.FindOne(ctx, bson.M{"$or": emailConditions}).Decode(&emailUser); err == nil {
+			emailUserFound = true
+		}
 	}
 
-	filter := bson.M{"$or": orConditions}
+	// 2. Search for existing Phone user by normalized phone number
+	var phoneUser models.UserProfile
+	phoneUserFound := false
+	cleanP := CleanPhoneDigits(payload.Phone)
+	if cleanP != "" {
+		phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
+		if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
+			phoneUserFound = true
+		}
+	}
 
-	var existing models.UserProfile
-	err := collection.FindOne(ctx, filter).Decode(&existing)
+	// Case 1: Neither exists -> Create new user profile
+	if !emailUserFound && !phoneUserFound {
+		payload.UpdatedAt = now
+		if payload.Addresses == nil {
+			payload.Addresses = []models.SavedAddress{}
+		}
+		if payload.Tier.CurrentTier == "" {
+			payload.Tier.CurrentTier = "SILVER"
+		}
+		res, err := collection.InsertOne(ctx, payload)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+			return
+		}
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
+		c.JSON(http.StatusCreated, result)
+		return
+	}
 
-	now := time.Now()
-	if err == nil {
-		// Existing user found -> Merge details without overwriting non-empty phone/email with empty strings
+	// Case 4: Both exist and they are different documents -> Merge them!
+	if emailUserFound && phoneUserFound && emailUser.ID != phoneUser.ID {
+		merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
+			return
+		}
+		c.JSON(http.StatusOK, merged)
+		return
+	}
+
+	// Case 2: Only emailUser exists OR both exist and are the same document
+	if emailUserFound {
+		// Update emailUser with payload details
 		updateFields := bson.M{
 			"updated_at": now,
 		}
@@ -76,22 +204,38 @@ func GoogleSync(c *gin.Context) {
 			updateFields["phone"] = payload.Phone
 		}
 
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": existing.ID}, bson.M{"$set": updateFields})
-		_ = collection.FindOne(ctx, bson.M{"_id": existing.ID}).Decode(&existing)
-		c.JSON(http.StatusOK, existing)
+		_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 
-	// New user -> Insert
-	payload.UpdatedAt = now
-	res, err := collection.InsertOne(ctx, payload)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user document"})
+	// Case 3: Only phoneUser exists
+	if phoneUserFound {
+		// Update phoneUser with Google credentials
+		updateFields := bson.M{
+			"updated_at": now,
+		}
+		if payload.UID != "" {
+			updateFields["uid"] = payload.UID
+		}
+		if payload.Name != "" && phoneUser.Name == "" {
+			updateFields["name"] = payload.Name
+		}
+		if payload.Email != "" && phoneUser.Email == "" {
+			updateFields["email"] = payload.Email
+		}
+		if payload.PhotoURL != "" && phoneUser.PhotoURL == "" {
+			updateFields["photo_url"] = payload.PhotoURL
+		}
+
+		_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
-
-	_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&existing)
-	c.JSON(http.StatusCreated, existing)
 }
 
 func PhoneLogin(c *gin.Context) {
@@ -111,16 +255,62 @@ func PhoneLogin(c *gin.Context) {
 	}
 
 	collection := db.GetCollection("users")
-
-	// Search STRICTLY by normalized 10-digit phone number
-	phoneRegexFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
-
-	var existing models.UserProfile
-	err := collection.FindOne(ctx, phoneRegexFilter).Decode(&existing)
-
 	now := time.Now()
-	if err == nil {
-		// Existing phone user found -> Return this single account
+
+	// 1. Search STRICTLY by normalized 10-digit phone number
+	var phoneUser models.UserProfile
+	phoneUserFound := false
+	phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
+	if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
+		phoneUserFound = true
+	}
+
+	// 2. Search by email if email is provided in payload
+	var emailUser models.UserProfile
+	emailUserFound := false
+	if payload.Email != "" {
+		if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&emailUser); err == nil {
+			emailUserFound = true
+		}
+	}
+
+	// Case 1: Neither exists -> Create new user profile
+	if !phoneUserFound && !emailUserFound {
+		newUser := models.UserProfile{
+			Name:        payload.Name,
+			Phone:       payload.Phone,
+			Email:       payload.Email,
+			Addresses:   []models.SavedAddress{},
+			CoinBalance: 0,
+			Tier: models.UserTier{
+				CurrentTier: "SILVER",
+			},
+			UpdatedAt: now,
+		}
+		res, err := collection.InsertOne(ctx, newUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+			return
+		}
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
+		c.JSON(http.StatusCreated, result)
+		return
+	}
+
+	// Case 4: Both exist and they are different documents -> Merge them!
+	if phoneUserFound && emailUserFound && phoneUser.ID != emailUser.ID {
+		merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
+			return
+		}
+		c.JSON(http.StatusOK, merged)
+		return
+	}
+
+	// Case 2: Only phoneUser exists OR both exist and are the same document
+	if phoneUserFound {
 		updateFields := bson.M{
 			"phone":      payload.Phone,
 			"updated_at": now,
@@ -128,47 +318,33 @@ func PhoneLogin(c *gin.Context) {
 		if payload.Name != "" {
 			updateFields["name"] = payload.Name
 		}
-		if payload.Email != "" && existing.Email == "" {
+		if payload.Email != "" && phoneUser.Email == "" {
 			updateFields["email"] = payload.Email
 		}
 
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": existing.ID}, bson.M{"$set": updateFields})
-		_ = collection.FindOne(ctx, bson.M{"_id": existing.ID}).Decode(&existing)
-		c.JSON(http.StatusOK, existing)
+		_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 
-	// If phone not found, check if email is provided and already belongs to another user
-	if payload.Email != "" {
-		var emailUser models.UserProfile
-		if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&emailUser); err == nil {
-			// Attach phone ONLY if email user has no phone or matching phone
-			if emailUser.Phone == "" || CleanPhoneDigits(emailUser.Phone) == cleanP {
-				_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": bson.M{"phone": payload.Phone, "updated_at": now}})
-				_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&emailUser)
-				c.JSON(http.StatusOK, emailUser)
-				return
-			}
+	// Case 3: Only emailUser exists
+	if emailUserFound {
+		updateFields := bson.M{
+			"phone":      payload.Phone,
+			"updated_at": now,
 		}
-	}
+		if payload.Name != "" && emailUser.Name == "" {
+			updateFields["name"] = payload.Name
+		}
 
-	// New user -> Insert single unique user document
-	newUser := models.UserProfile{
-		Name:      payload.Name,
-		Phone:     payload.Phone,
-		Email:     payload.Email,
-		Addresses: []models.SavedAddress{},
-		UpdatedAt: now,
-	}
-
-	res, err := collection.InsertOne(ctx, newUser)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create phone user document"})
+		_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
+		var result models.UserProfile
+		_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
-
-	_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&existing)
-	c.JSON(http.StatusCreated, existing)
 }
 
 func UpdateUserProfile(c *gin.Context) {

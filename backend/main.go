@@ -88,6 +88,7 @@ func main() {
 		v1.GET("/user/profile", handlers.GetUserProfile)
 		v1.GET("/user/clones", handlers.GetCloneAccounts)
 		v1.POST("/user/clones/set-default", handlers.SetDefaultAccount)
+		v1.POST("/user/clones/unlink", handlers.UnlinkPhoneFromAccount)
 		v1.GET("/user/rewards", handlers.GetUserRewards)
 		v1.POST("/user/request-deletion", middleware.RateLimiterMiddleware("deletion_req", 3, 10*time.Minute), handlers.RequestAccountDeletion)
 		v1.GET("/loyalty/config", handlers.AdminGetLoyaltyConfigHandler)

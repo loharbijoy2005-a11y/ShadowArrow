@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"shadow-arrow-backend/db"
@@ -148,6 +149,19 @@ func GoogleSync(c *gin.Context) {
 		phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
 		if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
 			phoneUserFound = true
+		}
+	}
+
+	if phoneUserFound {
+		// If phoneUser already has a UID and it's different from the payload's UID, it's owned by another Google user.
+		if phoneUser.UID != "" && phoneUser.UID != payload.UID {
+			c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another Google account"})
+			return
+		}
+		// If phoneUser has a non-fallback email that is different from the payload's email
+		if phoneUser.Email != "" && !strings.HasSuffix(phoneUser.Email, "@shadowarrow.com") && phoneUser.Email != payload.Email {
+			c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another account"})
+			return
 		}
 	}
 
@@ -364,21 +378,45 @@ func UpdateUserProfile(c *gin.Context) {
 
 	collection := db.GetCollection("users")
 
-	orConditions := []bson.M{}
-	if payload.Email != "" {
-		orConditions = append(orConditions, bson.M{"email": payload.Email})
-	}
-	if payload.Phone != "" {
-		orConditions = append(orConditions, bson.M{"phone": payload.Phone})
-	}
-	if payload.UID != "" {
-		orConditions = append(orConditions, bson.M{"uid": payload.UID})
-	}
-
-	filter := bson.M{"$or": orConditions}
-
+	// 1. Identify the user we are updating
 	var existing models.UserProfile
-	err := collection.FindOne(ctx, filter).Decode(&existing)
+	userFound := false
+
+	if !payload.ID.IsZero() {
+		if err := collection.FindOne(ctx, bson.M{"_id": payload.ID}).Decode(&existing); err == nil {
+			userFound = true
+		}
+	}
+
+	if !userFound && payload.UID != "" {
+		if err := collection.FindOne(ctx, bson.M{"uid": payload.UID}).Decode(&existing); err == nil {
+			userFound = true
+		}
+	}
+
+	if !userFound && payload.Email != "" {
+		if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&existing); err == nil {
+			userFound = true
+		}
+	}
+
+	// 2. Strict Phone Uniqueness Check
+	if payload.Phone != "" {
+		cleanP := CleanPhoneDigits(payload.Phone)
+		if cleanP != "" {
+			var otherUser models.UserProfile
+			phoneFilter := bson.M{
+				"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}},
+			}
+			if userFound {
+				phoneFilter["_id"] = bson.M{"$ne": existing.ID}
+			}
+			if err := collection.FindOne(ctx, phoneFilter).Decode(&otherUser); err == nil {
+				c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another account"})
+				return
+			}
+		}
+	}
 
 	now := time.Now()
 	updateFields := bson.M{
@@ -401,8 +439,12 @@ func UpdateUserProfile(c *gin.Context) {
 		updateFields["addresses"] = payload.Addresses
 	}
 
-	if err == nil {
-		_, err = collection.UpdateOne(ctx, bson.M{"_id": existing.ID}, bson.M{"$set": updateFields})
+	if userFound {
+		_, err := collection.UpdateOne(ctx, bson.M{"_id": existing.ID}, bson.M{"$set": updateFields})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user profile"})
+			return
+		}
 		_ = collection.FindOne(ctx, bson.M{"_id": existing.ID}).Decode(&existing)
 		c.JSON(http.StatusOK, existing)
 		return
@@ -658,5 +700,37 @@ func SetDefaultAccount(c *gin.Context) {
 
 	c.JSON(http.StatusOK, updatedProfile)
 }
+
+type UnlinkClonePayload struct {
+	AccountID string `json:"account_id" binding:"required"`
+}
+
+// UnlinkPhoneFromAccount clears the phone field for a specific user profile.
+func UnlinkPhoneFromAccount(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var payload UnlinkClonePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	accountObjID, err := primitive.ObjectIDFromHex(payload.AccountID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid account_id format"})
+		return
+	}
+
+	collection := db.GetCollection("users")
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": accountObjID}, bson.M{"$set": bson.M{"phone": "", "updated_at": time.Now()}})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlink phone from account"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Phone unlinked successfully"})
+}
+
 
 

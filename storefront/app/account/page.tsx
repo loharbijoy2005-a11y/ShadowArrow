@@ -38,6 +38,7 @@ export default function AccountPage() {
   const [clones, setClones] = useState<any[]>([]);
   const [loadingClones, setLoadingClones] = useState(false);
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
+  const [unlinkingId, setUnlinkingId] = useState<string | null>(null);
 
   // Profile Context Menu & Account Deletion State
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -165,6 +166,27 @@ export default function AccountPage() {
     }
   };
 
+  const handleUnlinkAccount = async (targetId: string) => {
+    if (!window.confirm('Are you sure you want to unlink this profile from this phone number? It will no longer show up here.')) {
+      return;
+    }
+    setUnlinkingId(targetId);
+    try {
+      const res = await axios.post(`${API_URL}/api/v1/user/clones/unlink`, {
+        account_id: targetId,
+      });
+      if (res.data) {
+        if (user.phone) {
+          fetchCloneAccounts(user.phone, user.id || user._id);
+        }
+      }
+    } catch (err: any) {
+      alert('Failed to unlink account: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setUnlinkingId(null);
+    }
+  };
+
   const fetchRewardsInfo = async (phone: string, email: string) => {
     setLoadingRewards(true);
     try {
@@ -258,15 +280,19 @@ export default function AccountPage() {
         const merged = { ...updatedUser, ...res.data };
         localStorage.setItem('shadow_user', JSON.stringify(merged));
         setUser(merged);
+        setShowPhoneEdit(false);
+        fetchUserOrders(merged.phone, merged.email);
+        if (merged.phone) {
+          fetchCloneAccounts(merged.phone, merged.id || merged._id);
+        }
       }
-    } catch (err) {
-      localStorage.setItem('shadow_user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || 'Failed to update phone number. Please try again.';
+      alert(errorMsg);
+      setNewPhone(user.phone || '');
+    } finally {
+      setPhoneSaving(false);
     }
-
-    setShowPhoneEdit(false);
-    setPhoneSaving(false);
-    fetchUserOrders(updatedUser.phone, updatedUser.email);
   };
 
   const handleLogout = () => {
@@ -498,17 +524,30 @@ export default function AccountPage() {
                         <Coins className="w-3.5 h-3.5 text-amber-500" /> Coin Balance: {cloneAcc.coin_balance || 0}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleSetDefaultAccount(cloneId, user.phone)}
-                      disabled={settingDefaultId === cloneId}
-                      className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-mono font-bold uppercase transition flex items-center space-x-1.5 disabled:opacity-50"
-                    >
-                      {settingDefaultId === cloneId ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <span>Make Default</span>
-                      )}
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleSetDefaultAccount(cloneId, user.phone)}
+                        disabled={settingDefaultId === cloneId || unlinkingId === cloneId}
+                        className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-mono font-bold uppercase transition flex items-center space-x-1.5 disabled:opacity-50"
+                      >
+                        {settingDefaultId === cloneId ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <span>Make Default</span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleUnlinkAccount(cloneId)}
+                        disabled={settingDefaultId === cloneId || unlinkingId === cloneId}
+                        className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-mono font-bold uppercase transition flex items-center space-x-1.5 disabled:opacity-50"
+                      >
+                        {unlinkingId === cloneId ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <span>Unlink</span>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

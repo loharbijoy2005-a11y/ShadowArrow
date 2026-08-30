@@ -76,27 +76,52 @@ export default function AccountRegisterPage() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim() || phone.length < 10) {
-      setError('Please enter a valid Full Name and 10-digit Phone Number.');
+    if (!fullName.trim() || !phone.trim() || !/^[6-9]\d{9}$/.test(phone.trim())) {
+      setError('Please enter a valid Full Name and 10-digit Phone Number starting with 6-9.');
       return;
     }
 
     setLoading(true);
-    const userObj = {
-      name: fullName.toUpperCase().trim(),
-      email: `${phone.trim()}@shadowarrow.com`,
-      phone: phone.trim(),
-      isLoggedIn: true,
-      loginTime: new Date().toISOString(),
-    };
+    setError('');
 
-    localStorage.setItem('shadow_user', JSON.stringify(userObj));
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // 1. Check if phone is already linked to any account
+      const checkRes = await axios.get(`${API_URL}/api/v1/user/profile?phone=${encodeURIComponent(phone.trim())}`);
+      if (checkRes.data && checkRes.data.phone) {
+        setError('This phone number is already linked to an account. Please Sign In.');
+        setLoading(false);
+        return;
+      }
+    } catch (err: any) {
+      // 404 is expected since the user shouldn't exist. If it's a different error, log it.
+      if (err.response?.status !== 404) {
+        console.warn('Phone uniqueness check API note:', err);
+      }
+    }
+
+    try {
+      // 2. Call phone-login to register the account on the backend
+      const res = await axios.post(`${API_URL}/api/v1/auth/phone-login`, {
+        name: fullName.toUpperCase().trim(),
+        phone: phone.trim(),
+        email: `${phone.trim()}@shadowarrow.com`,
+      });
+
+      const userObj = {
+        ...res.data,
+        isLoggedIn: true,
+        loginTime: new Date().toISOString(),
+      };
+
+      localStorage.setItem('shadow_user', JSON.stringify(userObj));
       router.push('/account');
-    }, 400);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

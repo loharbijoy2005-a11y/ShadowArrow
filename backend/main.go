@@ -109,11 +109,13 @@ func main() {
 
 		// Admin Auth Route (Strict Brute-Force Rate Limiter)
 		v1.POST("/admin/login", middleware.RateLimiterMiddleware("admin_login", 5, 5*time.Minute), handlers.AdminLogin(cfg))
+		v1.POST("/admin/logout", handlers.AdminLogout)
 
 		// Protected Admin Routes (JWT authenticated)
 		admin := v1.Group("/admin")
 		admin.Use(middleware.AdminAuthMiddleware(cfg))
 		{
+			admin.POST("/logout", handlers.AdminLogout)
 			admin.POST("/products", handlers.CreateProduct)
 			admin.PUT("/products/:id", handlers.UpdateProduct)
 			admin.DELETE("/products/:id", handlers.DeleteProduct)

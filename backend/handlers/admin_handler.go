@@ -39,12 +39,24 @@ func AdminLogin(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		// Set HttpOnly, SameSite=Lax cookie for enhanced XSS defense
+		isSecure := strings.HasPrefix(c.Request.Host, "shadowarrow") || strings.Contains(c.Request.Host, "onrender.com") || c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.SetCookie("ops_admin_token", token, 86400, "/", "", isSecure, true)
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authentication successful",
 			"token":   token,
 			"role":    "superadmin",
 		})
 	}
+}
+
+func AdminLogout(c *gin.Context) {
+	isSecure := strings.HasPrefix(c.Request.Host, "shadowarrow") || strings.Contains(c.Request.Host, "onrender.com") || c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("ops_admin_token", "", -1, "/", "", isSecure, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
 func GetAnalytics(c *gin.Context) {

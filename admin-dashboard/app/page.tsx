@@ -32,7 +32,7 @@ export default function AdminPage() {
     setLoading(true);
     setAuthError('');
     try {
-      const res = await axios.post(`${API_URL}/api/v1/admin/login`, { passcode });
+      const res = await axios.post(`${API_URL}/api/v1/admin/login`, { passcode }, { withCredentials: true });
       if (res.data && res.data.token) {
         localStorage.setItem('ops_admin_token', res.data.token);
         setToken(res.data.token);
@@ -45,8 +45,14 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API_URL}/api/v1/admin/logout`, {}, { withCredentials: true });
+    } catch (e) {
+      // Best-effort server cookie clear
+    }
     localStorage.removeItem('ops_admin_token');
+    localStorage.removeItem('admin_token');
     setToken(null);
   };
 
@@ -54,12 +60,14 @@ export default function AdminPage() {
     try {
       const res = await axios.get(`${API_URL}/api/v1/admin/analytics`, {
         headers: { Authorization: `Bearer ${authToken}` },
+        withCredentials: true,
       });
       setAnalytics(res.data);
     } catch (err: any) {
       console.error('Failed to load analytics', err);
       if (err?.response?.status === 401) {
         localStorage.removeItem('ops_admin_token');
+        localStorage.removeItem('admin_token');
         setToken(null);
       }
     }

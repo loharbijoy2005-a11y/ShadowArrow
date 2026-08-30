@@ -401,6 +401,55 @@ func VerifyPayment(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+func maskPhone(phone string) string {
+	phone = strings.TrimSpace(phone)
+	if len(phone) <= 4 {
+		return "****"
+	}
+	last4 := phone[len(phone)-4:]
+	return strings.Repeat("*", len(phone)-4) + last4
+}
+
+func maskEmail(email string) string {
+	email = strings.TrimSpace(email)
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 || parts[0] == "" {
+		return "*****"
+	}
+	user := parts[0]
+	domain := parts[1]
+	if len(user) <= 2 {
+		return user[:1] + "***@" + domain
+	}
+	return user[:1] + strings.Repeat("*", len(user)-2) + user[len(user)-1:] + "@" + domain
+}
+
+func maskName(name string) string {
+	name = strings.TrimSpace(name)
+	parts := strings.Fields(name)
+	if len(parts) == 0 {
+		return "Customer"
+	}
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	runes := []rune(parts[len(parts)-1])
+	return parts[0] + " " + string(runes[0]) + "."
+}
+
+func maskAddress(addr string) string {
+	addr = strings.TrimSpace(addr)
+	if addr == "" {
+		return ""
+	}
+	parts := strings.Split(addr, ",")
+	if len(parts) <= 2 {
+		return addr
+	}
+	parts[0] = "***"
+	return strings.Join(parts, ",")
+}
+
 func TrackOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -495,12 +544,26 @@ func TrackOrder(c *gin.Context) {
 		})
 	}
 
+	// Mask sensitive PII for public order tracking security
+	custPhone := maskPhone(latestOrder.CustomerPhone)
+	custEmail := maskEmail(latestOrder.CustomerEmail)
+	custName := maskName(latestOrder.CustomerName)
+	shippingAddr := maskAddress(latestOrder.ShippingAddress)
+
+	// If request has admin claims, provide unmasked fields
+	if _, isAdmin := c.Get("role"); isAdmin {
+		custPhone = latestOrder.CustomerPhone
+		custEmail = latestOrder.CustomerEmail
+		custName = latestOrder.CustomerName
+		shippingAddr = latestOrder.ShippingAddress
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"order_id":               latestOrder.OrderID,
-		"customer_name":          latestOrder.CustomerName,
-		"customer_phone":         latestOrder.CustomerPhone,
-		"customer_email":         latestOrder.CustomerEmail,
-		"shipping_address":       latestOrder.ShippingAddress,
+		"customer_name":          custName,
+		"customer_phone":         custPhone,
+		"customer_email":         custEmail,
+		"shipping_address":       shippingAddr,
 		"total_amount":           latestOrder.TotalAmount,
 		"payment_method":         latestOrder.PaymentMethod,
 		"payment_status":         latestOrder.PaymentStatus,

@@ -564,3 +564,99 @@ func RequestAccountDeletion(c *gin.Context) {
 	})
 }
 
+// GetCloneAccounts returns all user profiles sharing the same normalized phone number.
+func GetCloneAccounts(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	phone := c.Query("phone")
+	if phone == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone parameter required"})
+		return
+	}
+
+	cleanP := CleanPhoneDigits(phone)
+	if cleanP == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
+		return
+	}
+
+	collection := db.GetCollection("users")
+	filter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch clone accounts"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var profiles []models.UserProfile
+	if err := cursor.All(ctx, &profiles); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode profiles"})
+		return
+	}
+
+	c.JSON(http.StatusOK, profiles)
+}
+
+type SetDefaultPayload struct {
+	DefaultID string `json:"default_id" binding:"required"`
+	Phone     string `json:"phone" binding:"required"`
+}
+
+// SetDefaultAccount sets one account as the default profile for a phone number and clears the phone from other profiles.
+func SetDefaultAccount(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var payload SetDefaultPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	cleanP := CleanPhoneDigits(payload.Phone)
+	if cleanP == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
+		return
+	}
+
+	defaultObjID, err := primitive.ObjectIDFromHex(payload.DefaultID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid default_id format"})
+		return
+	}
+
+	collection := db.GetCollection("users")
+
+	// 1. Clear phone field for all accounts with this phone number EXCEPT the default one
+	phoneFilter := bson.M{
+		"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}},
+		"_id":   bson.M{"$ne": defaultObjID},
+	}
+	_, err = collection.UpdateMany(ctx, phoneFilter, bson.M{"$set": bson.M{"phone": "", "updated_at": time.Now()}})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear phone from other accounts"})
+		return
+	}
+
+	// 2. Ensure the default account has the phone number set correctly
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": defaultObjID}, bson.M{"$set": bson.M{"phone": payload.Phone, "updated_at": time.Now()}})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to set phone on default account"})
+		return
+	}
+
+	// 3. Return the updated default profile
+	var updatedProfile models.UserProfile
+	err = collection.FindOne(ctx, bson.M{"_id": defaultObjID}).Decode(&updatedProfile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedProfile)
+}
+
+

@@ -34,6 +34,11 @@ export default function AccountPage() {
   const [rewardsInfo, setRewardsInfo] = useState<any>(null);
   const [loadingRewards, setLoadingRewards] = useState(false);
 
+  // Clone/Duplicate Profiles State
+  const [clones, setClones] = useState<any[]>([]);
+  const [loadingClones, setLoadingClones] = useState(false);
+  const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
+
   // Profile Context Menu & Account Deletion State
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
@@ -109,9 +114,54 @@ export default function AccountPage() {
         if (merged.addresses) setAddresses(merged.addresses);
         fetchUserOrders(merged.phone, merged.email);
         fetchRewardsInfo(merged.phone, merged.email);
+        if (merged.phone) {
+          fetchCloneAccounts(merged.phone, merged.id || merged._id);
+        }
       }
     } catch (err) {
       console.warn('MongoDB profile sync note:', err);
+    }
+  };
+
+  const fetchCloneAccounts = async (phone: string, currentId: string) => {
+    setLoadingClones(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/v1/user/clones?phone=${encodeURIComponent(phone)}`);
+      if (res.data && Array.isArray(res.data)) {
+        const otherClones = res.data.filter((acc: any) => (acc.id || acc._id) !== currentId);
+        setClones(otherClones);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch clone accounts', err);
+    } finally {
+      setLoadingClones(false);
+    }
+  };
+
+  const handleSetDefaultAccount = async (targetId: string, targetPhone: string) => {
+    if (!window.confirm('⚠️ WARNING: Setting this account as default will clear this phone number from your other account profiles, making this profile the ONLY active account for this number.\n\nAre you sure you want to proceed?')) {
+      return;
+    }
+    setSettingDefaultId(targetId);
+    try {
+      const res = await axios.post(`${API_URL}/api/v1/user/clones/set-default`, {
+        default_id: targetId,
+        phone: targetPhone,
+      });
+      if (res.data) {
+        const mergedUser = {
+          ...res.data,
+          isLoggedIn: true,
+          loginTime: new Date().toISOString(),
+        };
+        localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
+        setUser(mergedUser);
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert('Failed to set default account: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSettingDefaultId(null);
     }
   };
 
@@ -405,6 +455,66 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
+
+        {/* Clone/Duplicate Accounts Alert Section */}
+        {clones.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 space-y-4">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-black text-amber-900 uppercase font-mono tracking-tight flex items-center space-x-2">
+                  <span>Multiple Profiles Linked To This Number ({clones.length + 1} Accounts)</span>
+                </h3>
+                <p className="text-xs text-amber-700 mt-1 font-mono">
+                  Is phone number ke sath multiple accounts linked hain. Please choose your main account to set as Default. Baki accounts se phone number unlink ho jayega:
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              {/* Current Account Indicator */}
+              <div className="bg-amber-100/60 border border-amber-300 p-4 rounded-2xl flex justify-between items-center shadow-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-bold text-amber-950 font-mono uppercase">{user.name} (Current Profile)</span>
+                    <span className="px-1.5 py-0.5 bg-amber-200 text-amber-900 text-[9px] font-bold rounded font-mono">ACTIVE</span>
+                  </div>
+                  <p className="text-[10px] text-amber-800 font-mono">Email: {user.email || 'Not Linked'}</p>
+                  <p className="text-[10px] text-amber-800 font-mono flex items-center gap-1">
+                    <Coins className="w-3.5 h-3.5 text-amber-600" /> Coin Balance: {user.coin_balance || 0}
+                  </p>
+                </div>
+              </div>
+
+              {/* Duplicate Clone Accounts */}
+              {clones.map((cloneAcc) => {
+                const cloneId = cloneAcc.id || cloneAcc._id;
+                return (
+                  <div key={cloneId} className="bg-white border border-slate-200 p-4 rounded-2xl flex justify-between items-center shadow-xs">
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-800 font-mono uppercase">{cloneAcc.name || 'Customer'}</span>
+                      <p className="text-[10px] text-slate-500 font-mono">Email: {cloneAcc.email || 'Not Linked'}</p>
+                      <p className="text-[10px] text-slate-600 font-mono flex items-center gap-1">
+                        <Coins className="w-3.5 h-3.5 text-amber-500" /> Coin Balance: {cloneAcc.coin_balance || 0}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleSetDefaultAccount(cloneId, user.phone)}
+                      disabled={settingDefaultId === cloneId}
+                      className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-mono font-bold uppercase transition flex items-center space-x-1.5 disabled:opacity-50"
+                    >
+                      {settingDefaultId === cloneId ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <span>Make Default</span>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Tab Switcher: MY ORDERS vs ARROWCOINS REWARDS vs ADDRESS BOOK */}
         <div className="flex flex-wrap gap-3 border-b border-slate-200 pb-4">

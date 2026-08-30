@@ -115,7 +115,6 @@ func main() {
 		admin := v1.Group("/admin")
 		admin.Use(middleware.AdminAuthMiddleware(cfg))
 		{
-			admin.POST("/logout", handlers.AdminLogout)
 			admin.POST("/products", handlers.CreateProduct)
 			admin.PUT("/products/:id", handlers.UpdateProduct)
 			admin.DELETE("/products/:id", handlers.DeleteProduct)

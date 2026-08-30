@@ -53,6 +53,21 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
       // Dynamic import to avoid SSR 'self is not defined' error during Next.js build
       // @ts-ignore
       const html2pdf = (await import('html2pdf.js')).default;
+      
+      // Clone element and place it at (0,0) under the content layer so scroll/layout values align correctly
+      const clonedNode = element.cloneNode(true) as HTMLElement;
+      clonedNode.id = 'pdf-invoice-cloned-target';
+      clonedNode.style.position = 'absolute';
+      clonedNode.style.left = '0';
+      clonedNode.style.top = '0';
+      clonedNode.style.width = '794px';
+      clonedNode.style.zIndex = '-1000';
+      clonedNode.style.background = '#ffffff';
+      clonedNode.style.color = '#000000';
+      clonedNode.style.margin = '0';
+      
+      document.body.appendChild(clonedNode);
+
       const opt: any = {
         margin: [6, 8, 6, 8],
         filename: `SHADOW_ARROW_TAX_INVOICE_${order.order_id}.pdf`,
@@ -63,13 +78,18 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
           logging: false,
           scrollX: 0,
           scrollY: 0,
+          backgroundColor: '#ffffff',
           windowWidth: 800,
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(clonedNode).save();
+
+      if (document.body.contains(clonedNode)) {
+        document.body.removeChild(clonedNode);
+      }
     } catch (err) {
       console.error('PDF export failed:', err);
     } finally {

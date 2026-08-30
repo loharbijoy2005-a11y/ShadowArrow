@@ -52,14 +52,14 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
     </tr>
   `).join('');
 
-  // Create temporary container layer with top z-index and explicit #ffffff background for html2canvas
+  // Create temporary container layer with negative z-index and explicit #ffffff background for html2canvas
   const htmlContainer = document.createElement('div');
   htmlContainer.id = 'pdf-direct-download-target';
   htmlContainer.style.position = 'absolute';
-  htmlContainer.style.left = '-9999px';
+  htmlContainer.style.left = '0';
   htmlContainer.style.top = '0';
   htmlContainer.style.width = '794px';
-  htmlContainer.style.zIndex = '999999';
+  htmlContainer.style.zIndex = '-1000';
   htmlContainer.style.background = '#ffffff';
   htmlContainer.style.color = '#000000';
   htmlContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -219,6 +219,8 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
         scale: 2,
         useCORS: true,
         logging: false,
+        scrollX: 0,
+        scrollY: 0,
         backgroundColor: '#ffffff',
         windowWidth: 800,
       },

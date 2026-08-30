@@ -34,7 +34,12 @@ export default function AccountRegisterPage() {
           isLoggedIn: true,
           loginTime: new Date().toISOString(),
         };
-        try { await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj); } catch (e) {}
+        try {
+          const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj);
+          if (syncRes.data) {
+            Object.assign(userObj, syncRes.data);
+          }
+        } catch (e) {}
         localStorage.setItem('shadow_user', JSON.stringify(userObj));
         router.push('/account');
       })
@@ -62,7 +67,10 @@ export default function AccountRegisterPage() {
         loginTime: new Date().toISOString(),
       };
       try {
-        await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj);
+        const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, userObj);
+        if (syncRes.data) {
+          Object.assign(userObj, syncRes.data);
+        }
       } catch (err) {
         console.warn('Backend sync note:', err);
       }
@@ -87,9 +95,9 @@ export default function AccountRegisterPage() {
     setError('');
 
     try {
-      // 1. Check if phone is already linked to any account
-      const checkRes = await axios.get(`${API_URL}/api/v1/user/profile?phone=${encodeURIComponent(phone.trim())}`);
-      if (checkRes.data && checkRes.data.phone) {
+      // 1. Check if phone is already linked to any account via secure check-exists endpoint
+      const checkRes = await axios.get(`${API_URL}/api/v1/auth/check-exists?phone=${encodeURIComponent(phone.trim())}`);
+      if (checkRes.data && checkRes.data.exists) {
         setError('This phone number is already linked to an account. Please Sign In.');
         setLoading(false);
         return;

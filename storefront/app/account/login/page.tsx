@@ -65,18 +65,28 @@ export default function AccountLoginPage() {
       photo_url: user.photoURL || '',
     };
     let existingPhone = user.phoneNumber || '';
+    let syncData: any = {};
     try {
       const syncRes = await axios.post(`${API_URL}/api/v1/auth/google-sync`, baseUserPayload);
-      if (syncRes.data && syncRes.data.phone) existingPhone = syncRes.data.phone;
+      if (syncRes.data) {
+        syncData = syncRes.data;
+        if (syncRes.data.phone) existingPhone = syncRes.data.phone;
+      }
     } catch (err) {
       console.warn('Initial google sync offline fallback', err);
     }
     if (!existingPhone || !/^[6-9]\d{9}$/.test(existingPhone)) {
-      setPendingGoogleUser(baseUserPayload);
+      setPendingGoogleUser({ ...baseUserPayload, ...syncData });
       setShowPhoneModal(true);
       return;
     }
-    const mergedUser = { ...baseUserPayload, phone: existingPhone, isLoggedIn: true, loginTime: new Date().toISOString() };
+    const mergedUser = {
+      ...baseUserPayload,
+      ...syncData,
+      phone: existingPhone,
+      isLoggedIn: true,
+      loginTime: new Date().toISOString()
+    };
     localStorage.setItem('shadow_user', JSON.stringify(mergedUser));
     router.push('/account');
   };

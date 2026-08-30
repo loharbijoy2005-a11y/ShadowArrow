@@ -98,9 +98,12 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
       // Clone element outside scroll container to prevent scroll offset blank canvas
       const container = document.createElement('div');
       container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '0';
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      container.style.left = '0';
+      container.style.top = `${scrollY}px`;
       container.style.width = '794px';
+      container.style.zIndex = '-9999';
+      container.style.pointerEvents = 'none';
       container.style.backgroundColor = '#ffffff';
 
       const clone = element.cloneNode(true) as HTMLElement;

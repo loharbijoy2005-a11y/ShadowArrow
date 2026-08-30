@@ -56,10 +56,12 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
   const htmlContainer = document.createElement('div');
   htmlContainer.id = 'pdf-direct-download-target';
   htmlContainer.style.position = 'absolute';
+  const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
   htmlContainer.style.left = '0';
-  htmlContainer.style.top = '0';
+  htmlContainer.style.top = `${scrollY}px`;
   htmlContainer.style.width = '794px';
-  htmlContainer.style.zIndex = '-1000';
+  htmlContainer.style.zIndex = '-9999';
+  htmlContainer.style.pointerEvents = 'none';
   htmlContainer.style.background = '#ffffff';
   htmlContainer.style.color = '#000000';
   htmlContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';

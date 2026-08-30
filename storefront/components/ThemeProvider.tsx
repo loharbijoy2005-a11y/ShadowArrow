@@ -5,6 +5,30 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+// Global Axios Request Interceptor to attach Customer Auth token if available
+if (typeof window !== 'undefined') {
+  axios.interceptors.request.use(
+    (config) => {
+      try {
+        const userStr = localStorage.getItem('shadow_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          const token = user.token || user.Token;
+          if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+          }
+        }
+      } catch (e) {
+        console.warn('Axios auth interceptor error', e);
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+}
+
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeLoaded, setThemeLoaded] = useState(false);
 

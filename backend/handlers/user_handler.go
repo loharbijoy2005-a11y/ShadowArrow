@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"shadow-arrow-backend/config"
 	"shadow-arrow-backend/db"
 	"shadow-arrow-backend/models"
+	"shadow-arrow-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -107,257 +109,293 @@ func mergeUserProfiles(ctx context.Context, collection *mongo.Collection, primar
 	return primary, nil
 }
 
-func GoogleSync(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func GoogleSync(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-	var payload models.UserProfile
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+		var payload models.UserProfile
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	if payload.Email == "" && payload.UID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Google email or UID required"})
-		return
-	}
+		if payload.Email == "" && payload.UID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Google email or UID required"})
+			return
+		}
 
-	collection := db.GetCollection("users")
-	now := time.Now()
+		collection := db.GetCollection("users")
+		now := time.Now()
 
-	// 1. Search for existing Google user by Email or UID
-	var emailUser models.UserProfile
-	emailUserFound := false
-	emailConditions := []bson.M{}
-	if payload.Email != "" {
-		emailConditions = append(emailConditions, bson.M{"email": payload.Email})
-	}
-	if payload.UID != "" {
-		emailConditions = append(emailConditions, bson.M{"uid": payload.UID})
-	}
-	if len(emailConditions) > 0 {
-		if err := collection.FindOne(ctx, bson.M{"$or": emailConditions}).Decode(&emailUser); err == nil {
-			emailUserFound = true
+		// 1. Search for existing Google user by Email or UID
+		var emailUser models.UserProfile
+		emailUserFound := false
+		emailConditions := []bson.M{}
+		if payload.Email != "" {
+			emailConditions = append(emailConditions, bson.M{"email": payload.Email})
+		}
+		if payload.UID != "" {
+			emailConditions = append(emailConditions, bson.M{"uid": payload.UID})
+		}
+		if len(emailConditions) > 0 {
+			if err := collection.FindOne(ctx, bson.M{"$or": emailConditions}).Decode(&emailUser); err == nil {
+				emailUserFound = true
+			}
+		}
+
+		// 2. Search for existing Phone user by normalized phone number
+		var phoneUser models.UserProfile
+		phoneUserFound := false
+		cleanP := CleanPhoneDigits(payload.Phone)
+		if cleanP != "" {
+			phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
+			if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
+				phoneUserFound = true
+			}
+		}
+
+		if phoneUserFound {
+			// If phoneUser already has a UID and it's different from the payload's UID, it's owned by another Google user.
+			if phoneUser.UID != "" && phoneUser.UID != payload.UID {
+				c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another Google account"})
+				return
+			}
+			// If phoneUser has a non-fallback email that is different from the payload's email
+			if phoneUser.Email != "" && !strings.HasSuffix(phoneUser.Email, "@shadowarrow.com") && phoneUser.Email != payload.Email {
+				c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another account"})
+				return
+			}
+		}
+
+		// Case 1: Neither exists -> Create new user profile
+		if !emailUserFound && !phoneUserFound {
+			payload.UpdatedAt = now
+			if payload.Addresses == nil {
+				payload.Addresses = []models.SavedAddress{}
+			}
+			if payload.Tier.CurrentTier == "" {
+				payload.Tier.CurrentTier = "SILVER"
+			}
+			res, err := collection.InsertOne(ctx, payload)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+				return
+			}
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusCreated, result)
+			return
+		}
+
+		// Case 4: Both exist and they are different documents -> Merge them!
+		if emailUserFound && phoneUserFound && emailUser.ID != phoneUser.ID {
+			merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
+				return
+			}
+			token, err := utils.GenerateCustomerJWT(merged.ID.Hex(), merged.Email, merged.Phone, cfg.JWTSecret)
+			if err == nil {
+				merged.Token = token
+			}
+			c.JSON(http.StatusOK, merged)
+			return
+		}
+
+		// Case 2: Only emailUser exists OR both exist and are the same document
+		if emailUserFound {
+			// Update emailUser with payload details
+			updateFields := bson.M{
+				"updated_at": now,
+			}
+			if payload.UID != "" {
+				updateFields["uid"] = payload.UID
+			}
+			if payload.Name != "" {
+				updateFields["name"] = payload.Name
+			}
+			if payload.Email != "" {
+				updateFields["email"] = payload.Email
+			}
+			if payload.PhotoURL != "" {
+				updateFields["photo_url"] = payload.PhotoURL
+			}
+			if payload.Phone != "" {
+				updateFields["phone"] = payload.Phone
+			}
+
+			_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusOK, result)
+			return
+		}
+
+		// Case 3: Only phoneUser exists
+		if phoneUserFound {
+			// Update phoneUser with Google credentials
+			updateFields := bson.M{
+				"updated_at": now,
+			}
+			if payload.UID != "" {
+				updateFields["uid"] = payload.UID
+			}
+			if payload.Name != "" && phoneUser.Name == "" {
+				updateFields["name"] = payload.Name
+			}
+			if payload.Email != "" && phoneUser.Email == "" {
+				updateFields["email"] = payload.Email
+			}
+			if payload.PhotoURL != "" && phoneUser.PhotoURL == "" {
+				updateFields["photo_url"] = payload.PhotoURL
+			}
+
+			_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusOK, result)
+			return
 		}
 	}
+}
 
-	// 2. Search for existing Phone user by normalized phone number
-	var phoneUser models.UserProfile
-	phoneUserFound := false
-	cleanP := CleanPhoneDigits(payload.Phone)
-	if cleanP != "" {
+func PhoneLogin(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		var payload PhoneLoginPayload
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		cleanP := CleanPhoneDigits(payload.Phone)
+		if cleanP == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
+			return
+		}
+
+		collection := db.GetCollection("users")
+		now := time.Now()
+
+		// 1. Search STRICTLY by normalized 10-digit phone number
+		var phoneUser models.UserProfile
+		phoneUserFound := false
 		phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
 		if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
 			phoneUserFound = true
 		}
-	}
 
-	if phoneUserFound {
-		// If phoneUser already has a UID and it's different from the payload's UID, it's owned by another Google user.
-		if phoneUser.UID != "" && phoneUser.UID != payload.UID {
-			c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another Google account"})
-			return
-		}
-		// If phoneUser has a non-fallback email that is different from the payload's email
-		if phoneUser.Email != "" && !strings.HasSuffix(phoneUser.Email, "@shadowarrow.com") && phoneUser.Email != payload.Email {
-			c.JSON(http.StatusConflict, gin.H{"error": "This phone number is already linked to another account"})
-			return
-		}
-	}
-
-	// Case 1: Neither exists -> Create new user profile
-	if !emailUserFound && !phoneUserFound {
-		payload.UpdatedAt = now
-		if payload.Addresses == nil {
-			payload.Addresses = []models.SavedAddress{}
-		}
-		if payload.Tier.CurrentTier == "" {
-			payload.Tier.CurrentTier = "SILVER"
-		}
-		res, err := collection.InsertOne(ctx, payload)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
-			return
-		}
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
-		c.JSON(http.StatusCreated, result)
-		return
-	}
-
-	// Case 4: Both exist and they are different documents -> Merge them!
-	if emailUserFound && phoneUserFound && emailUser.ID != phoneUser.ID {
-		merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
-			return
-		}
-		c.JSON(http.StatusOK, merged)
-		return
-	}
-
-	// Case 2: Only emailUser exists OR both exist and are the same document
-	if emailUserFound {
-		// Update emailUser with payload details
-		updateFields := bson.M{
-			"updated_at": now,
-		}
-		if payload.UID != "" {
-			updateFields["uid"] = payload.UID
-		}
-		if payload.Name != "" {
-			updateFields["name"] = payload.Name
-		}
+		// 2. Search by email if email is provided in payload
+		var emailUser models.UserProfile
+		emailUserFound := false
 		if payload.Email != "" {
-			updateFields["email"] = payload.Email
-		}
-		if payload.PhotoURL != "" {
-			updateFields["photo_url"] = payload.PhotoURL
-		}
-		if payload.Phone != "" {
-			updateFields["phone"] = payload.Phone
+			if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&emailUser); err == nil {
+				emailUserFound = true
+			}
 		}
 
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
-		c.JSON(http.StatusOK, result)
-		return
-	}
-
-	// Case 3: Only phoneUser exists
-	if phoneUserFound {
-		// Update phoneUser with Google credentials
-		updateFields := bson.M{
-			"updated_at": now,
-		}
-		if payload.UID != "" {
-			updateFields["uid"] = payload.UID
-		}
-		if payload.Name != "" && phoneUser.Name == "" {
-			updateFields["name"] = payload.Name
-		}
-		if payload.Email != "" && phoneUser.Email == "" {
-			updateFields["email"] = payload.Email
-		}
-		if payload.PhotoURL != "" && phoneUser.PhotoURL == "" {
-			updateFields["photo_url"] = payload.PhotoURL
-		}
-
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
-		c.JSON(http.StatusOK, result)
-		return
-	}
-}
-
-func PhoneLogin(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	var payload PhoneLoginPayload
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	cleanP := CleanPhoneDigits(payload.Phone)
-	if cleanP == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
-		return
-	}
-
-	collection := db.GetCollection("users")
-	now := time.Now()
-
-	// 1. Search STRICTLY by normalized 10-digit phone number
-	var phoneUser models.UserProfile
-	phoneUserFound := false
-	phoneFilter := bson.M{"phone": bson.M{"$regex": primitive.Regex{Pattern: cleanP, Options: "i"}}}
-	if err := collection.FindOne(ctx, phoneFilter).Decode(&phoneUser); err == nil {
-		phoneUserFound = true
-	}
-
-	// 2. Search by email if email is provided in payload
-	var emailUser models.UserProfile
-	emailUserFound := false
-	if payload.Email != "" {
-		if err := collection.FindOne(ctx, bson.M{"email": payload.Email}).Decode(&emailUser); err == nil {
-			emailUserFound = true
-		}
-	}
-
-	// Case 1: Neither exists -> Create new user profile
-	if !phoneUserFound && !emailUserFound {
-		newUser := models.UserProfile{
-			Name:        payload.Name,
-			Phone:       payload.Phone,
-			Email:       payload.Email,
-			Addresses:   []models.SavedAddress{},
-			CoinBalance: 0,
-			Tier: models.UserTier{
-				CurrentTier: "SILVER",
-			},
-			UpdatedAt: now,
-		}
-		res, err := collection.InsertOne(ctx, newUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+		// Case 1: Neither exists -> Create new user profile
+		if !phoneUserFound && !emailUserFound {
+			newUser := models.UserProfile{
+				Name:        payload.Name,
+				Phone:       payload.Phone,
+				Email:       payload.Email,
+				Addresses:   []models.SavedAddress{},
+				CoinBalance: 0,
+				Tier: models.UserTier{
+					CurrentTier: "SILVER",
+				},
+				UpdatedAt: now,
+			}
+			res, err := collection.InsertOne(ctx, newUser)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+				return
+			}
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusCreated, result)
 			return
 		}
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&result)
-		c.JSON(http.StatusCreated, result)
-		return
-	}
 
-	// Case 4: Both exist and they are different documents -> Merge them!
-	if phoneUserFound && emailUserFound && phoneUser.ID != emailUser.ID {
-		merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
+		// Case 4: Both exist and they are different documents -> Merge them!
+		if phoneUserFound && emailUserFound && phoneUser.ID != emailUser.ID {
+			merged, err := mergeUserProfiles(ctx, collection, &phoneUser, &emailUser)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to merge user profiles"})
+				return
+			}
+			token, err := utils.GenerateCustomerJWT(merged.ID.Hex(), merged.Email, merged.Phone, cfg.JWTSecret)
+			if err == nil {
+				merged.Token = token
+			}
+			c.JSON(http.StatusOK, merged)
 			return
 		}
-		c.JSON(http.StatusOK, merged)
-		return
-	}
 
-	// Case 2: Only phoneUser exists OR both exist and are the same document
-	if phoneUserFound {
-		updateFields := bson.M{
-			"phone":      payload.Phone,
-			"updated_at": now,
-		}
-		if payload.Name != "" {
-			updateFields["name"] = payload.Name
-		}
-		if payload.Email != "" && phoneUser.Email == "" {
-			updateFields["email"] = payload.Email
-		}
+		// Case 2: Only phoneUser exists OR both exist and are the same document
+		if phoneUserFound {
+			updateFields := bson.M{
+				"phone":      payload.Phone,
+				"updated_at": now,
+			}
+			if payload.Name != "" {
+				updateFields["name"] = payload.Name
+			}
+			if payload.Email != "" && phoneUser.Email == "" {
+				updateFields["email"] = payload.Email
+			}
 
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
-		c.JSON(http.StatusOK, result)
-		return
-	}
-
-	// Case 3: Only emailUser exists
-	if emailUserFound {
-		updateFields := bson.M{
-			"phone":      payload.Phone,
-			"updated_at": now,
-		}
-		if payload.Name != "" && emailUser.Name == "" {
-			updateFields["name"] = payload.Name
+			_, _ = collection.UpdateOne(ctx, bson.M{"_id": phoneUser.ID}, bson.M{"$set": updateFields})
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": phoneUser.ID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusOK, result)
+			return
 		}
 
-		_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
-		var result models.UserProfile
-		_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
-		c.JSON(http.StatusOK, result)
-		return
+		// Case 3: Only emailUser exists
+		if emailUserFound {
+			updateFields := bson.M{
+				"phone":      payload.Phone,
+				"updated_at": now,
+			}
+			if payload.Name != "" && emailUser.Name == "" {
+				updateFields["name"] = payload.Name
+			}
+
+			_, _ = collection.UpdateOne(ctx, bson.M{"_id": emailUser.ID}, bson.M{"$set": updateFields})
+			var result models.UserProfile
+			_ = collection.FindOne(ctx, bson.M{"_id": emailUser.ID}).Decode(&result)
+			token, err := utils.GenerateCustomerJWT(result.ID.Hex(), result.Email, result.Phone, cfg.JWTSecret)
+			if err == nil {
+				result.Token = token
+			}
+			c.JSON(http.StatusOK, result)
+			return
+		}
 	}
 }
 
@@ -368,6 +406,24 @@ func UpdateUserProfile(c *gin.Context) {
 	var payload models.UserProfile
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	vEmail, _ := c.Get("user_email")
+	vPhone, _ := c.Get("user_phone")
+	vUID, _ := c.Get("user_uid")
+
+	// Verify that the user is updating their own profile
+	if payload.Email != "" && vEmail != "" && payload.Email != vEmail.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot modify another user's profile"})
+		return
+	}
+	if payload.Phone != "" && vPhone != "" && CleanPhoneDigits(payload.Phone) != CleanPhoneDigits(vPhone.(string)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot modify another user's profile"})
+		return
+	}
+	if payload.UID != "" && vUID != "" && payload.UID != vUID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot modify another user's profile"})
 		return
 	}
 
@@ -466,8 +522,31 @@ func GetUserProfile(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	vEmail, _ := c.Get("user_email")
+	vPhone, _ := c.Get("user_phone")
+	verifiedEmail := vEmail.(string)
+	verifiedPhone := vPhone.(string)
+
 	email := c.Query("email")
 	phone := c.Query("phone")
+
+	// Verify that the user is accessing their own profile
+	if email != "" && verifiedEmail != "" && email != verifiedEmail {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot access another user's profile"})
+		return
+	}
+	if phone != "" && verifiedPhone != "" && CleanPhoneDigits(phone) != CleanPhoneDigits(verifiedPhone) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot access another user's profile"})
+		return
+	}
+
+	// Use verified credentials as fallback
+	if email == "" {
+		email = verifiedEmail
+	}
+	if phone == "" {
+		phone = verifiedPhone
+	}
 
 	if email == "" && phone == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or phone required"})
@@ -478,12 +557,12 @@ func GetUserProfile(c *gin.Context) {
 	if email != "" && phone != "" {
 		filter["$or"] = []bson.M{
 			{"email": email},
-			{"phone": phone},
+			{"phone": bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}},
 		}
 	} else if email != "" {
 		filter["email"] = email
 	} else {
-		filter["phone"] = phone
+		filter["phone"] = bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}
 	}
 
 	collection := db.GetCollection("users")
@@ -509,6 +588,12 @@ func RequestAccountDeletion(c *gin.Context) {
 	var payload RequestDeletionPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	vEmail, _ := c.Get("user_email")
+	if vEmail != "" && payload.Email != vEmail.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot delete another user's account"})
 		return
 	}
 
@@ -561,7 +646,7 @@ func RequestAccountDeletion(c *gin.Context) {
 
 	// Create high-priority Ticket in support ticket system
 	ticketID := generateTicketID()
-	ticketsCol := db.GetCollection("tickets")
+	ticketsCol := db.GetCollection("support_tickets")
 
 	custName := user.Name
 	if custName == "" {
@@ -617,6 +702,12 @@ func GetCloneAccounts(c *gin.Context) {
 		return
 	}
 
+	vPhone, _ := c.Get("user_phone")
+	if vPhone != "" && CleanPhoneDigits(phone) != CleanPhoneDigits(vPhone.(string)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot access another user's clone accounts"})
+		return
+	}
+
 	cleanP := CleanPhoneDigits(phone)
 	if cleanP == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid phone number required"})
@@ -655,6 +746,12 @@ func SetDefaultAccount(c *gin.Context) {
 	var payload SetDefaultPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	vPhone, _ := c.Get("user_phone")
+	if vPhone != "" && CleanPhoneDigits(payload.Phone) != CleanPhoneDigits(vPhone.(string)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
 
@@ -723,6 +820,23 @@ func UnlinkPhoneFromAccount(c *gin.Context) {
 	}
 
 	collection := db.GetCollection("users")
+
+	// Verify ownership of the account to unlink
+	vPhone, _ := c.Get("user_phone")
+	vEmail, _ := c.Get("user_email")
+
+	var userProfile models.UserProfile
+	err = collection.FindOne(ctx, bson.M{"_id": accountObjID}).Decode(&userProfile)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Account not found"})
+		return
+	}
+
+	if (vPhone != "" && CleanPhoneDigits(userProfile.Phone) != CleanPhoneDigits(vPhone.(string))) && (vEmail != "" && userProfile.Email != vEmail.(string)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot unlink another user's account"})
+		return
+	}
+
 	_, err = collection.UpdateOne(ctx, bson.M{"_id": accountObjID}, bson.M{"$set": bson.M{"phone": "", "updated_at": time.Now()}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlink phone from account"})
@@ -730,6 +844,43 @@ func UnlinkPhoneFromAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Phone unlinked successfully"})
+}
+
+// CheckAccountExists verifies if an account with a specific email or phone already exists.
+func CheckAccountExists(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	email := c.Query("email")
+	phone := c.Query("phone")
+
+	if email == "" && phone == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or phone parameter is required"})
+		return
+	}
+
+	filter := bson.M{}
+	if email != "" && phone != "" {
+		filter["$or"] = []bson.M{
+			{"email": email},
+			{"phone": bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}},
+		}
+	} else if email != "" {
+		filter["email"] = email
+	} else {
+		filter["phone"] = bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}
+	}
+
+	collection := db.GetCollection("users")
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify account uniqueness"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"exists": count > 0,
+	})
 }
 
 

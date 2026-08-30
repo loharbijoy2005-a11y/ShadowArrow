@@ -76,29 +76,35 @@ func main() {
 		v1.POST("/orders/create", middleware.RateLimiterMiddleware("order_create", 6, 2*time.Minute), handlers.CreateOrder(cfg))
 		v1.POST("/orders/verify-payment", handlers.VerifyPayment(cfg))
 		v1.POST("/payment/verify", handlers.VerifyPayment(cfg))
-		v1.GET("/orders/track/:id", handlers.TrackOrder)
-		v1.GET("/user/orders", handlers.GetUserOrders)
+		v1.GET("/orders/track/:id", handlers.TrackOrder(cfg))
 
-		// Auth & Account Sync Routes (Strict Auth Rate Limit)
-		v1.POST("/auth/google-sync", handlers.GoogleSync)
-		v1.POST("/auth/phone-login", middleware.RateLimiterMiddleware("auth_login", 6, 3*time.Minute), handlers.PhoneLogin)
+		// Public Auth & Account Verification Routes
+		v1.POST("/auth/google-sync", handlers.GoogleSync(cfg))
+		v1.POST("/auth/phone-login", middleware.RateLimiterMiddleware("auth_login", 6, 3*time.Minute), handlers.PhoneLogin(cfg))
+		v1.GET("/auth/check-exists", handlers.CheckAccountExists)
 
-		// User Profile & Rewards Routes
-		v1.PUT("/user/profile", handlers.UpdateUserProfile)
-		v1.GET("/user/profile", handlers.GetUserProfile)
-		v1.GET("/user/clones", handlers.GetCloneAccounts)
-		v1.POST("/user/clones/set-default", handlers.SetDefaultAccount)
-		v1.POST("/user/clones/unlink", handlers.UnlinkPhoneFromAccount)
-		v1.GET("/user/rewards", handlers.GetUserRewards)
-		v1.POST("/user/request-deletion", middleware.RateLimiterMiddleware("deletion_req", 3, 10*time.Minute), handlers.RequestAccountDeletion)
+		// Protected Customer Routes (Customer JWT / Firebase Token authenticated)
+		customer := v1.Group("/user")
+		customer.Use(middleware.CustomerAuthMiddleware(cfg))
+		{
+			customer.GET("/profile", handlers.GetUserProfile)
+			customer.PUT("/profile", handlers.UpdateUserProfile)
+			customer.GET("/orders", handlers.GetUserOrders)
+			customer.GET("/rewards", handlers.GetUserRewards)
+			customer.GET("/clones", handlers.GetCloneAccounts)
+			customer.POST("/clones/set-default", handlers.SetDefaultAccount)
+			customer.POST("/clones/unlink", handlers.UnlinkPhoneFromAccount)
+			customer.POST("/request-deletion", middleware.RateLimiterMiddleware("deletion_req", 3, 10*time.Minute), handlers.RequestAccountDeletion)
+			customer.GET("/tickets", handlers.GetCustomerTickets)
+		}
+
 		v1.GET("/loyalty/config", handlers.AdminGetLoyaltyConfigHandler)
 
 		// Support Ticket & Cart Sync Routes (Strict Ticket Creation Rate Limit)
 		v1.POST("/tickets/create", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
 		v1.POST("/support/tickets", middleware.RateLimiterMiddleware("ticket_create", 3, 5*time.Minute), handlers.CreateTicket)
-		v1.GET("/user/tickets", handlers.GetCustomerTickets)
-		v1.GET("/tickets/:id", handlers.GetTicketByID)
-		v1.POST("/tickets/:id/reply", handlers.ReplyToTicket)
+		v1.GET("/tickets/:id", middleware.CustomerAuthMiddleware(cfg), handlers.GetTicketByID)
+		v1.POST("/tickets/:id/reply", middleware.CustomerAuthMiddleware(cfg), handlers.ReplyToTicket)
 		v1.POST("/cart/sync", handlers.SyncCart)
 
 		// Coupon Code Validation Route

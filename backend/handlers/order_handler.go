@@ -450,135 +450,179 @@ func maskAddress(addr string) string {
 	return strings.Join(parts, ",")
 }
 
-func TrackOrder(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func TrackOrder(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-	rawQuery := strings.TrimSpace(c.Param("id"))
-	collection := db.GetCollection("orders")
+		rawQuery := strings.TrimSpace(c.Param("id"))
+		collection := db.GetCollection("orders")
 
-	// Strip non-digit characters to handle phone searches flexibly
-	cleanDigits := regexp.MustCompile(`\D`).ReplaceAllString(rawQuery, "")
+		// Strip non-digit characters to handle phone searches flexibly
+		cleanDigits := regexp.MustCompile(`\D`).ReplaceAllString(rawQuery, "")
 
-	var filter bson.M
-	if len(cleanDigits) >= 10 {
-		filter = bson.M{
-			"$or": []bson.M{
-				{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
-				{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: cleanDigits, Options: "i"}}},
-				{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
-			},
+		var filter bson.M
+		if len(cleanDigits) >= 10 {
+			filter = bson.M{
+				"$or": []bson.M{
+					{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+					{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: cleanDigits, Options: "i"}}},
+					{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+				},
+			}
+		} else {
+			filter = bson.M{
+				"$or": []bson.M{
+					{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+					{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+					{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
+					{"razorpay_order_id": rawQuery},
+				},
+			}
 		}
-	} else {
-		filter = bson.M{
-			"$or": []bson.M{
-				{"order_id": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
-				{"customer_phone": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
-				{"customer_email": bson.M{"$regex": primitive.Regex{Pattern: regexp.QuoteMeta(rawQuery), Options: "i"}}},
-				{"razorpay_order_id": rawQuery},
-			},
+
+		// Always sort by created_at DESC so the LATEST / NEWEST order is fetched first
+		findOpts := options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(10)
+		cursor, err := collection.Find(ctx, filter, findOpts)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "Order not found",
+				"query":   rawQuery,
+				"message": "No active order matches the provided Order ID, Email, or Phone Number",
+			})
+			return
 		}
-	}
+		defer cursor.Close(ctx)
 
-	// Always sort by created_at DESC so the LATEST / NEWEST order is fetched first
-	findOpts := options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(10)
-	cursor, err := collection.Find(ctx, filter, findOpts)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":   "Order not found",
-			"query":   rawQuery,
-			"message": "No active order matches the provided Order ID, Email, or Phone Number",
+		var orders []models.Order
+		if err := cursor.All(ctx, &orders); err != nil || len(orders) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "Order not found",
+				"query":   rawQuery,
+				"message": "No active order matches the provided Order ID, Email, or Phone Number",
+			})
+			return
+		}
+
+		latestOrder := orders[0]
+
+		// Dynamic delivery ETA calculation based on customer pincode in shipping address
+		deliveryHours := 120
+		etaDaysText := "4-6 Business Days"
+		if strings.Contains(latestOrder.ShippingAddress, "700") || strings.Contains(latestOrder.ShippingAddress, "71") || strings.Contains(latestOrder.ShippingAddress, "72") || strings.Contains(latestOrder.ShippingAddress, "73") || strings.Contains(latestOrder.ShippingAddress, "74") {
+			deliveryHours = 72
+			etaDaysText = "2-3 Business Days"
+		} else if strings.Contains(latestOrder.ShippingAddress, "110") || strings.Contains(latestOrder.ShippingAddress, "400") || strings.Contains(latestOrder.ShippingAddress, "560") || strings.Contains(latestOrder.ShippingAddress, "600") || strings.Contains(latestOrder.ShippingAddress, "500") {
+			deliveryHours = 96
+			etaDaysText = "3-4 Business Days"
+		}
+		etaDate := fmt.Sprintf("%s (%s)", latestOrder.CreatedAt.Add(time.Duration(deliveryHours)*time.Hour).Format("02 Jan 2006"), etaDaysText)
+
+		courier := latestOrder.CourierPartner
+		if courier == "" {
+			courier = latestOrder.CourierName
+		}
+		awb := latestOrder.AWBNumber
+		if awb == "" {
+			awb = latestOrder.TrackingNumber
+		}
+
+		// Prepare history of all orders for this customer query
+		type CompactOrder struct {
+			OrderID     string    `json:"order_id"`
+			OrderStatus string    `json:"order_status"`
+			TotalAmount float64   `json:"total_amount"`
+			CreatedAt   time.Time `json:"created_at"`
+		}
+
+		var allOrdersList []CompactOrder
+		for _, o := range orders {
+			allOrdersList = append(allOrdersList, CompactOrder{
+				OrderID:     o.OrderID,
+				OrderStatus: o.OrderStatus,
+				TotalAmount: o.TotalAmount,
+				CreatedAt:   o.CreatedAt,
+			})
+		}
+
+		// Try to get authenticated customer from Authorization header
+		var authEmail, authPhone string
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+			// 1. Try admin token
+			if _, err := utils.ValidateJWT(tokenStr, cfg.JWTSecret); err == nil {
+				authEmail = "admin" // acts as admin bypass
+			}
+
+			// 2. Try customer token
+			if authEmail == "" {
+				if claims, err := utils.ValidateCustomerJWT(tokenStr, cfg.JWTSecret); err == nil && claims.Role == "customer" {
+					authEmail = claims.Email
+					authPhone = claims.Phone
+				}
+			}
+
+			// 3. Try Firebase token
+			if authEmail == "" {
+				if fbClaims, err := utils.VerifyFirebaseToken(tokenStr, "shadowarrow"); err == nil {
+					authEmail = fbClaims.Email
+					authPhone = fbClaims.Phone
+				}
+			}
+		}
+
+		isAuthorized := false
+		if _, isAdmin := c.Get("role"); isAdmin || authEmail == "admin" {
+			isAuthorized = true
+		} else if (authEmail != "" && authEmail == latestOrder.CustomerEmail) || (authPhone != "" && CleanPhoneDigits(authPhone) == CleanPhoneDigits(latestOrder.CustomerPhone)) {
+			isAuthorized = true
+		}
+
+		var custPhone, custEmail, custName, shippingAddr string
+		var items interface{}
+		var recentOrders interface{}
+
+		if isAuthorized {
+			custPhone = latestOrder.CustomerPhone
+			custEmail = latestOrder.CustomerEmail
+			custName = latestOrder.CustomerName
+			shippingAddr = latestOrder.ShippingAddress
+			items = latestOrder.Items
+			recentOrders = allOrdersList
+		} else {
+			// Mask sensitive PII for public order tracking security
+			custPhone = maskPhone(latestOrder.CustomerPhone)
+			custEmail = maskEmail(latestOrder.CustomerEmail)
+			custName = maskName(latestOrder.CustomerName)
+			shippingAddr = maskAddress(latestOrder.ShippingAddress)
+			items = []interface{}{}
+			recentOrders = []interface{}{}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"order_id":               latestOrder.OrderID,
+			"customer_name":          custName,
+			"customer_phone":         custPhone,
+			"customer_email":         custEmail,
+			"shipping_address":       shippingAddr,
+			"total_amount":           latestOrder.TotalAmount,
+			"payment_method":         latestOrder.PaymentMethod,
+			"payment_status":         latestOrder.PaymentStatus,
+			"order_status":           latestOrder.OrderStatus,
+			"courier_partner":        courier,
+			"courier_name":           courier,
+			"awb_number":             awb,
+			"tracking_number":        awb,
+			"shiprocket_order_id":    latestOrder.ShiprocketOrderID,
+			"shiprocket_shipment_id": latestOrder.ShiprocketShipmentID,
+			"delivery_eta":           etaDate,
+			"items":                  items,
+			"created_at":             latestOrder.CreatedAt,
+			"recent_orders":          recentOrders,
 		})
-		return
 	}
-	defer cursor.Close(ctx)
-
-	var orders []models.Order
-	if err := cursor.All(ctx, &orders); err != nil || len(orders) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":   "Order not found",
-			"query":   rawQuery,
-			"message": "No active order matches the provided Order ID, Email, or Phone Number",
-		})
-		return
-	}
-
-	latestOrder := orders[0]
-
-	// Dynamic delivery ETA calculation based on customer pincode in shipping address
-	deliveryHours := 120
-	etaDaysText := "4-6 Business Days"
-	if strings.Contains(latestOrder.ShippingAddress, "700") || strings.Contains(latestOrder.ShippingAddress, "71") || strings.Contains(latestOrder.ShippingAddress, "72") || strings.Contains(latestOrder.ShippingAddress, "73") || strings.Contains(latestOrder.ShippingAddress, "74") {
-		deliveryHours = 72
-		etaDaysText = "2-3 Business Days"
-	} else if strings.Contains(latestOrder.ShippingAddress, "110") || strings.Contains(latestOrder.ShippingAddress, "400") || strings.Contains(latestOrder.ShippingAddress, "560") || strings.Contains(latestOrder.ShippingAddress, "600") || strings.Contains(latestOrder.ShippingAddress, "500") {
-		deliveryHours = 96
-		etaDaysText = "3-4 Business Days"
-	}
-	etaDate := fmt.Sprintf("%s (%s)", latestOrder.CreatedAt.Add(time.Duration(deliveryHours)*time.Hour).Format("02 Jan 2006"), etaDaysText)
-
-	courier := latestOrder.CourierPartner
-	if courier == "" {
-		courier = latestOrder.CourierName
-	}
-	awb := latestOrder.AWBNumber
-	if awb == "" {
-		awb = latestOrder.TrackingNumber
-	}
-
-	// Prepare history of all orders for this customer query
-	type CompactOrder struct {
-		OrderID     string    `json:"order_id"`
-		OrderStatus string    `json:"order_status"`
-		TotalAmount float64   `json:"total_amount"`
-		CreatedAt   time.Time `json:"created_at"`
-	}
-
-	var allOrdersList []CompactOrder
-	for _, o := range orders {
-		allOrdersList = append(allOrdersList, CompactOrder{
-			OrderID:     o.OrderID,
-			OrderStatus: o.OrderStatus,
-			TotalAmount: o.TotalAmount,
-			CreatedAt:   o.CreatedAt,
-		})
-	}
-
-	// Mask sensitive PII for public order tracking security
-	custPhone := maskPhone(latestOrder.CustomerPhone)
-	custEmail := maskEmail(latestOrder.CustomerEmail)
-	custName := maskName(latestOrder.CustomerName)
-	shippingAddr := maskAddress(latestOrder.ShippingAddress)
-
-	// If request has admin claims, provide unmasked fields
-	if _, isAdmin := c.Get("role"); isAdmin {
-		custPhone = latestOrder.CustomerPhone
-		custEmail = latestOrder.CustomerEmail
-		custName = latestOrder.CustomerName
-		shippingAddr = latestOrder.ShippingAddress
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"order_id":               latestOrder.OrderID,
-		"customer_name":          custName,
-		"customer_phone":         custPhone,
-		"customer_email":         custEmail,
-		"shipping_address":       shippingAddr,
-		"total_amount":           latestOrder.TotalAmount,
-		"payment_method":         latestOrder.PaymentMethod,
-		"payment_status":         latestOrder.PaymentStatus,
-		"order_status":           latestOrder.OrderStatus,
-		"courier_partner":        courier,
-		"courier_name":           courier,
-		"awb_number":             awb,
-		"tracking_number":        awb,
-		"shiprocket_order_id":    latestOrder.ShiprocketOrderID,
-		"shiprocket_shipment_id": latestOrder.ShiprocketShipmentID,
-		"delivery_eta":           etaDate,
-		"items":                  latestOrder.Items,
-		"created_at":             latestOrder.CreatedAt,
-		"recent_orders":          allOrdersList,
-	})
 }
 
 func GetUserOrders(c *gin.Context) {

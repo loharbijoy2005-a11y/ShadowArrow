@@ -130,8 +130,29 @@ func GetUserRewards(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	vEmail, _ := c.Get("user_email")
+	vPhone, _ := c.Get("user_phone")
+	verifiedEmail := vEmail.(string)
+	verifiedPhone := vPhone.(string)
+
 	email := c.Query("email")
 	phone := c.Query("phone")
+
+	if email != "" && verifiedEmail != "" && email != verifiedEmail {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+	if phone != "" && verifiedPhone != "" && CleanPhoneDigits(phone) != CleanPhoneDigits(verifiedPhone) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	if email == "" {
+		email = verifiedEmail
+	}
+	if phone == "" {
+		phone = verifiedPhone
+	}
 
 	if email == "" && phone == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or phone required"})
@@ -143,11 +164,14 @@ func GetUserRewards(c *gin.Context) {
 
 	filter := bson.M{}
 	if email != "" && phone != "" {
-		filter["$or"] = []bson.M{{"email": email}, {"phone": phone}}
+		filter["$or"] = []bson.M{
+			{"email": email},
+			{"phone": bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}},
+		}
 	} else if email != "" {
 		filter["email"] = email
 	} else {
-		filter["phone"] = phone
+		filter["phone"] = bson.M{"$regex": primitive.Regex{Pattern: CleanPhoneDigits(phone), Options: "i"}}
 	}
 
 	err := usersCol.FindOne(ctx, filter).Decode(&user)

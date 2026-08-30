@@ -54,14 +54,16 @@ export default function TaxInvoiceModal({ order, onClose }: TaxInvoiceModalProps
       // @ts-ignore
       const html2pdf = (await import('html2pdf.js')).default;
       
-      // Clone element and place it at (0,0) under the content layer so scroll/layout values align correctly
+      // Clone element and place it at current scroll height under the content layer so scroll/layout values align correctly
       const clonedNode = element.cloneNode(true) as HTMLElement;
       clonedNode.id = 'pdf-invoice-cloned-target';
       clonedNode.style.position = 'absolute';
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
       clonedNode.style.left = '0';
-      clonedNode.style.top = '0';
+      clonedNode.style.top = `${scrollY}px`;
       clonedNode.style.width = '794px';
-      clonedNode.style.zIndex = '-1000';
+      clonedNode.style.zIndex = '-9999';
+      clonedNode.style.pointerEvents = 'none';
       clonedNode.style.background = '#ffffff';
       clonedNode.style.color = '#000000';
       clonedNode.style.margin = '0';

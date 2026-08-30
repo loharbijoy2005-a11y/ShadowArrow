@@ -208,6 +208,22 @@ func GetTicketByID(c *gin.Context) {
 		return
 	}
 
+	// Verify ownership unless caller is an admin
+	if _, isAdmin := c.Get("role"); !isAdmin {
+		vEmail, _ := c.Get("user_email")
+		vPhone, _ := c.Get("user_phone")
+		verifiedEmail := vEmail.(string)
+		verifiedPhone := vPhone.(string)
+
+		emailMatch := ticket.CustomerEmail != "" && verifiedEmail != "" && ticket.CustomerEmail == verifiedEmail
+		phoneMatch := ticket.CustomerPhone != "" && verifiedPhone != "" && CleanPhoneDigits(ticket.CustomerPhone) == CleanPhoneDigits(verifiedPhone)
+
+		if !emailMatch && !phoneMatch {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot view another user's ticket"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, ticket)
 }
 
@@ -248,6 +264,22 @@ func ReplyToTicket(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found"})
 		return
+	}
+
+	// Verify ownership unless caller is an admin
+	if _, isAdmin := c.Get("role"); !isAdmin {
+		vEmail, _ := c.Get("user_email")
+		vPhone, _ := c.Get("user_phone")
+		verifiedEmail := vEmail.(string)
+		verifiedPhone := vPhone.(string)
+
+		emailMatch := existingTicket.CustomerEmail != "" && verifiedEmail != "" && existingTicket.CustomerEmail == verifiedEmail
+		phoneMatch := existingTicket.CustomerPhone != "" && verifiedPhone != "" && CleanPhoneDigits(existingTicket.CustomerPhone) == CleanPhoneDigits(verifiedPhone)
+
+		if !emailMatch && !phoneMatch {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: cannot reply to another user's ticket"})
+			return
+		}
 	}
 
 	// Lock messaging if ticket is CLOSED

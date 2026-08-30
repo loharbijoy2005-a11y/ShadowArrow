@@ -34,7 +34,11 @@ export default function AccountLoginPage() {
       })
       .catch((err) => {
         if (err.code !== 'auth/no-current-user') {
-          setError(getFirebaseErrorMessage(err.code || err.message));
+          if (err.code === 'auth/internal-error' || err.code === 'auth/unauthorized-domain') {
+            setGoogleFailed(true);
+          } else {
+            setError(getFirebaseErrorMessage(err.code || err.message));
+          }
         }
       })
       .finally(() => setGoogleLoading(false));

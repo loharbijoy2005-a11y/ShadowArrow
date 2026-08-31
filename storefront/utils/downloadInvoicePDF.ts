@@ -1,5 +1,4 @@
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+// html2pdf is dynamically imported at runtime to prevent Next.js SSR execution issues.
 
 function numberToWordsINR(amount: number): string {
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -56,9 +55,8 @@ export async function downloadDirectTaxInvoicePDF(order: any) {
   const htmlContainer = document.createElement('div');
   htmlContainer.id = 'pdf-direct-download-target';
   htmlContainer.style.position = 'absolute';
-  const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
   htmlContainer.style.left = '0';
-  htmlContainer.style.top = `${scrollY}px`;
+  htmlContainer.style.top = '0'; // Position at absolute top to align with html2canvas scrollY: 0 settings and prevent blank PDFs when scrolled
   htmlContainer.style.width = '794px';
   htmlContainer.style.zIndex = '-9999';
   htmlContainer.style.pointerEvents = 'none';

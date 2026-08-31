@@ -93,13 +93,30 @@ export default function AccountPage() {
     }
   }, []);
 
+  const getAuthHeaders = () => {
+    try {
+      const savedUser = localStorage.getItem('shadow_user');
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        const token = u.token || u.Token;
+        if (token) {
+          return { headers: { Authorization: `Bearer ${token}` } };
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading token for headers', e);
+    }
+    return {};
+  };
+
   const syncLatestProfile = async (localUser: any) => {
+    if (!localUser || (!localUser.email && !localUser.phone)) return;
     try {
       let queryUrl = `${API_URL}/api/v1/user/profile?`;
       if (localUser.email) queryUrl += `email=${encodeURIComponent(localUser.email)}&`;
       if (localUser.phone) queryUrl += `phone=${encodeURIComponent(localUser.phone)}`;
 
-      const res = await axios.get(queryUrl);
+      const res = await axios.get(queryUrl, getAuthHeaders());
       if (res.data) {
         const merged = {
           ...localUser,
@@ -125,9 +142,13 @@ export default function AccountPage() {
   };
 
   const fetchCloneAccounts = async (phone: string, currentId: string) => {
+    if (!phone) return;
     setLoadingClones(true);
     try {
-      const res = await axios.get(`${API_URL}/api/v1/user/clones?phone=${encodeURIComponent(phone)}`);
+      const res = await axios.get(
+        `${API_URL}/api/v1/user/clones?phone=${encodeURIComponent(phone)}`,
+        getAuthHeaders()
+      );
       if (res.data && Array.isArray(res.data)) {
         const otherClones = res.data.filter((acc: any) => (acc.id || acc._id) !== currentId);
         setClones(otherClones);
@@ -145,10 +166,14 @@ export default function AccountPage() {
     }
     setSettingDefaultId(targetId);
     try {
-      const res = await axios.post(`${API_URL}/api/v1/user/clones/set-default`, {
-        default_id: targetId,
-        phone: targetPhone,
-      });
+      const res = await axios.post(
+        `${API_URL}/api/v1/user/clones/set-default`,
+        {
+          default_id: targetId,
+          phone: targetPhone,
+        },
+        getAuthHeaders()
+      );
       if (res.data) {
         const mergedUser = {
           ...res.data,
@@ -172,9 +197,13 @@ export default function AccountPage() {
     }
     setUnlinkingId(targetId);
     try {
-      const res = await axios.post(`${API_URL}/api/v1/user/clones/unlink`, {
-        account_id: targetId,
-      });
+      const res = await axios.post(
+        `${API_URL}/api/v1/user/clones/unlink`,
+        {
+          account_id: targetId,
+        },
+        getAuthHeaders()
+      );
       if (res.data) {
         if (user.phone) {
           fetchCloneAccounts(user.phone, user.id || user._id);
@@ -188,13 +217,17 @@ export default function AccountPage() {
   };
 
   const fetchRewardsInfo = async (phone: string, email: string) => {
+    if (!phone && !email) {
+      setRewardsInfo(null);
+      return;
+    }
     setLoadingRewards(true);
     try {
       let queryUrl = `${API_URL}/api/v1/user/rewards?`;
       if (email) queryUrl += `email=${encodeURIComponent(email)}&`;
       if (phone) queryUrl += `phone=${encodeURIComponent(phone)}`;
 
-      const res = await axios.get(queryUrl);
+      const res = await axios.get(queryUrl, getAuthHeaders());
       if (res.data) setRewardsInfo(res.data);
     } catch (err) {
       console.warn('Failed to load rewards passbook in profile', err);
@@ -217,10 +250,14 @@ export default function AccountPage() {
     setDeletionSuccessMsg('');
 
     try {
-      const res = await axios.post(`${API_URL}/api/v1/user/request-deletion`, {
-        email: deletionEmailInput.trim(),
-        reason: deletionReasonInput,
-      });
+      const res = await axios.post(
+        `${API_URL}/api/v1/user/request-deletion`,
+        {
+          email: deletionEmailInput.trim(),
+          reason: deletionReasonInput,
+        },
+        getAuthHeaders()
+      );
 
       if (res.data) {
         setDeletionSuccessMsg(res.data.message || 'Account deletion request submitted successfully. Processing window is 48-72 hours.');
@@ -233,13 +270,17 @@ export default function AccountPage() {
   };
 
   const fetchUserOrders = async (phone: string, email: string) => {
+    if (!phone && !email) {
+      setOrders([]);
+      return;
+    }
     setLoadingOrders(true);
     try {
       let queryUrl = `${API_URL}/api/v1/user/orders?`;
       if (phone) queryUrl += `phone=${encodeURIComponent(phone)}&`;
       if (email) queryUrl += `email=${encodeURIComponent(email)}`;
 
-      const res = await axios.get(queryUrl);
+      const res = await axios.get(queryUrl, getAuthHeaders());
       const rawOrders = Array.isArray(res.data) ? res.data : [];
       const sortedOrders = [...rawOrders].sort((a: any, b: any) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -275,7 +316,7 @@ export default function AccountPage() {
     };
 
     try {
-      const res = await axios.put(`${API_URL}/api/v1/user/profile`, updatedUser);
+      const res = await axios.put(`${API_URL}/api/v1/user/profile`, updatedUser, getAuthHeaders());
       if (res.data) {
         const merged = { ...updatedUser, ...res.data };
         localStorage.setItem('shadow_user', JSON.stringify(merged));
@@ -348,7 +389,7 @@ export default function AccountPage() {
     setAddresses(updated);
     if (user) {
       localStorage.setItem(`shadow_addrs_${user.email || user.phone}`, JSON.stringify(updated));
-      axios.put(`${API_URL}/api/v1/user/profile`, { ...user, addresses: updated }).catch(() => {});
+      axios.put(`${API_URL}/api/v1/user/profile`, { ...user, addresses: updated }, getAuthHeaders()).catch(() => {});
     }
     setShowAddrModal(false);
   };

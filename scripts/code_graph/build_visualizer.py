@@ -17,7 +17,7 @@ def build_visualizer():
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Shadow Arrow — High-End Architecture Visualizer</title>
+<title>Shadow Arrow — Architecture Graph</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -92,7 +92,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;heigh
 <div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to isolate dependency chain</div></div>
 <div id="ui">
   <header id="bar" class="ui">
-    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Cinematic 3D Codebase Dependency Topology</div></div></div>
+    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Multi-Color Synaptic Spline Topology</div></div></div>
     <div class="stats ui">
       <div class="si"><i class="fa-solid fa-layer-group" style="color:#f59e0b;font-size:9px"></i>Pillars<b id="s-p" style="color:#f59e0b">—</b></div><div class="sv"></div>
       <div class="si"><i class="fa-solid fa-file-code" style="color:#00d5ff;font-size:9px"></i>Files<b id="s-n" style="color:#00d5ff">—</b></div><div class="sv"></div>
@@ -155,7 +155,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;heigh
   <button class="dk act" id="btn-lbl" onclick="toggleLabels()" title="Toggle File Labels"><i class="fa-solid fa-tags"></i></button>
   <button class="dk" onclick="clearSel()" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
   <div class="ds"></div>
-  <span class="dl">CLICK: Isolate File Dependencies &middot; LEFT-DRAG: Smooth Slide (No Flip) &middot; SCROLL: Zoom to Cursor</span>
+  <span class="dl">CLICK: Isolate Connections &middot; MULTI-COLOR LINES PER DOT &middot; SCROLL: Zoom to Cursor</span>
 </div>
 
 <script>
@@ -165,39 +165,58 @@ const GRAPH_DATA = """ + graph_json + """;
 // ════════ CONFIG ════════
 const CFG = {
   fibers: 2,           
-  colW: 180,           // Clean 180px pillar spacing
+  colW: 180,           
   spread: 2.2,
   curv: 0.55,
-  nodeSpacing: 32,     // BALANCED COMPACT NODE SPACING (32px)
+  nodeSpacing: 32,     
   pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
   showLabels: true,
 };
 
-// EXACT MATCH DITTO COLOR PALETTE:
+// VIVID MULTI-NEON COLOR PALETTE (Every dot & line gets its own unique distinct color!)
+const NEON_PALETTE = [
+  0x00e5ff, // Laser Cyan
+  0xff0055, // Hot Crimson
+  0x00ff88, // Electric Mint
+  0xff00ff, // Vivid Magenta
+  0xffd700, // Neon Gold
+  0x7000ff, // Electric Violet
+  0xff6b00, // Bright Neon Orange
+  0x00f0ff, // Bright Turquoise
+  0xff1493, // Deep Pink
+  0x39ff14, // Neon Lime
+  0x00bfff, // Deep Sky Blue
+  0xff4500, // Neon Coral
+  0x9400d3, // Dark Violet
+  0x00ffff, // Aqua
+  0xff007f, // Neon Rose
+  0x76ff03, // Bright Lime
+  0xff9100, // Orange Glow
+  0xe040fb, // Neon Purple
+  0x1de9b6, // Teal Accent
+  0xffab00, // Amber Accent
+];
+
 const TIER_COL = {
-  config:      0xf59e0b, // Amber (Pillar 1)
+  config:      0xf59e0b,
   root:        0xf59e0b,
   static:      0xf59e0b,
-
-  routes:      0xff0055, // Hot Crimson (Pillar 2)
+  routes:      0xff0055,
   controllers: 0xff0055,
   pages:       0xff0055,
   storefront:  0xff0055,
   admin:       0xff0055,
-
-  services:    0x00ff88, // Mint Green (Pillar 3)
+  services:    0x00ff88,
   middleware:  0x00ff88,
   lib:         0x00ff88,
   context:     0x00ff88,
   hooks:       0x00ff88,
   api:         0x00ff88,
-
-  models:      0x00d5ff, // Laser Cyan (Pillar 4)
+  models:      0x00d5ff,
   database:    0x00d5ff,
-
-  utils:       0xa78bfa, // Purple / Slate (Pillar 5)
+  utils:       0xa78bfa,
   scripts:     0xa78bfa,
   backend:     0xa78bfa,
   misc:        0x64748b,
@@ -222,36 +241,34 @@ document.getElementById('cv').appendChild(renderer.domElement);
 // Postprocessing Bloom Pass (Cinematic Selective Bloom)
 const bloomPass = new THREE.UnrealBloomPass(
   new THREE.Vector2(innerWidth, innerHeight),
-  1.2,  // Bloom Strength: 1.2
-  0.5,  // Radius: 0.5
-  0.18  // Threshold: 0.18
+  1.2,
+  0.5,
+  0.18
 );
 
 const composer = new THREE.EffectComposer(renderer);
 composer.addPass(new THREE.RenderPass(scene, camera));
 composer.addPass(bloomPass);
 
-// Lighting for 3D sphere nodes
+// Lighting
 const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
 scene.add(ambLight);
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight1.position.set(400, 800, 600);
 scene.add(dirLight1);
 
-// OrbitControls (Smooth slide panning, non-flipping front view)
+// OrbitControls
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = true;
 controls.screenSpacePanning = true;
 
-// LOCK POLAR ANGLE TO PREVENT UPSIDE-DOWN SCENE FLIPPING!
 controls.minPolarAngle = Math.PI / 2 - 0.25;
 controls.maxPolarAngle = Math.PI / 2 + 0.25;
 controls.minAzimuthAngle = -Math.PI / 3;
 controls.maxAzimuthAngle = Math.PI / 3;
 
-// Mouse controls: Left Click Drag = PAN / SLIDE (No Flip)
 controls.mouseButtons = {
   LEFT: THREE.MOUSE.PAN,
   MIDDLE: THREE.MOUSE.DOLLY,
@@ -260,7 +277,7 @@ controls.mouseButtons = {
 
 controls.maxDistance = 4000;
 controls.minDistance = 40;
-controls.enableZoom = false; // Custom wheel listener zooms directly to mouse position
+controls.enableZoom = false;
 controls.panSpeed = 1.2;
 
 // Grid
@@ -329,7 +346,7 @@ function buildGraph(){
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  const colW=CFG.colW; // 180px gap
+  const colW=CFG.colW;
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
 
@@ -341,7 +358,6 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // BALANCED NODE SPACING (32px)
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
@@ -361,12 +377,14 @@ function buildGraph(){
       const y=tnodes.length>1?topY-ni*spacing:0;
       const z=Math.sin(ni*0.4+pi*1.1)*12;
 
-      // SLEEK GLOWING MICRO-PIN NODE
+      // EACH INDIVIDUAL DOT GETS ITS OWN DISTINCT VIVID NEON COLOR FROM PALETTE!
+      const nodeUniqueColor = NEON_PALETTE[(ni * 7 + pi * 13) % NEON_PALETTE.length];
+
       const mat=new THREE.MeshStandardMaterial({
-        color: col,
+        color: nodeUniqueColor,
         roughness: 0.2,
         metalness: 0.8,
-        emissive: col,
+        emissive: nodeUniqueColor,
         emissiveIntensity: 0.65
       });
       const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.6, 18, 18), mat);
@@ -376,7 +394,7 @@ function buildGraph(){
       // Outer glow ring
       const halo=new THREE.Mesh(
         new THREE.RingGeometry(4.8, 6.2, 18),
-        new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.45, blending:THREE.AdditiveBlending})
+        new THREE.MeshBasicMaterial({color:nodeUniqueColor, side:THREE.DoubleSide, transparent:true, opacity:.45, blending:THREE.AdditiveBlending})
       );
       halo.position.set(cx, y, z);
       GRP.add(halo);
@@ -387,14 +405,14 @@ function buildGraph(){
       lsp.scale.set(22, 5.5, 1);
       GRP.add(lsp);
 
-      const obj={node, mesh, halo, label:lsp, pos:new THREE.Vector3(cx,y,z), color:col, out:[], in:[]};
+      const obj={node, mesh, halo, label:lsp, pos:new THREE.Vector3(cx,y,z), color:nodeUniqueColor, out:[], in:[]};
       mesh.userData.n=obj;
       idMap[node.id]=NODES.length;
       NODES.push(obj);
     });
   });
 
-  // ── Build Clean Curved Bezier Splines (Smooth S-Curves Out of Nodes) ─────
+  // ── Build Lines (EVERY DOT HAS ITS OWN UNIQUE COLORED LINES!) ─────────────
   links.forEach(link=>{
     const si=idMap[link.source], ti=idMap[link.target];
     if(si===undefined||ti===undefined)return;
@@ -403,14 +421,16 @@ function buildGraph(){
     const dx=p3.x-p0.x;
     const cpOff=Math.abs(dx)*CFG.curv*0.55;
 
-    const fd={curves:[], lines:[], fromIdx:si, toIdx:ti, baseCol:from.color};
+    // THE LINES OUT OF EACH DOT USE THAT DOT'S UNIQUE SPECIFIC COLOR!
+    const lineUniqueColor = from.color;
+
+    const fd={curves:[], lines:[], fromIdx:si, toIdx:ti, baseCol:lineUniqueColor};
 
     for(let f=0; f<CFG.fibers; f++){
       const angle=(f/CFG.fibers)*Math.PI*2;
       const r=(0.3+Math.random()*0.7)*CFG.spread;
       const oy=Math.cos(angle)*r, oz=Math.sin(angle)*r;
 
-      // Smooth S-Curve control points: exit horizontally from source, enter horizontally to target
       const v1=new THREE.Vector3(p0.x+cpOff, p0.y+oy, p0.z+oz);
       const v2=new THREE.Vector3(p3.x-cpOff, p3.y+oy, p3.z+oz);
       const curve=new THREE.CubicBezierCurve3(p0.clone(), v1, v2, p3.clone());
@@ -419,9 +439,9 @@ function buildGraph(){
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
       const mat=new THREE.LineBasicMaterial({
-        color: from.color,
+        color: lineUniqueColor, // Each node's lines have their own distinct unique color!
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.38,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
@@ -450,7 +470,7 @@ function buildGraph(){
   camera.position.set(midX, 0, 750);
 }
 
-// ════════ FLOWING SIGNAL PULSE PARTICLES (SMOOTH DATA SLUGS) ════════
+// ════════ FLOWING SIGNAL PULSE PARTICLES ════════
 function buildPulse(){
   if(PULSE){GRP.remove(PULSE);PULSE.geometry.dispose();PULSE.material.dispose();}
   if(!FIBERS.length)return;
@@ -467,7 +487,7 @@ function buildPulse(){
     const ci=Math.floor(Math.random()*FIBERS[fi].curves.length);
     pFIdx[i]=fi; pCIdx[i]=ci;
     pProg[i]=Math.random();
-    pSpd[i]=0.003+Math.random()*0.007; // Smooth flowing motion
+    pSpd[i]=0.003+Math.random()*0.007;
     const c=new THREE.Color(FIBERS[fi].baseCol);
     pCol[i*3]=c.r; pCol[i*3+1]=c.g; pCol[i*3+2]=c.b;
     const pt=FIBERS[fi].curves[ci].getPoint(pProg[i]);
@@ -615,7 +635,7 @@ function selNode(obj){
   const outSet = new Set(obj.out);
   const inSet  = new Set(obj.in);
 
-  // ISOLATE LINES: Outgoing = CYAN (#00d5ff), Incoming = HOT CRIMSON (#ff0055), Unrelated = HIDDEN
+  // ISOLATE LINES: Direct Outgoing = Node's Unique Color, Incoming = Distinct Accent, Unrelated = Hidden
   FIBERS.forEach(fd => {
     const isOut = outSet.has(fd);
     const isIn  = inSet.has(fd);
@@ -623,7 +643,7 @@ function selNode(obj){
 
     fd.lines.forEach(ln => { 
       ln.material.opacity = isConn ? 0.95 : 0.01; 
-      ln.material.color.setHex(isOut ? 0x00d5ff : isIn ? 0xff0055 : 0x1e293b); 
+      ln.material.color.setHex(isOut ? obj.color : isIn ? 0xff0055 : 0x1e293b); 
     });
   });
 
@@ -640,7 +660,7 @@ function selNode(obj){
       n.mesh.scale.set(1.6, 1.6, 1.6);
       n.mesh.material.emissiveIntensity = 1.2;
       n.halo.scale.set(1.5, 1.5, 1.5);
-      n.halo.material.color.setHex(0x00d5ff);
+      n.halo.material.color.setHex(n.color);
     } else {
       n.mesh.scale.set(0.55, 0.55, 0.55);
       n.mesh.material.emissiveIntensity = 0.05;
@@ -661,7 +681,7 @@ function focusSelectedNode(){
 function clearSel(){
   SEL = null;
   document.getElementById('rp').classList.remove('open');
-  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.35; ln.material.color.setHex(fd.baseCol); }));
+  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.38; ln.material.color.setHex(fd.baseCol); }));
   NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.65; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
 }
 
@@ -717,7 +737,7 @@ function animate(t){
   controls.update();
 
   if(!CFG.paused){
-    animatePulse(); // Flowing signal light slugs along smooth splines!
+    animatePulse();
     NODES.forEach((o,i) => {
       if(o !== SEL){
         o.halo.rotation.z += 0.008;
@@ -739,7 +759,6 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ════════ INIT ════════
@@ -754,7 +773,7 @@ animate(0);
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated cinematic visualizer index.html ({os.path.getsize(out_file):,} bytes)")
+    print(f"Successfully generated multi-color node spline visualizer index.html ({os.path.getsize(out_file):,} bytes)")
 
 if __name__ == "__main__":
     build_visualizer()

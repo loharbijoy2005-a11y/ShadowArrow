@@ -83,10 +83,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 </head>
 <body>
 <div id="cv"></div>
-<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to isolate connections</div></div>
+<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Hover & scroll to zoom DIRECTLY to mouse position</div></div>
 <div id="ui">
   <header id="bar" class="ui">
-    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Compact Codebase Dependency Topology</div></div></div>
+    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Mouse-Targeted 3D Zoom Topology</div></div></div>
     <div class="stats ui">
       <div class="si"><i class="fa-solid fa-layer-group" style="color:#f59e0b;font-size:9px"></i>Pillars<b id="s-p" style="color:#f59e0b">—</b></div><div class="sv"></div>
       <div class="si"><i class="fa-solid fa-file-code" style="color:#38bdf8;font-size:9px"></i>Files<b id="s-n" style="color:#38bdf8">—</b></div><div class="sv"></div>
@@ -107,7 +107,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <div class="cr"><div class="cl"><span>Pillar Horizontal Gap</span><span id="lv-cg">160</span></div><input type="range" min="90" max="260" step="10" value="160" oninput="CFG.colW=+this.value;document.getElementById('lv-cg').textContent=this.value;rebuild()"></div>
       <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">22</span></div><input type="range" min="10" max="45" step="2" value="22" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
       <div class="cr"><div class="cl"><span>Line Wave Amplitude</span><span id="lv-wa">10</span></div><input type="range" min="0" max="30" step="2" value="10" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
-      <div class="cr"><div class="cl"><span>Zoom Sensitivity</span><span id="lv-zs">0.45</span></div><input type="range" min="0.1" max="1.0" step="0.05" value="0.45" oninput="controls.zoomSpeed=+this.value;document.getElementById('lv-zs').textContent=(+this.value).toFixed(2)"></div>
       <div class="st">Project Pillars</div>
       <div id="pillar-list"></div>
     </div>
@@ -148,7 +147,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <button class="dk act" id="btn-lbl" onclick="toggleLabels()" title="Toggle File Labels"><i class="fa-solid fa-tags"></i></button>
   <button class="dk" onclick="clearSel()" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
   <div class="ds"></div>
-  <span class="dl">CLICK NODE: Highlight & Isolate Connections &middot; SCROLL: Controlled Smooth Zoom &middot; DRAG: Orbit / Pan</span>
+  <span class="dl">SCROLL: Zooms DIRECTLY to your mouse pointer &middot; CLICK: Inspect Connections</span>
 </div>
 
 <script>
@@ -157,13 +156,13 @@ const GRAPH_DATA = """ + graph_json + """;
 
 // ════════ CONFIG ════════
 const CFG = {
-  fibers: 2,           // Clean 2 lines per connection
-  colW: 160,           // COMPACT HORIZONTAL PILLAR GAP (160px instead of 280px)
+  fibers: 2,           
+  colW: 160,           
   spread: 2.0,
-  wave: 10,            // Subtle line wave animation
+  wave: 10,            
   waveSpeed: 0.5,
   curv: 0.50,
-  nodeSpacing: 22,     // COMPACT VERTICAL NODE SPACING (22px)
+  nodeSpacing: 22,     
   pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
@@ -207,23 +206,23 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 document.getElementById('cv').appendChild(renderer.domElement);
 
-// Lighting for clean solid 3D sphere nodes
+// Lighting
 const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
 scene.add(ambLight);
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight1.position.set(400, 800, 600);
 scene.add(dirLight1);
 
-// Controlled OrbitControls (smooth zoom, no flying past nodes)
+// OrbitControls
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.enablePan = true;
 controls.screenSpacePanning = true;
-controls.maxDistance = 4000;
-controls.minDistance = 60;   // PREVENTS ZOOM OVERDIVE / FLYING PAST NODES!
-controls.zoomSpeed = 0.45;   // CONTROLLED SMOOTH ZOOM
-controls.panSpeed = 0.9;
+controls.maxDistance = 5000;
+controls.minDistance = 30;
+controls.enableZoom = false; // Custom wheel listener handles zooming directly to mouse position!
+controls.panSpeed = 1.0;
 
 // Grid
 const grid = new THREE.GridHelper(5000, 80, 0x1e293b, 0x0f172a);
@@ -291,7 +290,6 @@ function buildGraph(){
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  // Compact horizontal gap between pillars (160px)
   const colW=CFG.colW;
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
@@ -304,7 +302,6 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // Compact vertical node spacing (22px)
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
@@ -515,10 +512,14 @@ function animatePulse(){
   PULSE.geometry.attributes.position.needsUpdate = true;
 }
 
-// ════════ RAYCASTING & CLICK ISOLATION ════════
+// ════════ RAYCASTING & MOUSE-TARGETED ZOOM ════════
 const RC = new THREE.Raycaster();
 const MV = new THREE.Vector2(-9, -9);
 const TT = document.getElementById('tt');
+
+// 3D Plane at current controls target facing camera for precise mouse raycasting
+const mousePlane = new THREE.Plane();
+const mousePlaneIntersect = new THREE.Vector3();
 
 window.addEventListener('mousemove', e => {
   MV.x = (e.clientX/innerWidth)*2 - 1;
@@ -527,7 +528,45 @@ window.addEventListener('mousemove', e => {
   TT.style.top  = e.clientY + 'px';
 });
 
-// Single-click on ANY NODE: Instantly isolates connections and smoothly centers on it!
+// CUSTOM MOUSE WHEEL EVENT: ZOOMS DIRECTLY TOWARDS THE MOUSE POINTER POSITION!
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  RC.setFromCamera(MV, camera);
+
+  // Check if hovering over a node first
+  const nodeHits = RC.intersectObjects(NODES.map(o => o.mesh));
+  let hitPoint;
+
+  if (nodeHits.length > 0) {
+    hitPoint = nodeHits[0].point.clone();
+  } else {
+    // Raycast onto 3D plane at controls.target
+    mousePlane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()).negate(), controls.target);
+    if (RC.ray.intersectPlane(mousePlane, mousePlaneIntersect)) {
+      hitPoint = mousePlaneIntersect.clone();
+    }
+  }
+
+  if (hitPoint) {
+    const delta = e.deltaY;
+    const zoomFactor = delta < 0 ? 0.82 : 1.22; // Scroll up = zoom in towards mouse, scroll down = zoom out
+
+    // Shift camera & controls target towards mouse 3D position
+    const camVector = new THREE.Vector3().subVectors(camera.position, hitPoint);
+    const newCamPos = new THREE.Vector3().addVectors(hitPoint, camVector.multiplyScalar(zoomFactor));
+
+    // Clamp camera distance so it never flies away or overshoots
+    const distToTarget = newCamPos.distanceTo(hitPoint);
+    if (distToTarget >= 35 && distToTarget <= 4500) {
+      camera.position.copy(newCamPos);
+      controls.target.lerp(hitPoint, 0.2); // Shift target towards mouse point
+    }
+  }
+}, { passive: false });
+
+// Single-click on ANY NODE: Instantly isolates connections and centers on it
 window.addEventListener('click', e => {
   if(e.target.closest('.panel') || e.target.closest('#bar') || e.target.closest('#dock')) return;
   RC.setFromCamera(MV, camera);
@@ -535,7 +574,6 @@ window.addEventListener('click', e => {
   if(hits.length){
     const targetObj = hits[0].object.userData.n;
     selNode(targetObj);
-    // Smoothly recenter target to clicked node without zooming crazy far
     new TWEEN.Tween(controls.target)
       .to({x: targetObj.pos.x, y: targetObj.pos.y, z: targetObj.pos.z}, 450)
       .easing(TWEEN.Easing.Cubic.Out)
@@ -581,7 +619,6 @@ function selNode(obj){
 
   const outSet = new Set(obj.out);
   const inSet  = new Set(obj.in);
-  const conn   = new Set([...obj.out, ...obj.in]);
 
   // ISOLATE LINES: Incoming = RED/PINK (#fb7185), Outgoing = CYAN (#38bdf8), Unrelated = HIDDEN (0.01 opacity)
   FIBERS.forEach(fd => {
@@ -595,7 +632,7 @@ function selNode(obj){
     });
   });
 
-  // ISOLATE NODES: Highlight direct connected nodes, dim all others
+  // ISOLATE NODES
   NODES.forEach(n => {
     const isTarget = (n === obj);
     const isDirect = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
@@ -608,7 +645,6 @@ function selNode(obj){
       n.mesh.scale.set(1.5, 1.5, 1.5);
       n.mesh.material.emissiveIntensity = 0.5;
       n.halo.scale.set(1.4, 1.4, 1.4);
-      n.halo.scale.setScalar(1.4);
       n.halo.material.color.setHex(0x38bdf8);
     } else {
       n.mesh.scale.set(0.6, 0.6, 0.6);
@@ -723,7 +759,7 @@ animate(0);
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated compact visualizer index.html ({os.path.getsize(out_file):,} bytes)")
+    print(f"Successfully generated mouse-targeted zoom visualizer index.html ({os.path.getsize(out_file):,} bytes)")
 
 if __name__ == "__main__":
     build_visualizer()

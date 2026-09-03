@@ -23,7 +23,6 @@ def build_visualizer():
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -79,12 +78,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 #tt .tf{font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:4px}
 #tt .tr{display:flex;justify-content:space-between;gap:12px;margin-top:1px}
 #tt .tk{color:#64748b}#tt .tv{color:#f8fafc;font-weight:600}
-#tt .th{font-size:9px;color:#64748b;margin-top:5px;border-top:1px solid #1e293b;padding-top:4px}
+#tt .th{font-size:9px;color:#38bdf8;margin-top:5px;border-top:1px solid #1e293b;padding-top:4px}
 </style>
 </head>
 <body>
 <div id="cv"></div>
-<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to inspect & zoom in</div></div>
+<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Double-click anywhere to zoom right into that spot</div></div>
 <div id="ui">
   <header id="bar" class="ui">
     <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Clean 3D Codebase Dependency Map</div></div></div>
@@ -108,7 +107,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <div class="cr"><div class="cl"><span>Line Wave Amplitude</span><span id="lv-wa">12</span></div><input type="range" min="0" max="40" step="2" value="12" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
       <div class="cr"><div class="cl"><span>Wave Animation Speed</span><span id="lv-ws">0.5</span></div><input type="range" min="0.1" max="2.0" step="0.1" value="0.5" oninput="CFG.waveSpeed=+this.value;document.getElementById('lv-ws').textContent=(+this.value).toFixed(1)"></div>
       <div class="cr"><div class="cl"><span>Spline Curvature</span><span id="lv-cu">0.50</span></div><input type="range" min="0.1" max="1.2" step="0.05" value="0.50" oninput="CFG.curv=+this.value;document.getElementById('lv-cu').textContent=(+this.value).toFixed(2);rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Node Vertical Distance</span><span id="lv-ns">56</span></div><input type="range" min="20" max="100" step="4" value="56" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">28</span></div><input type="range" min="12" max="60" step="2" value="28" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
       <div class="cr"><div class="cl"><span>Signal Pulse Speed</span><span id="lv-ps">1.0</span></div><input type="range" min="0.1" max="3.0" step="0.1" value="1.0" oninput="CFG.pulseSpeed=+this.value;document.getElementById('lv-ps').textContent=(+this.value).toFixed(1)"></div>
       <div class="st">Project Pillars</div>
       <div id="pillar-list"></div>
@@ -150,7 +149,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <button class="dk act" id="btn-lbl" onclick="toggleLabels()" title="Toggle File Labels"><i class="fa-solid fa-tags"></i></button>
   <button class="dk" onclick="clearSel()" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
   <div class="ds"></div>
-  <span class="dl">ORBIT: Left-drag &middot; PAN: Right-drag / Shift-drag &middot; ZOOM: Scroll wheel (Unlimited Zoom In)</span>
+  <span class="dl">CLICK: Select Node & Focus &middot; DOUBLE-CLICK: Zoom to exact spot &middot; PAN: Right-drag</span>
 </div>
 
 <script>
@@ -159,12 +158,12 @@ const GRAPH_DATA = """ + graph_json + """;
 
 // ════════ CONFIG ════════
 const CFG = {
-  fibers: 2,           // Clean 2 lines per link (no clutter)
-  spread: 3.0,
-  wave: 12,            // Subtle line movement
+  fibers: 2,           // Clean 2 lines per link
+  spread: 2.5,
+  wave: 12,            
   waveSpeed: 0.5,
   curv: 0.50,
-  nodeSpacing: 56,     // SPACING INCREASED TO 56px PER NODE FOR CLEAN VISIBILITY
+  nodeSpacing: 28,     // COMPACT VERTICAL SPACING FOR DOTS (28px per node)
   pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
@@ -198,9 +197,9 @@ function tc(t){ return TIER_COL[t] ?? 0x94a3b8; }
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x060913, 0.0002);
 
-// Camera near = 0.5 allows zooming super close into any node!
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 20000);
-camera.position.set(-800, 450, 1400);
+// near = 0.1 allows zooming infinitely close into any specific spot!
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 20000);
+camera.position.set(-600, 300, 1000);
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
 renderer.setSize(innerWidth, innerHeight);
@@ -209,7 +208,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 document.getElementById('cv').appendChild(renderer.domElement);
 
-// Lighting for solid 3D nodes (clean non-neon spheres)
+// Lighting
 const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambLight);
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -219,20 +218,26 @@ const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
 dirLight2.position.set(-500, -500, -500);
 scene.add(dirLight2);
 
-// OrbitControls setup with unlimited close zoom
+// OrbitControls
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.enablePan = true;
 controls.screenSpacePanning = true;
 controls.maxDistance = 15000;
-controls.minDistance = 2.0; // CLOSE ZOOM ALLOWED (down to 2 units!)
+controls.minDistance = 0.5; // Infinite close-up zoom!
 controls.zoomSpeed = 1.2;
 controls.panSpeed = 1.0;
 
+// Invisible plane for raycasting double-clicks anywhere in space
+const planeGeo = new THREE.PlaneGeometry(20000, 20000);
+const planeMat = new THREE.MeshBasicMaterial({visible: false});
+const invisiblePlane = new THREE.Mesh(planeGeo, planeMat);
+scene.add(invisiblePlane);
+
 // Grid
 const grid = new THREE.GridHelper(8000, 100, 0x1e293b, 0x0f172a);
-grid.position.y = -800;
+grid.position.y = -600;
 grid.material.opacity = 0.4; grid.material.transparent = true;
 scene.add(grid);
 
@@ -296,7 +301,7 @@ function buildGraph(){
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  const colW=Math.max(280, Math.min(360, 2400/Math.max(pCount-1,1)));
+  const colW=Math.max(240, Math.min(320, 2200/Math.max(pCount-1,1)));
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
 
@@ -308,41 +313,41 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // INCREASED NODE DISTANCE / SPACING
+    // COMPACT NODE SPACING (28px) - Dots are close together
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
 
     // Pillar Header
     const hsp=new THREE.Sprite(new THREE.SpriteMaterial({map:hdrTex(tier.toUpperCase(),`PILLAR ${pi+1} · ${tnodes.length} FILES`,hex),transparent:true,depthTest:false}));
-    hsp.position.set(cx, topY+70, 0);
-    hsp.scale.set(110, 21, 1);
+    hsp.position.set(cx, topY+60, 0);
+    hsp.scale.set(100, 19, 1);
     GRP.add(hsp);
 
     // Dashed rail
-    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+16,0),new THREE.Vector3(cx,-topY-16,0)]);
+    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+14,0),new THREE.Vector3(cx,-topY-14,0)]);
     const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:5,gapSize:5,opacity:.3,transparent:true}));
     rl.computeLineDistances(); GRP.add(rl);
 
     tnodes.forEach((node,ni)=>{
       const y=tnodes.length>1?topY-ni*spacing:0;
-      const z=Math.sin(ni*0.4+pi*1.1)*18;
+      const z=Math.sin(ni*0.4+pi*1.1)*14;
 
-      // CLEAN SOLID 3D SPHERE NODE (NO NEON GLOW BLOWOUT)
+      // CLEAN SOLID SPHERE NODE (NOT TOO BIG, NICELY PACKED)
       const mat=new THREE.MeshStandardMaterial({
         color: col,
         roughness: 0.35,
         metalness: 0.25,
         emissive: col,
-        emissiveIntensity: 0.15 // VERY LOW EMISSIVE = CLEAN SOLID COLOR
+        emissiveIntensity: 0.2
       });
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(4.0, 20, 20), mat);
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.6, 18, 18), mat);
       mesh.position.set(cx, y, z);
       GRP.add(mesh);
 
-      // Simple clean stroke ring (non-neon)
+      // Simple clean stroke ring
       const halo=new THREE.Mesh(
-        new THREE.RingGeometry(5.2, 6.8, 20),
+        new THREE.RingGeometry(4.8, 6.2, 18),
         new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.35})
       );
       halo.position.set(cx, y, z);
@@ -350,8 +355,8 @@ function buildGraph(){
 
       // Label sprite
       const lsp=new THREE.Sprite(new THREE.SpriteMaterial({map:lblTex(node.name), transparent:true, depthTest:false, visible:CFG.showLabels}));
-      lsp.position.set(cx, y+10, z);
-      lsp.scale.set(26, 6.5, 1);
+      lsp.position.set(cx, y+9, z);
+      lsp.scale.set(24, 6, 1);
       GRP.add(lsp);
 
       const obj={node, mesh, halo, label:lsp, pos:new THREE.Vector3(cx,y,z), color:col, out:[], in:[]};
@@ -361,7 +366,7 @@ function buildGraph(){
     });
   });
 
-  // ── Build Lines (Clean Distinct Colors per Tier) ─────────────────────────
+  // ── Build Lines ─────────────────────────────────────────────────────────
   links.forEach(link=>{
     const si=idMap[link.source], ti=idMap[link.target];
     if(si===undefined||ti===undefined)return;
@@ -378,18 +383,17 @@ function buildGraph(){
       const oy=Math.cos(angle)*r, oz=Math.sin(angle)*r;
       const phase=Math.random()*Math.PI*2;
 
-      const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.08+oy, p0.z+oz+15);
-      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.08+oy, p3.z+oz+15);
+      const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.08+oy, p0.z+oz+12);
+      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.08+oy, p3.z+oz+12);
       const curve=new THREE.CubicBezierCurve3(p0.clone(), v1, v2, p3.clone());
 
       const pts=curve.getPoints(36);
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
-      // CLEAN SOLID COLORED LINES (Opacity 0.35, NormalBlending = No Blinding White Flare!)
       const mat=new THREE.LineBasicMaterial({
         color: from.color,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.38,
         depthWrite: false
       });
       const line=new THREE.Line(geo, mat);
@@ -415,7 +419,7 @@ function buildGraph(){
 
   const midX=(startX+(pCount-1)*colW)/2;
   controls.target.set(midX, 0, 0);
-  camera.position.set(midX-800, 450, 1400);
+  camera.position.set(midX-600, 300, 1000);
 }
 
 // ════════ PULSE DATA PACKETS ════════
@@ -520,7 +524,7 @@ function animatePulse(){
   PULSE.geometry.attributes.position.needsUpdate = true;
 }
 
-// ════════ RAYCASTING & INTERACTION ════════
+// ════════ RAYCASTING & CLICK / DOUBLE-CLICK ZOOM TO ANY SPOT ════════
 const RC = new THREE.Raycaster();
 const MV = new THREE.Vector2(-9, -9);
 const TT = document.getElementById('tt');
@@ -532,12 +536,58 @@ window.addEventListener('mousemove', e => {
   TT.style.top  = e.clientY + 'px';
 });
 
+// Single-click selects node & smoothly focuses on it
 window.addEventListener('click', e => {
   if(e.target.closest('.panel') || e.target.closest('#bar') || e.target.closest('#dock')) return;
   RC.setFromCamera(MV, camera);
   const hits = RC.intersectObjects(NODES.map(o => o.mesh));
-  if(hits.length) selNode(hits[0].object.userData.n);
-  else clearSel();
+  if(hits.length){
+    const targetObj = hits[0].object.userData.n;
+    selNode(targetObj);
+    // Smoothly center orbit target to clicked node
+    new TWEEN.Tween(controls.target)
+      .to({x: targetObj.pos.x, y: targetObj.pos.y, z: targetObj.pos.z}, 500)
+      .easing(TWEEN.Easing.Cubic.Out)
+      .start();
+  } else {
+    clearSel();
+  }
+});
+
+// DOUBLE-CLICK ANYWHERE TO ZOOM RIGHT INTO THAT PARTICULAR SPOT IN 3D SPACE
+window.addEventListener('dblclick', e => {
+  if(e.target.closest('.panel') || e.target.closest('#bar') || e.target.closest('#dock')) return;
+  RC.setFromCamera(MV, camera);
+  const nodeHits = RC.intersectObjects(NODES.map(o => o.mesh));
+  
+  let targetPoint;
+  if(nodeHits.length > 0){
+    targetPoint = nodeHits[0].point;
+  } else {
+    // Intersect invisible 3D plane at mouse position
+    invisiblePlane.quaternion.copy(camera.quaternion);
+    const planeHits = RC.intersectObject(invisiblePlane);
+    if(planeHits.length > 0){
+      targetPoint = planeHits[0].point;
+    }
+  }
+
+  if(targetPoint){
+    // Move OrbitControls target to clicked point
+    new TWEEN.Tween(controls.target)
+      .to({x: targetPoint.x, y: targetPoint.y, z: targetPoint.z}, 600)
+      .easing(TWEEN.Easing.Cubic.Out)
+      .start();
+
+    // Zoom camera right in front of that spot
+    const camDirection = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+    const newCamPos = new THREE.Vector3().addVectors(targetPoint, camDirection.multiplyScalar(120));
+
+    new TWEEN.Tween(camera.position)
+      .to({x: newCamPos.x, y: newCamPos.y, z: newCamPos.z}, 600)
+      .easing(TWEEN.Easing.Cubic.Out)
+      .start();
+  }
 });
 
 function hoverTest(){
@@ -578,14 +628,14 @@ function selNode(obj){
   FIBERS.forEach(fd => {
     const act = conn.has(fd);
     fd.lines.forEach(ln => { 
-      ln.material.opacity = act ? 0.85 : 0.04; 
+      ln.material.opacity = act ? 0.88 : 0.04; 
       ln.material.color.setHex(act ? (fd.fromIdx === NODES.indexOf(obj) ? 0x38bdf8 : 0xfb7185) : 0x1e293b); 
     });
   });
 
   NODES.forEach(n => {
     const dir = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
-    if(n === obj){ n.mesh.scale.set(2.5,2.5,2.5); n.mesh.material.emissiveIntensity=0.8; n.halo.material.color.setHex(0xf43f5e); n.halo.scale.set(2.0,2.0,2.0); }
+    if(n === obj){ n.mesh.scale.set(2.4,2.4,2.4); n.mesh.material.emissiveIntensity=0.8; n.halo.material.color.setHex(0xf43f5e); n.halo.scale.set(2.0,2.0,2.0); }
     else if(dir){ n.mesh.scale.set(1.5,1.5,1.5); n.mesh.material.emissiveIntensity=0.5; n.halo.scale.set(1.4,1.4,1.4); n.halo.material.color.setHex(0x38bdf8); }
     else { n.mesh.scale.set(0.6,0.6,0.6); n.mesh.material.emissiveIntensity=0.05; n.halo.scale.set(0.6,0.6,0.6); n.halo.material.color.setHex(0x334155); }
   });
@@ -600,7 +650,7 @@ function zoomToSelected(){
     .start();
 
   new TWEEN.Tween(camera.position)
-    .to({x: SEL.pos.x - 120, y: SEL.pos.y + 40, z: SEL.pos.z + 200}, 700)
+    .to({x: SEL.pos.x - 100, y: SEL.pos.y + 30, z: SEL.pos.z + 160}, 700)
     .easing(TWEEN.Easing.Cubic.Out)
     .start();
 }
@@ -608,8 +658,8 @@ function zoomToSelected(){
 function clearSel(){
   SEL = null;
   document.getElementById('rp').classList.remove('open');
-  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.35; ln.material.color.setHex(fd.baseCol); }));
-  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.15; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
+  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.38; ln.material.color.setHex(fd.baseCol); }));
+  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.2; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
 }
 
 function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:3.8,y:3.8,z:3.8},140).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }
@@ -621,9 +671,9 @@ function openPanel(id){ document.getElementById(id).classList.add('open'); }
 function setView(v){
   const tx = controls.target.x;
   let p;
-  if(v==='iso')      p = {x: tx-800, y: 450, z: 1400};
-  else if(v==='side')p = {x: tx-1400, y: 0, z: 0};
-  else               p = {x: tx, y: 1600, z: 1};
+  if(v==='iso')      p = {x: tx-600, y: 300, z: 1000};
+  else if(v==='side')p = {x: tx-1000, y: 0, z: 0};
+  else               p = {x: tx, y: 1200, z: 1};
 
   new TWEEN.Tween(camera.position).to(p, 800).easing(TWEEN.Easing.Cubic.Out).start();
   new TWEEN.Tween(controls.target).to({x: tx, y: 0, z: 0}, 800).easing(TWEEN.Easing.Cubic.Out).start();
@@ -649,7 +699,9 @@ function buildPillarList(tiers, tm, sx, cw){
     const d = document.createElement('div'); d.className = 'pp';
     d.innerHTML = `<span class="pd" style="background:${hex}"></span><span class="pn">${t}</span><span class="pc">${tm[t].length} files</span>`;
     const cx = sx + i*cw;
-    d.onclick = () => new TWEEN.Tween(controls.target).to({x:cx, y:0, z:0}, 550).easing(TWEEN.Easing.Cubic.Out).start();
+    d.onclick = () => {
+      new TWEEN.Tween(controls.target).to({x:cx, y:0, z:0}, 550).easing(TWEEN.Easing.Cubic.Out).start();
+    };
     el.appendChild(d);
   });
 }
@@ -699,7 +751,7 @@ animate(0);
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated clean visualizer index.html ({os.path.getsize(out_file):,} bytes)")
+    print(f"Successfully generated visualizer index.html with compact spacing & double-click zoom ({os.path.getsize(out_file):,} bytes)")
 
 if __name__ == "__main__":
     build_visualizer()

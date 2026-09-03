@@ -17,7 +17,7 @@ def build_visualizer():
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Shadow Arrow — 3D Architecture Visualizer</title>
+<title>Shadow Arrow — Architecture Graph</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -30,9 +30,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060913;font-family:
 #cv{position:fixed;inset:0;z-index:1}
 #ui{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column}
 .ui{pointer-events:auto}
-#bar{background:rgba(15,23,42,.95);backdrop-filter:blur(16px);border-bottom:1px solid #1e293b;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;flex-shrink:0}
+#bar{background:rgba(15,23,42,.95);backdrop-filter:blur(16px);border-bottom:1px solid #1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:12px;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-ic{width:32px;height:32px;border-radius:8px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:13px}
+.logo-ic{width:30px;height:30px;border-radius:8px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:13px}
 .logo-t{font-size:13px;font-weight:700;color:#f8fafc;letter-spacing:-.2px}
 .logo-s{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace}
 .stats{display:flex;align-items:center;gap:2px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:11px}
@@ -43,7 +43,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060913;font-family:
 .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:'Inter',sans-serif}
 .bg{background:#1e293b;border-color:#334155;color:#cbd5e1}.bg:hover{background:#334155;color:#f8fafc}
 .bp{background:#0284c7;border-color:#38bdf8;color:#fff}.bp:hover{background:#0369a1}
-.panel{position:fixed;top:64px;bottom:54px;width:290px;background:rgba(15,23,42,.97);backdrop-filter:blur(16px);border:1px solid #334155;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.panel{position:fixed;top:62px;bottom:52px;width:290px;background:rgba(15,23,42,.97);backdrop-filter:blur(16px);border:1px solid #334155;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1)}
 #lp{left:12px;transform:translateX(-330px)}#lp.open{transform:translateX(0)}
 #rp{right:12px;transform:translateX(350px)}#rp.open{transform:translateX(0)}
 .ph{padding:12px 14px;border-bottom:1px solid #1e293b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
@@ -63,9 +63,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 .pn{font-weight:600;color:#f8fafc;margin-left:8px;flex:1;font-family:'JetBrains Mono',monospace;font-size:10.5px}
 .pc{color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace}
 .di{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto}
-.dout{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25)}
+.dout{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3)}
 .dout .dn{color:#38bdf8;font-weight:600}
-.din{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.25)}
+.din{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3)}
 .din .dn{color:#fb7185;font-weight:600}
 .db{font-size:9px;color:#64748b}
 #dock{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid #334155;border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto;box-shadow:0 20px 50px rgba(0,0,0,.7)}
@@ -83,10 +83,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 </head>
 <body>
 <div id="cv"></div>
-<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Double-click anywhere to zoom right into that spot</div></div>
+<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to isolate connections</div></div>
 <div id="ui">
   <header id="bar" class="ui">
-    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Clean 3D Codebase Dependency Map</div></div></div>
+    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Compact Codebase Dependency Topology</div></div></div>
     <div class="stats ui">
       <div class="si"><i class="fa-solid fa-layer-group" style="color:#f59e0b;font-size:9px"></i>Pillars<b id="s-p" style="color:#f59e0b">—</b></div><div class="sv"></div>
       <div class="si"><i class="fa-solid fa-file-code" style="color:#38bdf8;font-size:9px"></i>Files<b id="s-n" style="color:#38bdf8">—</b></div><div class="sv"></div>
@@ -103,12 +103,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     <div class="ph"><span><i class="fa-solid fa-sliders"></i>Settings & Controls</span><span class="cx" onclick="togglePanel('lp')">✕</span></div>
     <div class="pb">
       <div class="st">Graph Controls</div>
-      <div class="cr"><div class="cl"><span>Lines per Dependency</span><span id="lv-f">2</span></div><input type="range" min="1" max="5" step="1" value="2" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Line Wave Amplitude</span><span id="lv-wa">12</span></div><input type="range" min="0" max="40" step="2" value="12" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
-      <div class="cr"><div class="cl"><span>Wave Animation Speed</span><span id="lv-ws">0.5</span></div><input type="range" min="0.1" max="2.0" step="0.1" value="0.5" oninput="CFG.waveSpeed=+this.value;document.getElementById('lv-ws').textContent=(+this.value).toFixed(1)"></div>
-      <div class="cr"><div class="cl"><span>Spline Curvature</span><span id="lv-cu">0.50</span></div><input type="range" min="0.1" max="1.2" step="0.05" value="0.50" oninput="CFG.curv=+this.value;document.getElementById('lv-cu').textContent=(+this.value).toFixed(2);rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">28</span></div><input type="range" min="12" max="60" step="2" value="28" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Signal Pulse Speed</span><span id="lv-ps">1.0</span></div><input type="range" min="0.1" max="3.0" step="0.1" value="1.0" oninput="CFG.pulseSpeed=+this.value;document.getElementById('lv-ps').textContent=(+this.value).toFixed(1)"></div>
+      <div class="cr"><div class="cl"><span>Lines per Dependency</span><span id="lv-f">2</span></div><input type="range" min="1" max="4" step="1" value="2" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Pillar Horizontal Gap</span><span id="lv-cg">160</span></div><input type="range" min="90" max="260" step="10" value="160" oninput="CFG.colW=+this.value;document.getElementById('lv-cg').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">22</span></div><input type="range" min="10" max="45" step="2" value="22" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Line Wave Amplitude</span><span id="lv-wa">10</span></div><input type="range" min="0" max="30" step="2" value="10" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
+      <div class="cr"><div class="cl"><span>Zoom Sensitivity</span><span id="lv-zs">0.45</span></div><input type="range" min="0.1" max="1.0" step="0.05" value="0.45" oninput="controls.zoomSpeed=+this.value;document.getElementById('lv-zs').textContent=(+this.value).toFixed(2)"></div>
       <div class="st">Project Pillars</div>
       <div id="pillar-list"></div>
     </div>
@@ -129,11 +128,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
         <div style="background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px 4px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-family:'JetBrains Mono'">Imports</div><div id="io" style="font-size:13px;font-weight:700;color:#38bdf8;font-family:'JetBrains Mono';margin-top:2px">—</div></div>
         <div style="background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px 4px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-family:'JetBrains Mono'">Used By</div><div id="ii" style="font-size:13px;font-weight:700;color:#fb7185;font-family:'JetBrains Mono';margin-top:2px">—</div></div>
       </div>
-      <div class="st">Connected Dependencies</div>
+      <div class="st">Isolated Dependencies</div>
       <div class="di" id="id-list"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
-        <button class="btn bp" style="justify-content:center;font-size:10px" onclick="zoomToSelected()"><i class="fa-solid fa-magnifying-glass-plus"></i>Zoom In</button>
-        <button class="btn bg" style="justify-content:center;font-size:10px" onclick="pulseSel()"><i class="fa-solid fa-bolt"></i>Highlight</button>
+        <button class="btn bp" style="justify-content:center;font-size:10px" onclick="focusSelectedNode()"><i class="fa-solid fa-crosshairs"></i>Center View</button>
+        <button class="btn bg" style="justify-content:center;font-size:10px" onclick="pulseSel()"><i class="fa-solid fa-bolt"></i>Pulse Node</button>
       </div>
     </div>
   </aside>
@@ -149,7 +148,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <button class="dk act" id="btn-lbl" onclick="toggleLabels()" title="Toggle File Labels"><i class="fa-solid fa-tags"></i></button>
   <button class="dk" onclick="clearSel()" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
   <div class="ds"></div>
-  <span class="dl">CLICK: Select Node & Focus &middot; DOUBLE-CLICK: Zoom to exact spot &middot; PAN: Right-drag</span>
+  <span class="dl">CLICK NODE: Highlight & Isolate Connections &middot; SCROLL: Controlled Smooth Zoom &middot; DRAG: Orbit / Pan</span>
 </div>
 
 <script>
@@ -158,12 +157,13 @@ const GRAPH_DATA = """ + graph_json + """;
 
 // ════════ CONFIG ════════
 const CFG = {
-  fibers: 2,           // Clean 2 lines per link
-  spread: 2.5,
-  wave: 12,            
+  fibers: 2,           // Clean 2 lines per connection
+  colW: 160,           // COMPACT HORIZONTAL PILLAR GAP (160px instead of 280px)
+  spread: 2.0,
+  wave: 10,            // Subtle line wave animation
   waveSpeed: 0.5,
   curv: 0.50,
-  nodeSpacing: 28,     // COMPACT VERTICAL SPACING FOR DOTS (28px per node)
+  nodeSpacing: 22,     // COMPACT VERTICAL NODE SPACING (22px)
   pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
@@ -195,11 +195,10 @@ function tc(t){ return TIER_COL[t] ?? 0x94a3b8; }
 
 // ════════ THREE.JS SETUP ════════
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x060913, 0.0002);
+scene.fog = new THREE.FogExp2(0x060913, 0.0003);
 
-// near = 0.1 allows zooming infinitely close into any specific spot!
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 20000);
-camera.position.set(-600, 300, 1000);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1.0, 10000);
+camera.position.set(-450, 250, 800);
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
 renderer.setSize(innerWidth, innerHeight);
@@ -208,44 +207,35 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 document.getElementById('cv').appendChild(renderer.domElement);
 
-// Lighting
-const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+// Lighting for clean solid 3D sphere nodes
+const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
 scene.add(ambLight);
-const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight1.position.set(500, 1000, 750);
+const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
+dirLight1.position.set(400, 800, 600);
 scene.add(dirLight1);
-const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
-dirLight2.position.set(-500, -500, -500);
-scene.add(dirLight2);
 
-// OrbitControls
+// Controlled OrbitControls (smooth zoom, no flying past nodes)
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+controls.dampingFactor = 0.06;
 controls.enablePan = true;
 controls.screenSpacePanning = true;
-controls.maxDistance = 15000;
-controls.minDistance = 0.5; // Infinite close-up zoom!
-controls.zoomSpeed = 1.2;
-controls.panSpeed = 1.0;
-
-// Invisible plane for raycasting double-clicks anywhere in space
-const planeGeo = new THREE.PlaneGeometry(20000, 20000);
-const planeMat = new THREE.MeshBasicMaterial({visible: false});
-const invisiblePlane = new THREE.Mesh(planeGeo, planeMat);
-scene.add(invisiblePlane);
+controls.maxDistance = 4000;
+controls.minDistance = 60;   // PREVENTS ZOOM OVERDIVE / FLYING PAST NODES!
+controls.zoomSpeed = 0.45;   // CONTROLLED SMOOTH ZOOM
+controls.panSpeed = 0.9;
 
 // Grid
-const grid = new THREE.GridHelper(8000, 100, 0x1e293b, 0x0f172a);
-grid.position.y = -600;
-grid.material.opacity = 0.4; grid.material.transparent = true;
+const grid = new THREE.GridHelper(5000, 80, 0x1e293b, 0x0f172a);
+grid.position.y = -500;
+grid.material.opacity = 0.35; grid.material.transparent = true;
 scene.add(grid);
 
 // Stars
-const sb = new Float32Array(1500*3);
-for(let i=0;i<sb.length;i++) sb[i]=(Math.random()-.5)*8000;
+const sb = new Float32Array(1200*3);
+for(let i=0;i<sb.length;i++) sb[i]=(Math.random()-.5)*6000;
 const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sb,3));
-scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0x475569,size:1.8,transparent:true,opacity:.3})));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0x475569,size:1.6,transparent:true,opacity:.3})));
 
 // ════════ SCENE STATE ════════
 const GRP = new THREE.Group(); scene.add(GRP);
@@ -277,7 +267,7 @@ function hdrTex(title,sub,hex){
 function lblTex(name){
   const c=document.createElement('canvas'); c.width=260; c.height=48;
   const x=c.getContext('2d'); x.clearRect(0,0,260,48);
-  x.fillStyle='rgba(15,23,42,0.9)'; x.strokeStyle='rgba(100,116,139,0.3)'; x.lineWidth=1;
+  x.fillStyle='rgba(15,23,42,0.92)'; x.strokeStyle='rgba(100,116,139,0.35)'; x.lineWidth=1;
   x.beginPath(); if(x.roundRect)x.roundRect(4,8,252,32,5); else x.rect(4,8,252,32); x.fill(); x.stroke();
   x.font='bold 13px "JetBrains Mono",monospace'; x.fillStyle='#f8fafc'; x.textAlign='center'; x.textBaseline='middle';
   const disp=name.length>22?name.slice(0,21)+'…':name;
@@ -301,7 +291,8 @@ function buildGraph(){
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  const colW=Math.max(240, Math.min(320, 2200/Math.max(pCount-1,1)));
+  // Compact horizontal gap between pillars (160px)
+  const colW=CFG.colW;
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
 
@@ -313,41 +304,41 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // COMPACT NODE SPACING (28px) - Dots are close together
+    // Compact vertical node spacing (22px)
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
 
     // Pillar Header
     const hsp=new THREE.Sprite(new THREE.SpriteMaterial({map:hdrTex(tier.toUpperCase(),`PILLAR ${pi+1} · ${tnodes.length} FILES`,hex),transparent:true,depthTest:false}));
-    hsp.position.set(cx, topY+60, 0);
-    hsp.scale.set(100, 19, 1);
+    hsp.position.set(cx, topY+54, 0);
+    hsp.scale.set(96, 19, 1);
     GRP.add(hsp);
 
     // Dashed rail
-    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+14,0),new THREE.Vector3(cx,-topY-14,0)]);
-    const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:5,gapSize:5,opacity:.3,transparent:true}));
+    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+12,0),new THREE.Vector3(cx,-topY-12,0)]);
+    const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:4,gapSize:4,opacity:.3,transparent:true}));
     rl.computeLineDistances(); GRP.add(rl);
 
     tnodes.forEach((node,ni)=>{
       const y=tnodes.length>1?topY-ni*spacing:0;
-      const z=Math.sin(ni*0.4+pi*1.1)*14;
+      const z=Math.sin(ni*0.4+pi*1.1)*12;
 
-      // CLEAN SOLID SPHERE NODE (NOT TOO BIG, NICELY PACKED)
+      // CLEAN SOLID SPHERE NODE
       const mat=new THREE.MeshStandardMaterial({
         color: col,
-        roughness: 0.35,
-        metalness: 0.25,
+        roughness: 0.3,
+        metalness: 0.3,
         emissive: col,
         emissiveIntensity: 0.2
       });
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.6, 18, 18), mat);
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 16), mat);
       mesh.position.set(cx, y, z);
       GRP.add(mesh);
 
-      // Simple clean stroke ring
+      // Clean halo ring
       const halo=new THREE.Mesh(
-        new THREE.RingGeometry(4.8, 6.2, 18),
+        new THREE.RingGeometry(4.6, 5.8, 18),
         new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.35})
       );
       halo.position.set(cx, y, z);
@@ -355,8 +346,8 @@ function buildGraph(){
 
       // Label sprite
       const lsp=new THREE.Sprite(new THREE.SpriteMaterial({map:lblTex(node.name), transparent:true, depthTest:false, visible:CFG.showLabels}));
-      lsp.position.set(cx, y+9, z);
-      lsp.scale.set(24, 6, 1);
+      lsp.position.set(cx, y+8, z);
+      lsp.scale.set(22, 5.5, 1);
       GRP.add(lsp);
 
       const obj={node, mesh, halo, label:lsp, pos:new THREE.Vector3(cx,y,z), color:col, out:[], in:[]};
@@ -383,17 +374,17 @@ function buildGraph(){
       const oy=Math.cos(angle)*r, oz=Math.sin(angle)*r;
       const phase=Math.random()*Math.PI*2;
 
-      const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.08+oy, p0.z+oz+12);
-      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.08+oy, p3.z+oz+12);
+      const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.08+oy, p0.z+oz+10);
+      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.08+oy, p3.z+oz+10);
       const curve=new THREE.CubicBezierCurve3(p0.clone(), v1, v2, p3.clone());
 
-      const pts=curve.getPoints(36);
+      const pts=curve.getPoints(32);
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
       const mat=new THREE.LineBasicMaterial({
         color: from.color,
         transparent: true,
-        opacity: 0.38,
+        opacity: 0.32,
         depthWrite: false
       });
       const line=new THREE.Line(geo, mat);
@@ -419,14 +410,14 @@ function buildGraph(){
 
   const midX=(startX+(pCount-1)*colW)/2;
   controls.target.set(midX, 0, 0);
-  camera.position.set(midX-600, 300, 1000);
+  camera.position.set(midX-450, 250, 800);
 }
 
 // ════════ PULSE DATA PACKETS ════════
 function buildPulse(){
   if(PULSE){GRP.remove(PULSE);PULSE.geometry.dispose();PULSE.material.dispose();}
   if(!FIBERS.length)return;
-  const COUNT=Math.min(1500, FIBERS.length*CFG.fibers|0);
+  const COUNT=Math.min(1200, FIBERS.length*CFG.fibers|0);
   pPos=new Float32Array(COUNT*3);
   pCol=new Float32Array(COUNT*3);
   pProg=new Float32Array(COUNT);
@@ -450,10 +441,10 @@ function buildPulse(){
   geo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
   geo.setAttribute('color', new THREE.BufferAttribute(pCol,3));
   PULSE=new THREE.Points(geo, new THREE.PointsMaterial({
-    size: 5.0,
+    size: 4.5,
     vertexColors: true,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.85,
     map: glowTex('#38bdf8'),
     depthWrite: false,
     sizeAttenuation: true
@@ -489,7 +480,7 @@ function animateLineWave(t){
       curve.v2.y = b.v2base.y + dY2;
       curve.v2.z = b.v2base.z + dZ2;
 
-      const pts = curve.getPoints(36);
+      const pts = curve.getPoints(32);
       const posArr = fd.lines[ci].geometry.attributes.position.array;
       for(let p=0; p<pts.length; p++){
         posArr[p*3]   = pts[p].x;
@@ -524,7 +515,7 @@ function animatePulse(){
   PULSE.geometry.attributes.position.needsUpdate = true;
 }
 
-// ════════ RAYCASTING & CLICK / DOUBLE-CLICK ZOOM TO ANY SPOT ════════
+// ════════ RAYCASTING & CLICK ISOLATION ════════
 const RC = new THREE.Raycaster();
 const MV = new THREE.Vector2(-9, -9);
 const TT = document.getElementById('tt');
@@ -536,7 +527,7 @@ window.addEventListener('mousemove', e => {
   TT.style.top  = e.clientY + 'px';
 });
 
-// Single-click selects node & smoothly focuses on it
+// Single-click on ANY NODE: Instantly isolates connections and smoothly centers on it!
 window.addEventListener('click', e => {
   if(e.target.closest('.panel') || e.target.closest('#bar') || e.target.closest('#dock')) return;
   RC.setFromCamera(MV, camera);
@@ -544,49 +535,13 @@ window.addEventListener('click', e => {
   if(hits.length){
     const targetObj = hits[0].object.userData.n;
     selNode(targetObj);
-    // Smoothly center orbit target to clicked node
+    // Smoothly recenter target to clicked node without zooming crazy far
     new TWEEN.Tween(controls.target)
-      .to({x: targetObj.pos.x, y: targetObj.pos.y, z: targetObj.pos.z}, 500)
+      .to({x: targetObj.pos.x, y: targetObj.pos.y, z: targetObj.pos.z}, 450)
       .easing(TWEEN.Easing.Cubic.Out)
       .start();
   } else {
     clearSel();
-  }
-});
-
-// DOUBLE-CLICK ANYWHERE TO ZOOM RIGHT INTO THAT PARTICULAR SPOT IN 3D SPACE
-window.addEventListener('dblclick', e => {
-  if(e.target.closest('.panel') || e.target.closest('#bar') || e.target.closest('#dock')) return;
-  RC.setFromCamera(MV, camera);
-  const nodeHits = RC.intersectObjects(NODES.map(o => o.mesh));
-  
-  let targetPoint;
-  if(nodeHits.length > 0){
-    targetPoint = nodeHits[0].point;
-  } else {
-    // Intersect invisible 3D plane at mouse position
-    invisiblePlane.quaternion.copy(camera.quaternion);
-    const planeHits = RC.intersectObject(invisiblePlane);
-    if(planeHits.length > 0){
-      targetPoint = planeHits[0].point;
-    }
-  }
-
-  if(targetPoint){
-    // Move OrbitControls target to clicked point
-    new TWEEN.Tween(controls.target)
-      .to({x: targetPoint.x, y: targetPoint.y, z: targetPoint.z}, 600)
-      .easing(TWEEN.Easing.Cubic.Out)
-      .start();
-
-    // Zoom camera right in front of that spot
-    const camDirection = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
-    const newCamPos = new THREE.Vector3().addVectors(targetPoint, camDirection.multiplyScalar(120));
-
-    new TWEEN.Tween(camera.position)
-      .to({x: newCamPos.x, y: newCamPos.y, z: newCamPos.z}, 600)
-      .easing(TWEEN.Easing.Cubic.Out)
-      .start();
   }
 });
 
@@ -607,7 +562,7 @@ function hoverTest(){
   } else { if(HOV){ HOV=null; TT.style.display='none'; } }
 }
 
-// ════════ SELECTION & CLOSE INSPECTION ZOOM ════════
+// ════════ NODE SELECTION & CONNECTION ISOLATION ════════
 function selNode(obj){
   SEL = obj;
   openPanel('rp');
@@ -624,33 +579,50 @@ function selNode(obj){
   obj.out.forEach(fd => { const t = NODES[fd.toIdx]; dl.innerHTML += `<div class="dout"><span class="dn">↳ ${t.node.name}</span><span class="db">${t.node.tier}</span></div>`; });
   obj.in.forEach(fd  => { const f = NODES[fd.fromIdx]; dl.innerHTML += `<div class="din"><span class="dn">↲ ${f.node.name}</span><span class="db">${f.node.tier}</span></div>`; });
 
-  const conn = new Set([...obj.out, ...obj.in]);
+  const outSet = new Set(obj.out);
+  const inSet  = new Set(obj.in);
+  const conn   = new Set([...obj.out, ...obj.in]);
+
+  // ISOLATE LINES: Incoming = RED/PINK (#fb7185), Outgoing = CYAN (#38bdf8), Unrelated = HIDDEN (0.01 opacity)
   FIBERS.forEach(fd => {
-    const act = conn.has(fd);
+    const isOut = outSet.has(fd);
+    const isIn  = inSet.has(fd);
+    const isConn = isOut || isIn;
+
     fd.lines.forEach(ln => { 
-      ln.material.opacity = act ? 0.88 : 0.04; 
-      ln.material.color.setHex(act ? (fd.fromIdx === NODES.indexOf(obj) ? 0x38bdf8 : 0xfb7185) : 0x1e293b); 
+      ln.material.opacity = isConn ? 0.95 : 0.01; 
+      ln.material.color.setHex(isOut ? 0x38bdf8 : isIn ? 0xfb7185 : 0x1e293b); 
     });
   });
 
+  // ISOLATE NODES: Highlight direct connected nodes, dim all others
   NODES.forEach(n => {
-    const dir = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
-    if(n === obj){ n.mesh.scale.set(2.4,2.4,2.4); n.mesh.material.emissiveIntensity=0.8; n.halo.material.color.setHex(0xf43f5e); n.halo.scale.set(2.0,2.0,2.0); }
-    else if(dir){ n.mesh.scale.set(1.5,1.5,1.5); n.mesh.material.emissiveIntensity=0.5; n.halo.scale.set(1.4,1.4,1.4); n.halo.material.color.setHex(0x38bdf8); }
-    else { n.mesh.scale.set(0.6,0.6,0.6); n.mesh.material.emissiveIntensity=0.05; n.halo.scale.set(0.6,0.6,0.6); n.halo.material.color.setHex(0x334155); }
+    const isTarget = (n === obj);
+    const isDirect = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
+    if(isTarget){
+      n.mesh.scale.set(2.2, 2.2, 2.2);
+      n.mesh.material.emissiveIntensity = 0.8;
+      n.halo.material.color.setHex(0xfb7185);
+      n.halo.scale.set(2.0, 2.0, 2.0);
+    } else if(isDirect){
+      n.mesh.scale.set(1.5, 1.5, 1.5);
+      n.mesh.material.emissiveIntensity = 0.5;
+      n.halo.scale.set(1.4, 1.4, 1.4);
+      n.halo.scale.setScalar(1.4);
+      n.halo.material.color.setHex(0x38bdf8);
+    } else {
+      n.mesh.scale.set(0.6, 0.6, 0.6);
+      n.mesh.material.emissiveIntensity = 0.05;
+      n.halo.scale.set(0.6, 0.6, 0.6);
+      n.halo.material.color.setHex(0x334155);
+    }
   });
 }
 
-function zoomToSelected(){
+function focusSelectedNode(){
   if(!SEL) return;
-  // Zoom camera directly right in front of the selected node position!
   new TWEEN.Tween(controls.target)
-    .to({x: SEL.pos.x, y: SEL.pos.y, z: SEL.pos.z}, 700)
-    .easing(TWEEN.Easing.Cubic.Out)
-    .start();
-
-  new TWEEN.Tween(camera.position)
-    .to({x: SEL.pos.x - 100, y: SEL.pos.y + 30, z: SEL.pos.z + 160}, 700)
+    .to({x: SEL.pos.x, y: SEL.pos.y, z: SEL.pos.z}, 500)
     .easing(TWEEN.Easing.Cubic.Out)
     .start();
 }
@@ -658,11 +630,11 @@ function zoomToSelected(){
 function clearSel(){
   SEL = null;
   document.getElementById('rp').classList.remove('open');
-  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.38; ln.material.color.setHex(fd.baseCol); }));
+  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.32; ln.material.color.setHex(fd.baseCol); }));
   NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.2; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
 }
 
-function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:3.8,y:3.8,z:3.8},140).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }
+function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:3.2,y:3.2,z:3.2},140).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }
 
 // ════════ UI & VIEW HELPERS ════════
 function togglePanel(id){ document.getElementById(id).classList.toggle('open'); }
@@ -671,12 +643,12 @@ function openPanel(id){ document.getElementById(id).classList.add('open'); }
 function setView(v){
   const tx = controls.target.x;
   let p;
-  if(v==='iso')      p = {x: tx-600, y: 300, z: 1000};
-  else if(v==='side')p = {x: tx-1000, y: 0, z: 0};
-  else               p = {x: tx, y: 1200, z: 1};
+  if(v==='iso')      p = {x: tx-450, y: 250, z: 800};
+  else if(v==='side')p = {x: tx-800, y: 0, z: 0};
+  else               p = {x: tx, y: 950, z: 1};
 
-  new TWEEN.Tween(camera.position).to(p, 800).easing(TWEEN.Easing.Cubic.Out).start();
-  new TWEEN.Tween(controls.target).to({x: tx, y: 0, z: 0}, 800).easing(TWEEN.Easing.Cubic.Out).start();
+  new TWEEN.Tween(camera.position).to(p, 750).easing(TWEEN.Easing.Cubic.Out).start();
+  new TWEEN.Tween(controls.target).to({x: tx, y: 0, z: 0}, 750).easing(TWEEN.Easing.Cubic.Out).start();
 }
 
 function togglePause(){ CFG.paused=!CFG.paused; document.getElementById('i-pp').className = CFG.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause'; }
@@ -686,7 +658,7 @@ function toggleLabels(){ CFG.showLabels=!CFG.showLabels; NODES.forEach(n => n.la
 function doTrace(){
   const tiers = [...new Set(NODES.map(n=>n.node.tier))].sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
   tiers.forEach((t,i)=>{
-    setTimeout(()=>{ NODES.filter(n=>n.node.tier===t).forEach(o=>new TWEEN.Tween(o.mesh.scale).to({x:2.5,y:2.5,z:2.5},160).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start()); }, i*180);
+    setTimeout(()=>{ NODES.filter(n=>n.node.tier===t).forEach(o=>new TWEEN.Tween(o.mesh.scale).to({x:2.2,y:2.2,z:2.2},160).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start()); }, i*180);
   });
 }
 
@@ -700,7 +672,7 @@ function buildPillarList(tiers, tm, sx, cw){
     d.innerHTML = `<span class="pd" style="background:${hex}"></span><span class="pn">${t}</span><span class="pc">${tm[t].length} files</span>`;
     const cx = sx + i*cw;
     d.onclick = () => {
-      new TWEEN.Tween(controls.target).to({x:cx, y:0, z:0}, 550).easing(TWEEN.Easing.Cubic.Out).start();
+      new TWEEN.Tween(controls.target).to({x:cx, y:0, z:0}, 500).easing(TWEEN.Easing.Cubic.Out).start();
     };
     el.appendChild(d);
   });
@@ -751,7 +723,7 @@ animate(0);
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated visualizer index.html with compact spacing & double-click zoom ({os.path.getsize(out_file):,} bytes)")
+    print(f"Successfully generated compact visualizer index.html ({os.path.getsize(out_file):,} bytes)")
 
 if __name__ == "__main__":
     build_visualizer()

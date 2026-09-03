@@ -17,82 +17,88 @@ def build_visualizer():
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Shadow Arrow — Architecture Graph Visualizer</title>
+<title>Shadow Arrow — High-End Architecture Visualizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#04060d;font-family:'Inter',-apple-system,sans-serif;color:#cbd5e1}
+html,body{width:100%;height:100%;overflow:hidden;background:#020205;font-family:'Inter',-apple-system,sans-serif;color:#cbd5e1}
 #cv{position:fixed;inset:0;z-index:1}
 #ui{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column}
 .ui{pointer-events:auto}
-#bar{background:rgba(15,23,42,.95);backdrop-filter:blur(16px);border-bottom:1px solid #1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:12px;flex-shrink:0}
+#bar{background:rgba(8,12,24,.95);backdrop-filter:blur(16px);border-bottom:1px solid #1e293b;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-ic{width:30px;height:30px;border-radius:8px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#00d5ff;font-size:13px}
+.logo-ic{width:32px;height:32px;border-radius:8px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#00d5ff;font-size:13px}
 .logo-t{font-size:13px;font-weight:700;color:#f8fafc;letter-spacing:-.2px}
-.logo-s{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace}
-.stats{display:flex;align-items:center;gap:2px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:11px}
-.si{display:flex;align-items:center;gap:5px;padding:0 8px;color:#94a3b8}
+.logo-s{font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace}
+.stats{display:flex;align-items:center;gap:2px;background:#080c18;border:1px solid #1e293b;border-radius:8px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:11px}
+.si{display:flex;align-items:center;gap:5px;padding:0 8px;color:#64748b}
 .si b{font-weight:700}
 .sv{width:1px;height:14px;background:#1e293b}
 .acts{display:flex;gap:8px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:'Inter',sans-serif}
-.bg{background:#1e293b;border-color:#334155;color:#cbd5e1}.bg:hover{background:#334155;color:#f8fafc}
+.bg{background:#0f172a;border-color:#1e293b;color:#94a3b8}.bg:hover{background:#1e293b;color:#f8fafc}
 .bp{background:#0284c7;border-color:#38bdf8;color:#fff}.bp:hover{background:#0369a1}
-.panel{position:fixed;top:62px;bottom:52px;width:290px;background:rgba(15,23,42,.97);backdrop-filter:blur(16px);border:1px solid #334155;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1)}
-#lp{left:12px;transform:translateX(-330px)}#lp.open{transform:translateX(0)}
-#rp{right:12px;transform:translateX(350px)}#rp.open{transform:translateX(0)}
-.ph{padding:12px 14px;border-bottom:1px solid #1e293b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.ph span:first-child{display:flex;align-items:center;gap:6px;color:#cbd5e1}
-.cx{cursor:pointer;color:#64748b;font-size:14px}.cx:hover{color:#f8fafc}
+.panel{position:fixed;top:64px;bottom:54px;width:290px;background:rgba(8,12,24,.96);backdrop-filter:blur(16px);border:1px solid #1e293b;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+#lp{left:12px;transform:translateX(-320px)}#lp.open{transform:translateX(0)}
+#rp{right:12px;transform:translateX(340px)}#rp.open{transform:translateX(0)}
+.ph{padding:12px 14px;border-bottom:1px solid #1e293b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.ph span:first-child{display:flex;align-items:center;gap:6px;color:#94a3b8}
+.cx{cursor:pointer;color:#475569;font-size:14px}.cx:hover{color:#f8fafc}
 .pb{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
-.pb::-webkit-scrollbar{width:3px}.pb::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
-.st{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-top:4px}
+.pb::-webkit-scrollbar{width:3px}.pb::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.st{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin-top:4px}
 .cr{display:flex;flex-direction:column;gap:4px}
-.cl{font-size:10px;font-family:'JetBrains Mono',monospace;color:#94a3b8;display:flex;justify-content:space-between}
+.cl{font-size:10px;font-family:'JetBrains Mono',monospace;color:#64748b;display:flex;justify-content:space-between}
 .cl span:last-child{color:#00d5ff;font-weight:700}
-input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:#334155;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#00d5ff;cursor:pointer}
-.pp{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;cursor:pointer;transition:all .15s;font-size:11px}
-.pp:hover{background:#1e293b;border-color:#00d5ff}
-.pd{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.pn{font-weight:600;color:#f8fafc;margin-left:8px;flex:1;font-family:'JetBrains Mono',monospace;font-size:10.5px}
-.pc{color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace}
-.di{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto}
-.dout{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(0,213,255,.1);border:1px solid rgba(0,213,255,.3)}
-.dout .dn{color:#00d5ff;font-weight:600}
-.din{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(255,0,85,.1);border:1px solid rgba(255,0,85,.3)}
-.din .dn{color:#ff0055;font-weight:600}
-.db{font-size:9px;color:#64748b}
-#dock{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid #334155;border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto;box-shadow:0 20px 50px rgba(0,0,0,.7)}
-.dk{width:32px;height:32px;border-radius:7px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;cursor:pointer;transition:all .15s;font-size:11px}
-.dk:hover{background:#334155;color:#f8fafc;border-color:#00d5ff}
-.dk.act{background:rgba(0,213,255,.15);border-color:#00d5ff;color:#00d5ff}
-.ds{width:1px;height:20px;background:#334155}
-.dl{font-size:9.5px;font-family:'JetBrains Mono',monospace;color:#94a3b8;padding:0 4px}
-#tt{position:fixed;z-index:30;pointer-events:none;display:none;padding:8px 12px;background:#0f172a;border:1px solid #00d5ff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:'JetBrains Mono',monospace;font-size:10px;color:#f8fafc;transform:translate(16px,12px);max-width:230px}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:#1e293b;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#00d5ff;cursor:pointer}
+.pp{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#080c18;border:1px solid #1e293b;border-radius:8px;cursor:pointer;transition:all .15s;font-size:11px}
+.pp:hover{background:#0f172a;border-color:#334155}
+.pd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pn{font-weight:600;color:#e2e8f0;margin-left:8px;flex:1;font-family:'JetBrains Mono',monospace;font-size:10.5px}
+.pc{color:#475569;font-size:10px;font-family:'JetBrains Mono',monospace}
+.di{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto}
+.dout{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(0,213,255,.06);border:1px solid rgba(0,213,255,.2)}
+.dout .dn{color:#00d5ff}
+.din{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(255,0,85,.06);border:1px solid rgba(255,0,85,.2)}
+.din .dn{color:#ff0055}
+.db{font-size:9px;color:#334155}
+#dock{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(8,12,24,.96);backdrop-filter:blur(16px);border:1px solid #1e293b;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;pointer-events:auto;box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.dk{width:32px;height:32px;border-radius:7px;background:#0f172a;border:1px solid #1e293b;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;transition:all .15s;font-size:11px}
+.dk:hover{background:#1e293b;color:#f1f5f9;border-color:#334155}
+.dk.act{background:rgba(0,213,255,.12);border-color:rgba(0,213,255,.4);color:#00d5ff}
+.ds{width:1px;height:20px;background:#1e293b}
+.dl{font-size:9.5px;font-family:'JetBrains Mono',monospace;color:#475569;padding:0 4px}
+#tt{position:fixed;z-index:30;pointer-events:none;display:none;padding:8px 12px;background:#080c18;border:1px solid #00d5ff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:'JetBrains Mono',monospace;font-size:10px;color:#f8fafc;transform:translate(16px,12px);max-width:220px}
 #tt .tf{font-size:11px;font-weight:700;color:#00d5ff;margin-bottom:4px}
 #tt .tr{display:flex;justify-content:space-between;gap:12px;margin-top:1px}
-#tt .tk{color:#64748b}#tt .tv{color:#f8fafc;font-weight:600}
-#tt .th{font-size:9px;color:#00d5ff;margin-top:5px;border-top:1px solid #1e293b;padding-top:4px}
+#tt .tk{color:#475569}#tt .tv{color:#e2e8f0;font-weight:600}
+#tt .th{font-size:9px;color:#334155;margin-top:5px;border-top:1px solid #1e293b;padding-top:4px}
 </style>
 </head>
 <body>
 <div id="cv"></div>
-<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to inspect & isolate connections</div></div>
+<div id="tt"><div class="tf" id="tt-n">file.tsx</div><div class="tr"><span class="tk">Tier</span><span class="tv" id="tt-t">components</span></div><div class="tr"><span class="tk">LOC</span><span class="tv" id="tt-s">120</span></div><div class="tr"><span class="tk">Imports</span><span class="tv" id="tt-o">3</span></div><div class="tr"><span class="tk">Used by</span><span class="tv" id="tt-i">2</span></div><div class="th">Click node to isolate dependency chain</div></div>
 <div id="ui">
   <header id="bar" class="ui">
-    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Compact Non-Flipping 2D/3D Slide Visualizer</div></div></div>
+    <div class="logo"><div class="logo-ic"><i class="fa-solid fa-code-branch"></i></div><div><div class="logo-t">Shadow Arrow — Architecture Graph</div><div class="logo-s">Cinematic 3D Codebase Dependency Topology</div></div></div>
     <div class="stats ui">
       <div class="si"><i class="fa-solid fa-layer-group" style="color:#f59e0b;font-size:9px"></i>Pillars<b id="s-p" style="color:#f59e0b">—</b></div><div class="sv"></div>
       <div class="si"><i class="fa-solid fa-file-code" style="color:#00d5ff;font-size:9px"></i>Files<b id="s-n" style="color:#00d5ff">—</b></div><div class="sv"></div>
       <div class="si"><i class="fa-solid fa-arrows-left-right" style="color:#ff0055;font-size:9px"></i>Deps<b id="s-l" style="color:#ff0055">—</b></div><div class="sv"></div>
-      <div class="si"><i class="fa-solid fa-bezier-curve" style="color:#00ff88;font-size:9px"></i>Lines<b id="s-f" style="color:#00ff88">—</b></div><div class="sv"></div>
-      <div class="si"><i class="fa-solid fa-gauge-high" style="color:#94a3b8;font-size:9px"></i>FPS<b id="s-fps" style="color:#f8fafc">—</b></div>
+      <div class="si"><i class="fa-solid fa-bezier-curve" style="color:#00ff88;font-size:9px"></i>Splines<b id="s-f" style="color:#00ff88">—</b></div><div class="sv"></div>
+      <div class="si"><i class="fa-solid fa-gauge-high" style="color:#94a3b8;font-size:9px"></i>FPS<b id="s-fps" style="color:#f1f5f9">—</b></div>
     </div>
     <div class="acts ui">
       <button class="btn bg" onclick="togglePanel('lp')"><i class="fa-solid fa-sliders"></i>Settings</button>
@@ -102,11 +108,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <aside id="lp" class="panel ui">
     <div class="ph"><span><i class="fa-solid fa-sliders"></i>Settings & Controls</span><span class="cx" onclick="togglePanel('lp')">✕</span></div>
     <div class="pb">
-      <div class="st">Graph Controls</div>
-      <div class="cr"><div class="cl"><span>Lines per Dependency</span><span id="lv-f">2</span></div><input type="range" min="1" max="4" step="1" value="2" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Pillar Horizontal Gap</span><span id="lv-cg">140</span></div><input type="range" min="80" max="240" step="10" value="140" oninput="CFG.colW=+this.value;document.getElementById('lv-cg').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">14</span></div><input type="range" min="8" max="36" step="2" value="14" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Line Wave Amplitude</span><span id="lv-wa">8</span></div><input type="range" min="0" max="30" step="2" value="8" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
+      <div class="st">Graph Layout</div>
+      <div class="cr"><div class="cl"><span>Splines per Link</span><span id="lv-f">2</span></div><input type="range" min="1" max="4" step="1" value="2" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Pillar Horizontal Gap</span><span id="lv-cg">180</span></div><input type="range" min="100" max="280" step="10" value="180" oninput="CFG.colW=+this.value;document.getElementById('lv-cg').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Node Vertical Spacing</span><span id="lv-ns">32</span></div><input type="range" min="16" max="60" step="2" value="32" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Signal Pulse Speed</span><span id="lv-ps">1.0</span></div><input type="range" min="0.1" max="3.0" step="0.1" value="1.0" oninput="CFG.pulseSpeed=+this.value;document.getElementById('lv-ps').textContent=(+this.value).toFixed(1)"></div>
+      <div class="st">Bloom Glow</div>
+      <div class="cr"><div class="cl"><span>Bloom Strength</span><span id="lv-bs">1.2</span></div><input type="range" min="0.1" max="3.0" step="0.1" value="1.2" oninput="bloomPass.strength=+this.value;document.getElementById('lv-bs').textContent=(+this.value).toFixed(1)"></div>
       <div class="st">Project Pillars</div>
       <div id="pillar-list"></div>
     </div>
@@ -139,15 +147,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div id="dock">
   <button class="dk" id="btn-pp" onclick="togglePause()" title="Play/Pause"><i class="fa-solid fa-pause" id="i-pp"></i></button>
   <div class="ds"></div>
-  <button class="dk" onclick="setView('iso')" title="Isometric Perspective"><i class="fa-solid fa-cube"></i></button>
-  <button class="dk" onclick="setView('side')" title="2D Front Slide View"><i class="fa-solid fa-table-columns"></i></button>
-  <button class="dk" onclick="setView('top')" title="Top Flow View"><i class="fa-solid fa-arrows-up-down"></i></button>
+  <button class="dk" onclick="setView('iso')" title="Isometric View"><i class="fa-solid fa-cube"></i></button>
+  <button class="dk" onclick="setView('side')" title="Clean Front View"><i class="fa-solid fa-table-columns"></i></button>
+  <button class="dk" onclick="setView('top')" title="Top Flow"><i class="fa-solid fa-arrows-up-down"></i></button>
   <div class="ds"></div>
   <button class="dk" id="btn-rot" onclick="toggleRot()" title="Auto-orbit"><i class="fa-solid fa-arrows-spin"></i></button>
   <button class="dk act" id="btn-lbl" onclick="toggleLabels()" title="Toggle File Labels"><i class="fa-solid fa-tags"></i></button>
   <button class="dk" onclick="clearSel()" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
   <div class="ds"></div>
-  <span class="dl">LEFT-DRAG: Smooth Slide (No Flipping!) &middot; SCROLL: Zoom to Mouse &middot; CLICK: Inspect Node</span>
+  <span class="dl">CLICK: Isolate File Dependencies &middot; LEFT-DRAG: Smooth Slide (No Flip) &middot; SCROLL: Zoom to Cursor</span>
 </div>
 
 <script>
@@ -157,26 +165,23 @@ const GRAPH_DATA = """ + graph_json + """;
 // ════════ CONFIG ════════
 const CFG = {
   fibers: 2,           
-  colW: 140,           // COMPACT HORIZONTAL PILLAR GAP (140px)
-  spread: 1.8,
-  wave: 8,            
-  waveSpeed: 0.5,
-  curv: 0.50,
-  nodeSpacing: 14,     // SUPER COMPACT VERTICAL SPACING FOR DOTS (14px per node)
+  colW: 180,           // Clean 180px pillar spacing
+  spread: 2.2,
+  curv: 0.55,
+  nodeSpacing: 32,     // BALANCED COMPACT NODE SPACING (32px)
   pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
   showLabels: true,
 };
 
-// EXACT MATCH GRAPH COLOR PALETTE:
-// Amber, Hot Crimson, Mint Green, Laser Cyan, Purple/Slate
+// EXACT MATCH DITTO COLOR PALETTE:
 const TIER_COL = {
   config:      0xf59e0b, // Amber (Pillar 1)
   root:        0xf59e0b,
   static:      0xf59e0b,
 
-  routes:      0xff0055, // Hot Crimson / Magenta (Pillar 2)
+  routes:      0xff0055, // Hot Crimson (Pillar 2)
   controllers: 0xff0055,
   pages:       0xff0055,
   storefront:  0xff0055,
@@ -202,26 +207,38 @@ function tc(t){ return TIER_COL[t] ?? 0x00d5ff; }
 
 // ════════ THREE.JS SETUP ════════
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x04060d, 0.0003);
+scene.fog = new THREE.FogExp2(0x020205, 0.0003);
 
 const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1.0, 10000);
-camera.position.set(0, 0, 700); // Default flat front view
+camera.position.set(0, 0, 750);
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.1;
 document.getElementById('cv').appendChild(renderer.domElement);
 
-// Lighting for clean solid 3D spheres
+// Postprocessing Bloom Pass (Cinematic Selective Bloom)
+const bloomPass = new THREE.UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight),
+  1.2,  // Bloom Strength: 1.2
+  0.5,  // Radius: 0.5
+  0.18  // Threshold: 0.18
+);
+
+const composer = new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene, camera));
+composer.addPass(bloomPass);
+
+// Lighting for 3D sphere nodes
 const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
 scene.add(ambLight);
-const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
+const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight1.position.set(400, 800, 600);
 scene.add(dirLight1);
 
-// OrbitControls: LEFT CLICK DRAG = SMOOTH PAN/SLIDE (NO SCENE FLIPPING!)
+// OrbitControls (Smooth slide panning, non-flipping front view)
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -229,31 +246,31 @@ controls.enablePan = true;
 controls.screenSpacePanning = true;
 
 // LOCK POLAR ANGLE TO PREVENT UPSIDE-DOWN SCENE FLIPPING!
-controls.minPolarAngle = Math.PI / 2 - 0.2; // Locks vertical tilt to clean front view
-controls.maxPolarAngle = Math.PI / 2 + 0.2;
-controls.minAzimuthAngle = -Math.PI / 4;
-controls.maxAzimuthAngle = Math.PI / 4;
+controls.minPolarAngle = Math.PI / 2 - 0.25;
+controls.maxPolarAngle = Math.PI / 2 + 0.25;
+controls.minAzimuthAngle = -Math.PI / 3;
+controls.maxAzimuthAngle = Math.PI / 3;
 
-// MOUSE BUTTON MAPPING: Left Drag = PAN/SLIDE, Right Drag = ROTATE
+// Mouse controls: Left Click Drag = PAN / SLIDE (No Flip)
 controls.mouseButtons = {
-  LEFT: THREE.MOUSE.PAN,      // ← Left click drag slides smoothly side to side (No flip!)
+  LEFT: THREE.MOUSE.PAN,
   MIDDLE: THREE.MOUSE.DOLLY,
-  RIGHT: THREE.MOUSE.ROTATE   // ← Right click drag rotates if user wants
+  RIGHT: THREE.MOUSE.ROTATE
 };
 
-controls.maxDistance = 3500;
+controls.maxDistance = 4000;
 controls.minDistance = 40;
-controls.enableZoom = false; // Custom wheel listener zooms directly to mouse position!
+controls.enableZoom = false; // Custom wheel listener zooms directly to mouse position
 controls.panSpeed = 1.2;
 
 // Grid
 const grid = new THREE.GridHelper(5000, 80, 0x1e293b, 0x0f172a);
-grid.position.y = -400;
-grid.material.opacity = 0.35; grid.material.transparent = true;
+grid.position.y = -500;
+grid.material.opacity = 0.3; grid.material.transparent = true;
 scene.add(grid);
 
 // Stars
-const sb = new Float32Array(1200*3);
+const sb = new Float32Array(1500*3);
 for(let i=0;i<sb.length;i++) sb[i]=(Math.random()-.5)*6000;
 const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sb,3));
 scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0x475569,size:1.6,transparent:true,opacity:.3})));
@@ -270,7 +287,7 @@ function glowTex(hex='#00d5ff'){
   const c=document.createElement('canvas'); c.width=c.height=64;
   const x=c.getContext('2d');
   const g=x.createRadialGradient(32,32,0,32,32,32);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(0.3,hex); g.addColorStop(1,'rgba(0,0,0,0)');
+  g.addColorStop(0,'#ffffff'); g.addColorStop(0.35,hex); g.addColorStop(1,'rgba(0,0,0,0)');
   x.fillStyle=g; x.fillRect(0,0,64,64);
   return new THREE.CanvasTexture(c);
 }
@@ -312,7 +329,7 @@ function buildGraph(){
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  const colW=CFG.colW; // 140px horizontal gap
+  const colW=CFG.colW; // 180px gap
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
 
@@ -324,50 +341,50 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // SUPER COMPACT NODE VERTICAL SPACING (14px)
+    // BALANCED NODE SPACING (32px)
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
 
     // Pillar Header
     const hsp=new THREE.Sprite(new THREE.SpriteMaterial({map:hdrTex(tier.toUpperCase(),`PILLAR ${pi+1} · ${tnodes.length} FILES`,hex),transparent:true,depthTest:false}));
-    hsp.position.set(cx, topY+48, 0);
-    hsp.scale.set(90, 18, 1);
+    hsp.position.set(cx, topY+54, 0);
+    hsp.scale.set(96, 19, 1);
     GRP.add(hsp);
 
     // Dashed rail
-    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+10,0),new THREE.Vector3(cx,-topY-10,0)]);
+    const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+12,0),new THREE.Vector3(cx,-topY-12,0)]);
     const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:4,gapSize:4,opacity:.3,transparent:true}));
     rl.computeLineDistances(); GRP.add(rl);
 
     tnodes.forEach((node,ni)=>{
       const y=tnodes.length>1?topY-ni*spacing:0;
-      const z=Math.sin(ni*0.4+pi*1.1)*10;
+      const z=Math.sin(ni*0.4+pi*1.1)*12;
 
-      // DITTO GRAPH COLOR - SOLID CLEAN 3D SPHERE NODE (NO NEON GLOW BLOWOUT)
+      // SLEEK GLOWING MICRO-PIN NODE
       const mat=new THREE.MeshStandardMaterial({
         color: col,
-        roughness: 0.3,
-        metalness: 0.3,
+        roughness: 0.2,
+        metalness: 0.8,
         emissive: col,
-        emissiveIntensity: 0.2
+        emissiveIntensity: 0.65
       });
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.2, 16, 16), mat);
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.6, 18, 18), mat);
       mesh.position.set(cx, y, z);
       GRP.add(mesh);
 
-      // Clean halo ring
+      // Outer glow ring
       const halo=new THREE.Mesh(
-        new THREE.RingGeometry(4.2, 5.4, 18),
-        new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.35})
+        new THREE.RingGeometry(4.8, 6.2, 18),
+        new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.45, blending:THREE.AdditiveBlending})
       );
       halo.position.set(cx, y, z);
       GRP.add(halo);
 
       // Label sprite
       const lsp=new THREE.Sprite(new THREE.SpriteMaterial({map:lblTex(node.name), transparent:true, depthTest:false, visible:CFG.showLabels}));
-      lsp.position.set(cx, y+7, z);
-      lsp.scale.set(20, 5, 1);
+      lsp.position.set(cx, y+8, z);
+      lsp.scale.set(22, 5.5, 1);
       GRP.add(lsp);
 
       const obj={node, mesh, halo, label:lsp, pos:new THREE.Vector3(cx,y,z), color:col, out:[], in:[]};
@@ -377,34 +394,35 @@ function buildGraph(){
     });
   });
 
-  // ── Build Lines (Clean Distinct Color Per Tier) ───────────────────────────
+  // ── Build Clean Curved Bezier Splines (Smooth S-Curves Out of Nodes) ─────
   links.forEach(link=>{
     const si=idMap[link.source], ti=idMap[link.target];
     if(si===undefined||ti===undefined)return;
     const from=NODES[si], to=NODES[ti];
     const p0=from.pos, p3=to.pos;
-    const dx=p3.x-p0.x, dy=p3.y-p0.y;
-    const cpOff=Math.abs(dx)*CFG.curv*0.5;
+    const dx=p3.x-p0.x;
+    const cpOff=Math.abs(dx)*CFG.curv*0.55;
 
-    const fd={curves:[], lines:[], bases:[], fromIdx:si, toIdx:ti, baseCol:from.color};
+    const fd={curves:[], lines:[], fromIdx:si, toIdx:ti, baseCol:from.color};
 
     for(let f=0; f<CFG.fibers; f++){
       const angle=(f/CFG.fibers)*Math.PI*2;
-      const r=(0.4+Math.random()*0.6)*CFG.spread;
+      const r=(0.3+Math.random()*0.7)*CFG.spread;
       const oy=Math.cos(angle)*r, oz=Math.sin(angle)*r;
-      const phase=Math.random()*Math.PI*2;
 
-      const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.08+oy, p0.z+oz+8);
-      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.08+oy, p3.z+oz+8);
+      // Smooth S-Curve control points: exit horizontally from source, enter horizontally to target
+      const v1=new THREE.Vector3(p0.x+cpOff, p0.y+oy, p0.z+oz);
+      const v2=new THREE.Vector3(p3.x-cpOff, p3.y+oy, p3.z+oz);
       const curve=new THREE.CubicBezierCurve3(p0.clone(), v1, v2, p3.clone());
 
-      const pts=curve.getPoints(32);
+      const pts=curve.getPoints(36);
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
       const mat=new THREE.LineBasicMaterial({
         color: from.color,
         transparent: true,
-        opacity: 0.32,
+        opacity: 0.35,
+        blending: THREE.AdditiveBlending,
         depthWrite: false
       });
       const line=new THREE.Line(geo, mat);
@@ -412,7 +430,6 @@ function buildGraph(){
 
       fd.curves.push(curve);
       fd.lines.push(line);
-      fd.bases.push({ v1base:v1.clone(), v2base:v2.clone(), oy, oz, phase });
     }
     from.out.push(fd); to.in.push(fd);
     FIBERS.push(fd);
@@ -430,14 +447,14 @@ function buildGraph(){
 
   const midX=(startX+(pCount-1)*colW)/2;
   controls.target.set(midX, 0, 0);
-  camera.position.set(midX, 0, 650);
+  camera.position.set(midX, 0, 750);
 }
 
-// ════════ PULSE DATA PACKETS ════════
+// ════════ FLOWING SIGNAL PULSE PARTICLES (SMOOTH DATA SLUGS) ════════
 function buildPulse(){
   if(PULSE){GRP.remove(PULSE);PULSE.geometry.dispose();PULSE.material.dispose();}
   if(!FIBERS.length)return;
-  const COUNT=Math.min(1000, FIBERS.length*CFG.fibers|0);
+  const COUNT=Math.min(2400, FIBERS.length*CFG.fibers*1.5|0);
   pPos=new Float32Array(COUNT*3);
   pCol=new Float32Array(COUNT*3);
   pProg=new Float32Array(COUNT);
@@ -450,7 +467,7 @@ function buildPulse(){
     const ci=Math.floor(Math.random()*FIBERS[fi].curves.length);
     pFIdx[i]=fi; pCIdx[i]=ci;
     pProg[i]=Math.random();
-    pSpd[i]=0.002+Math.random()*0.005;
+    pSpd[i]=0.003+Math.random()*0.007; // Smooth flowing motion
     const c=new THREE.Color(FIBERS[fi].baseCol);
     pCol[i*3]=c.r; pCol[i*3+1]=c.g; pCol[i*3+2]=c.b;
     const pt=FIBERS[fi].curves[ci].getPoint(pProg[i]);
@@ -461,55 +478,16 @@ function buildPulse(){
   geo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
   geo.setAttribute('color', new THREE.BufferAttribute(pCol,3));
   PULSE=new THREE.Points(geo, new THREE.PointsMaterial({
-    size: 4.2,
+    size: 5.5,
     vertexColors: true,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
     map: glowTex('#00d5ff'),
     depthWrite: false,
     sizeAttenuation: true
   }));
   GRP.add(PULSE);
-}
-
-// ════════ CONTINUOUS LINE WAVE ANIMATION ════════
-function animateLineWave(t){
-  if(CFG.paused || CFG.wave < 0.5) return;
-  const amp = CFG.wave;
-  const spd = CFG.waveSpeed;
-
-  FIBERS.forEach((fd, fi) => {
-    fd.curves.forEach((curve, ci) => {
-      const b = fd.bases[ci];
-      if(!b) return;
-
-      const phase1 = t * 0.001 * spd + fi * 0.15 + ci * 0.3 + b.phase;
-      const phase2 = t * 0.0014 * spd + fi * 0.10 + ci * 0.4 + b.phase + 1.2;
-
-      const dY1 = Math.sin(phase1) * amp;
-      const dZ1 = Math.cos(phase1 * 0.85) * amp * 0.7;
-
-      const dY2 = Math.sin(phase2) * amp;
-      const dZ2 = Math.cos(phase2 * 0.85) * amp * 0.7;
-
-      curve.v1.x = b.v1base.x;
-      curve.v1.y = b.v1base.y + dY1;
-      curve.v1.z = b.v1base.z + dZ1;
-
-      curve.v2.x = b.v2base.x;
-      curve.v2.y = b.v2base.y + dY2;
-      curve.v2.z = b.v2base.z + dZ2;
-
-      const pts = curve.getPoints(32);
-      const posArr = fd.lines[ci].geometry.attributes.position.array;
-      for(let p=0; p<pts.length; p++){
-        posArr[p*3]   = pts[p].x;
-        posArr[p*3+1] = pts[p].y;
-        posArr[p*3+2] = pts[p].z;
-      }
-      fd.lines[ci].geometry.attributes.position.needsUpdate = true;
-    });
-  });
 }
 
 // ════════ DATA PULSE ANIMATION ════════
@@ -654,19 +632,19 @@ function selNode(obj){
     const isTarget = (n === obj);
     const isDirect = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
     if(isTarget){
-      n.mesh.scale.set(2.2, 2.2, 2.2);
-      n.mesh.material.emissiveIntensity = 0.8;
+      n.mesh.scale.set(2.4, 2.4, 2.4);
+      n.mesh.material.emissiveIntensity = 2.0;
       n.halo.material.color.setHex(0xff0055);
-      n.halo.scale.set(2.0, 2.0, 2.0);
+      n.halo.scale.set(2.2, 2.2, 2.2);
     } else if(isDirect){
-      n.mesh.scale.set(1.5, 1.5, 1.5);
-      n.mesh.material.emissiveIntensity = 0.5;
-      n.halo.scale.set(1.4, 1.4, 1.4);
+      n.mesh.scale.set(1.6, 1.6, 1.6);
+      n.mesh.material.emissiveIntensity = 1.2;
+      n.halo.scale.set(1.5, 1.5, 1.5);
       n.halo.material.color.setHex(0x00d5ff);
     } else {
-      n.mesh.scale.set(0.6, 0.6, 0.6);
+      n.mesh.scale.set(0.55, 0.55, 0.55);
       n.mesh.material.emissiveIntensity = 0.05;
-      n.halo.scale.set(0.6, 0.6, 0.6);
+      n.halo.scale.set(0.55, 0.55, 0.55);
       n.halo.material.color.setHex(0x334155);
     }
   });
@@ -683,11 +661,11 @@ function focusSelectedNode(){
 function clearSel(){
   SEL = null;
   document.getElementById('rp').classList.remove('open');
-  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.32; ln.material.color.setHex(fd.baseCol); }));
-  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.2; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
+  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.35; ln.material.color.setHex(fd.baseCol); }));
+  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.65; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
 }
 
-function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:3.2,y:3.2,z:3.2},140).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }
+function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:3.4,y:3.4,z:3.4},140).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }
 
 // ════════ UI & VIEW HELPERS ════════
 function togglePanel(id){ document.getElementById(id).classList.toggle('open'); }
@@ -697,7 +675,7 @@ function setView(v){
   const tx = controls.target.x;
   let p;
   if(v==='iso')      p = {x: tx-450, y: 250, z: 800};
-  else if(v==='side')p = {x: tx, y: 0, z: 650}; // Clean front view (NO FLIPPING!)
+  else if(v==='side')p = {x: tx, y: 0, z: 750};
   else               p = {x: tx, y: 950, z: 1};
 
   new TWEEN.Tween(camera.position).to(p, 750).easing(TWEEN.Easing.Cubic.Out).start();
@@ -739,8 +717,7 @@ function animate(t){
   controls.update();
 
   if(!CFG.paused){
-    animateLineWave(t);
-    animatePulse();
+    animatePulse(); // Flowing signal light slugs along smooth splines!
     NODES.forEach((o,i) => {
       if(o !== SEL){
         o.halo.rotation.z += 0.008;
@@ -749,7 +726,7 @@ function animate(t){
   }
 
   hoverTest();
-  renderer.render(scene, camera);
+  composer.render();
 
   fpsC++;
   if(t-fps0 >= 1000){
@@ -762,6 +739,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ════════ INIT ════════
@@ -776,7 +754,7 @@ animate(0);
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated non-flipping visualizer index.html ({os.path.getsize(out_file):,} bytes)")
+    print(f"Successfully generated cinematic visualizer index.html ({os.path.getsize(out_file):,} bytes)")
 
 if __name__ == "__main__":
     build_visualizer()

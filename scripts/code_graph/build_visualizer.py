@@ -109,16 +109,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;heigh
     <div class="ph"><span><i class="fa-solid fa-sliders"></i>Settings</span><span class="cx" onclick="togglePanel('lp')">✕</span></div>
     <div class="pb">
       <div class="st">Fiber Cable Bundles</div>
-      <div class="cr"><div class="cl"><span>Fibers per link</span><span id="lv-f">10</span></div><input type="range" min="3" max="20" step="1" value="10" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Bundle spread radius</span><span id="lv-sp">4.5</span></div><input type="range" min="1" max="12" step="0.5" value="4.5" oninput="CFG.spread=+this.value;document.getElementById('lv-sp').textContent=(+this.value).toFixed(1);rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Line Wave Motion (Amp)</span><span id="lv-wa">24</span></div><input type="range" min="0" max="80" step="2" value="24" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
-      <div class="cr"><div class="cl"><span>Wave Frequency</span><span id="lv-ws">0.8</span></div><input type="range" min="0.1" max="3.0" step="0.1" value="0.8" oninput="CFG.waveSpeed=+this.value;document.getElementById('lv-ws').textContent=(+this.value).toFixed(1)"></div>
+      <div class="cr"><div class="cl"><span>Fibers per link</span><span id="lv-f">4</span></div><input type="range" min="1" max="10" step="1" value="4" oninput="CFG.fibers=+this.value;document.getElementById('lv-f').textContent=this.value;rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Bundle spread radius</span><span id="lv-sp">6.0</span></div><input type="range" min="1" max="15" step="0.5" value="6.0" oninput="CFG.spread=+this.value;document.getElementById('lv-sp').textContent=(+this.value).toFixed(1);rebuild()"></div>
+      <div class="cr"><div class="cl"><span>Line Wave Motion (Amp)</span><span id="lv-wa">16</span></div><input type="range" min="0" max="60" step="2" value="16" oninput="CFG.wave=+this.value;document.getElementById('lv-wa').textContent=this.value"></div>
+      <div class="cr"><div class="cl"><span>Wave Frequency</span><span id="lv-ws">0.6</span></div><input type="range" min="0.1" max="2.0" step="0.1" value="0.6" oninput="CFG.waveSpeed=+this.value;document.getElementById('lv-ws').textContent=(+this.value).toFixed(1)"></div>
       <div class="cr"><div class="cl"><span>Spline Curvature</span><span id="lv-cu">0.55</span></div><input type="range" min="0.1" max="1.5" step="0.05" value="0.55" oninput="CFG.curv=+this.value;document.getElementById('lv-cu').textContent=(+this.value).toFixed(2);rebuild()"></div>
       <div class="cr"><div class="cl"><span>Node Distance / Spacing</span><span id="lv-ns">48</span></div><input type="range" min="20" max="90" step="2" value="48" oninput="CFG.nodeSpacing=+this.value;document.getElementById('lv-ns').textContent=this.value;rebuild()"></div>
-      <div class="cr"><div class="cl"><span>Data Pulse Speed</span><span id="lv-ps">1.2</span></div><input type="range" min="0.1" max="4.0" step="0.1" value="1.2" oninput="CFG.pulseSpeed=+this.value;document.getElementById('lv-ps').textContent=(+this.value).toFixed(1)"></div>
-      <div class="st">Canvas Bloom</div>
-      <div class="cr"><div class="cl"><span>Strength</span><span id="lv-bs">2.4</span></div><input type="range" min="0.5" max="4.5" step="0.1" value="2.4" oninput="bloomPass.strength=+this.value;document.getElementById('lv-bs').textContent=(+this.value).toFixed(1)"></div>
-      <div class="cr"><div class="cl"><span>Radius</span><span id="lv-br">0.85</span></div><input type="range" min="0.1" max="1.5" step="0.05" value="0.85" oninput="bloomPass.radius=+this.value;document.getElementById('lv-br').textContent=(+this.value).toFixed(2)"></div>
+      <div class="cr"><div class="cl"><span>Data Pulse Speed</span><span id="lv-ps">1.0</span></div><input type="range" min="0.1" max="4.0" step="0.1" value="1.0" oninput="CFG.pulseSpeed=+this.value;document.getElementById('lv-ps').textContent=(+this.value).toFixed(1)"></div>
+      <div class="st">Canvas Bloom (Subtle Glow)</div>
+      <div class="cr"><div class="cl"><span>Strength</span><span id="lv-bs">0.75</span></div><input type="range" min="0.1" max="3.0" step="0.05" value="0.75" oninput="bloomPass.strength=+this.value;document.getElementById('lv-bs').textContent=(+this.value).toFixed(2)"></div>
+      <div class="cr"><div class="cl"><span>Radius</span><span id="lv-br">0.40</span></div><input type="range" min="0.1" max="1.5" step="0.05" value="0.40" oninput="bloomPass.radius=+this.value;document.getElementById('lv-br').textContent=(+this.value).toFixed(2)"></div>
+      <div class="cr"><div class="cl"><span>Threshold</span><span id="lv-bt">0.30</span></div><input type="range" min="0.0" max="1.0" step="0.05" value="0.30" oninput="bloomPass.threshold=+this.value;document.getElementById('lv-bt').textContent=(+this.value).toFixed(2)"></div>
       <div class="st">Project Pillars</div>
       <div id="pillar-list"></div>
     </div>
@@ -168,13 +169,13 @@ const GRAPH_DATA = """ + graph_json + """;
 
 // ════════ CONFIG ════════
 const CFG = {
-  fibers: 10,
-  spread: 4.5,
-  wave: 24,           // wave animation amplitude
-  waveSpeed: 0.8,      // wave animation frequency speed
+  fibers: 4,           // 4 fibers per link instead of 10 to prevent white blowout
+  spread: 6.0,         // Spread fibers wider so they don't overlap into a blob
+  wave: 16,            // Smooth line wave motion
+  waveSpeed: 0.6,      // Natural frequency
   curv: 0.55,
-  nodeSpacing: 48,     // INCREASED NODE SPACING (48px per node)
-  pulseSpeed: 1.2,
+  nodeSpacing: 48,     // Node Spacing (48px per node)
+  pulseSpeed: 1.0,
   paused: false,
   autoRot: false,
   showLabels: true,
@@ -205,7 +206,7 @@ function tc(t){ return TIER_COL[t] ?? 0x94a3b8; }
 
 // ════════ THREE.JS SETUP ════════
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x020205, 0.0004);
+scene.fog = new THREE.FogExp2(0x020205, 0.0003);
 
 const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1, 15000);
 camera.position.set(-800, 450, 1400);
@@ -214,22 +215,29 @@ const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 0.95; // Crisp dark exposure
 document.getElementById('cv').appendChild(renderer.domElement);
 
-// Smooth OrbitControls with Pan and Zoom support
+// OrbitControls with Pan & Zoom
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.enablePan = true;
-controls.screenSpacePanning = true; // Enables smooth sliding / panning
+controls.screenSpacePanning = true;
 controls.maxDistance = 10000;
 controls.minDistance = 20;
 controls.zoomSpeed = 1.2;
 controls.panSpeed = 1.0;
 controls.autoRotateSpeed = 0.4;
 
-const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 2.4, 0.85, 0.08);
+// SUBTLE SLEEK BLOOM (No blinding white flares!)
+const bloomPass = new THREE.UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight),
+  0.75,  // Strength: 0.75 (down from 2.4!)
+  0.40,  // Radius: 0.40 (down from 0.85!)
+  0.30   // Threshold: 0.30 (only actual highlights bloom)
+);
+
 const composer = new THREE.EffectComposer(renderer);
 composer.addPass(new THREE.RenderPass(scene, camera));
 composer.addPass(bloomPass);
@@ -237,21 +245,20 @@ composer.addPass(bloomPass);
 // Grid
 const grid = new THREE.GridHelper(6000, 80, 0x0e172a, 0x070b14);
 grid.position.y = -600;
-grid.material.opacity = 0.45; grid.material.transparent = true;
+grid.material.opacity = 0.35; grid.material.transparent = true;
 scene.add(grid);
 
 // Stars
 const sb = new Float32Array(1500*3);
 for(let i=0;i<sb.length;i++) sb[i]=(Math.random()-.5)*7000;
 const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sb,3));
-scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0x334155,size:1.8,transparent:true,opacity:.35})));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0x334155,size:1.8,transparent:true,opacity:.3})));
 
 // ════════ SCENE STATE ════════
 const GRP = new THREE.Group(); scene.add(GRP);
 let NODES=[], FIBERS=[], PULSE=null;
 let SEL=null, HOV=null;
 
-// Typed arrays for pulse animation
 let pPos, pCol, pProg, pSpd, pFIdx, pCIdx;
 
 // Canvas Textures
@@ -259,7 +266,7 @@ function glowTex(hex='#00d5ff'){
   const c=document.createElement('canvas'); c.width=c.height=128;
   const x=c.getContext('2d');
   const g=x.createRadialGradient(64,64,0,64,64,64);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(0.2,hex); g.addColorStop(0.6,'rgba(0,0,0,0.1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  g.addColorStop(0,'#ffffff'); g.addColorStop(0.2,hex); g.addColorStop(0.5,'rgba(0,0,0,0.05)'); g.addColorStop(1,'rgba(0,0,0,0)');
   x.fillStyle=g; x.fillRect(0,0,128,128);
   return new THREE.CanvasTexture(c);
 }
@@ -294,13 +301,11 @@ function buildGraph(){
 
   const nodes=GRAPH_DATA.nodes, links=GRAPH_DATA.links;
 
-  // Sort tiers
   const tierSet=[];
   nodes.forEach(n=>{ if(!tierSet.includes(n.tier))tierSet.push(n.tier); });
   tierSet.sort((a,b)=>(TIER_ORDER.indexOf(a)<0?99:TIER_ORDER.indexOf(a))-(TIER_ORDER.indexOf(b)<0?99:TIER_ORDER.indexOf(b)));
 
   const pCount=tierSet.length;
-  // Wide column spacing
   const colW=Math.max(260, Math.min(340, 2200/Math.max(pCount-1,1)));
   const totalW=(pCount-1)*colW;
   const startX=-totalW/2;
@@ -313,7 +318,6 @@ function buildGraph(){
     const col=tc(tier), hex='#'+col.toString(16).padStart(6,'0');
     const tnodes=tierMap[tier], cx=startX+pi*colW;
     
-    // Node Spacing (Y-axis distance)
     const spacing=CFG.nodeSpacing;
     const totalH=Math.max(spacing*2, (tnodes.length-1)*spacing);
     const topY=totalH/2;
@@ -326,29 +330,29 @@ function buildGraph(){
 
     // Dashed rail
     const rg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx,topY+14,0),new THREE.Vector3(cx,-topY-14,0)]);
-    const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:4,gapSize:4,opacity:.25,transparent:true}));
+    const rl=new THREE.Line(rg, new THREE.LineDashedMaterial({color:col,dashSize:4,gapSize:4,opacity:.2,transparent:true}));
     rl.computeLineDistances(); GRP.add(rl);
 
     tnodes.forEach((node,ni)=>{
       const y=tnodes.length>1?topY-ni*spacing:0;
       const z=Math.sin(ni*0.4+pi*1.1)*16;
 
-      // CLEAN NORMAL COLORED PIN (not plain fuzzy bloom)
+      // CLEAN NORMAL PIN (Clean emissive, crisp non-blinding dot)
       const mat=new THREE.MeshStandardMaterial({
         color: col,
         emissive: col,
-        emissiveIntensity: 0.7,
-        roughness: 0.15,
-        metalness: 0.85
+        emissiveIntensity: 0.35,  // Low emissive to prevent white flare
+        roughness: 0.2,
+        metalness: 0.8
       });
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 16), mat);
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry(3.2, 16, 16), mat);
       mesh.position.set(cx, y, z);
       GRP.add(mesh);
 
       // Sharp halo ring
       const halo=new THREE.Mesh(
-        new THREE.RingGeometry(4.8, 6.6, 18),
-        new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.35, blending:THREE.AdditiveBlending})
+        new THREE.RingGeometry(4.4, 6.0, 18),
+        new THREE.MeshBasicMaterial({color:col, side:THREE.DoubleSide, transparent:true, opacity:.25, blending:THREE.AdditiveBlending})
       );
       halo.position.set(cx, y, z);
       GRP.add(halo);
@@ -366,7 +370,7 @@ function buildGraph(){
     });
   });
 
-  // ── Build Fiber Cables & Store Base Control Offsets for Live Wave ──────────
+  // ── Build Fiber Cables (Low Opacity + Normal Blending to avoid white flare) ──
   links.forEach(link=>{
     const si=idMap[link.source], ti=idMap[link.target];
     if(si===undefined||ti===undefined)return;
@@ -383,14 +387,21 @@ function buildGraph(){
       const oy=Math.cos(angle)*r, oz=Math.sin(angle)*r;
       const phase=Math.random()*Math.PI*2;
 
-      // Base control vectors
       const v1=new THREE.Vector3(p0.x+cpOff, p0.y-dy*0.1+oy, p0.z+oz+20);
       const v2=new THREE.Vector3(p3.x-cpOff, p3.y+dy*0.1+oy, p3.z+oz+20);
       const curve=new THREE.CubicBezierCurve3(p0.clone(), v1, v2, p3.clone());
 
-      const pts=curve.getPoints(42);
+      const pts=curve.getPoints(36);
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
-      const mat=new THREE.LineBasicMaterial({color:from.color, transparent:true, opacity:.45, blending:THREE.AdditiveBlending, depthWrite:false});
+
+      // CRISP LINE MATERIAL: Low opacity (0.16) + NormalBlending prevents white explosion!
+      const mat=new THREE.LineBasicMaterial({
+        color: from.color,
+        transparent: true,
+        opacity: 0.16,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
       const line=new THREE.Line(geo, mat);
       GRP.add(line);
 
@@ -412,7 +423,6 @@ function buildGraph(){
 
   buildPillarList(tierSet, tierMap, startX, colW);
 
-  // Position camera nicely
   const midX=(startX+(pCount-1)*colW)/2;
   controls.target.set(midX, 0, 0);
   camera.position.set(midX-800, 450, 1400);
@@ -422,7 +432,7 @@ function buildGraph(){
 function buildPulse(){
   if(PULSE){GRP.remove(PULSE);PULSE.geometry.dispose();PULSE.material.dispose();}
   if(!FIBERS.length)return;
-  const COUNT=Math.min(3500, FIBERS.length*CFG.fibers*1.1|0);
+  const COUNT=Math.min(2200, FIBERS.length*CFG.fibers*1.1|0);
   pPos=new Float32Array(COUNT*3);
   pCol=new Float32Array(COUNT*3);
   pProg=new Float32Array(COUNT);
@@ -435,7 +445,7 @@ function buildPulse(){
     const ci=Math.floor(Math.random()*FIBERS[fi].curves.length);
     pFIdx[i]=fi; pCIdx[i]=ci;
     pProg[i]=Math.random();
-    pSpd[i]=0.0025+Math.random()*0.0075;
+    pSpd[i]=0.002+Math.random()*0.006;
     const c=new THREE.Color(FIBERS[fi].baseCol);
     pCol[i*3]=c.r; pCol[i*3+1]=c.g; pCol[i*3+2]=c.b;
     const pt=FIBERS[fi].curves[ci].getPoint(pProg[i]);
@@ -446,10 +456,10 @@ function buildPulse(){
   geo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
   geo.setAttribute('color', new THREE.BufferAttribute(pCol,3));
   PULSE=new THREE.Points(geo, new THREE.PointsMaterial({
-    size: 6.5,
+    size: 4.5,
     vertexColors: true,
     transparent: true,
-    opacity: 0.95,
+    opacity: 0.85,
     blending: THREE.AdditiveBlending,
     map: glowTex('#00d5ff'),
     depthWrite: false,
@@ -459,7 +469,6 @@ function buildPulse(){
 }
 
 // ════════ CONTINUOUS LINE WAVE ANIMATION ════════
-// Dynamically moves control points v1 and v2 each frame using sine waves!
 function animateLineWave(t){
   if(CFG.paused || CFG.wave < 0.5) return;
   const amp = CFG.wave;
@@ -470,17 +479,15 @@ function animateLineWave(t){
       const b = fd.bases[ci];
       if(!b) return;
 
-      // Sine wave phase based on time, fiber index, and curve index
-      const phase1 = t * 0.0012 * spd + fi * 0.15 + ci * 0.28 + b.phase;
-      const phase2 = t * 0.0016 * spd + fi * 0.10 + ci * 0.42 + b.phase + 1.2;
+      const phase1 = t * 0.001 * spd + fi * 0.12 + ci * 0.25 + b.phase;
+      const phase2 = t * 0.0013 * spd + fi * 0.08 + ci * 0.35 + b.phase + 1.1;
 
       const dY1 = Math.sin(phase1) * amp;
-      const dZ1 = Math.cos(phase1 * 0.9) * amp * 0.75;
+      const dZ1 = Math.cos(phase1 * 0.85) * amp * 0.7;
 
       const dY2 = Math.sin(phase2) * amp;
-      const dZ2 = Math.cos(phase2 * 0.9) * amp * 0.75;
+      const dZ2 = Math.cos(phase2 * 0.85) * amp * 0.7;
 
-      // Update control points
       curve.v1.x = b.v1base.x;
       curve.v1.y = b.v1base.y + dY1;
       curve.v1.z = b.v1base.z + dZ1;
@@ -489,8 +496,7 @@ function animateLineWave(t){
       curve.v2.y = b.v2base.y + dY2;
       curve.v2.z = b.v2base.z + dZ2;
 
-      // Re-sample 42 points along the animated Bezier curve and update geometry buffer
-      const pts = curve.getPoints(42);
+      const pts = curve.getPoints(36);
       const posArr = fd.lines[ci].geometry.attributes.position.array;
       for(let p=0; p<pts.length; p++){
         posArr[p*3]   = pts[p].x;
@@ -582,21 +588,21 @@ function selNode(obj){
   const conn = new Set([...obj.out, ...obj.in]);
   FIBERS.forEach(fd => {
     const act = conn.has(fd);
-    fd.lines.forEach(ln => { ln.material.opacity = act ? 0.95 : 0.02; ln.material.color.setHex(act ? 0x00d5ff : 0x050810); });
+    fd.lines.forEach(ln => { ln.material.opacity = act ? 0.85 : 0.02; ln.material.color.setHex(act ? 0x00d5ff : 0x050810); });
   });
   NODES.forEach(n => {
     const dir = obj.out.some(fd => fd.toIdx===NODES.indexOf(n)) || obj.in.some(fd => fd.fromIdx===NODES.indexOf(n));
-    if(n === obj){ n.mesh.scale.set(3,3,3); n.mesh.material.emissiveIntensity=3; n.halo.material.color.setHex(0xff0055); n.halo.scale.set(2.4,2.4,2.4); }
-    else if(dir){ n.mesh.scale.set(1.8,1.8,1.8); n.mesh.material.emissiveIntensity=1.8; n.halo.scale.set(1.6,1.6,1.6); n.halo.material.color.setHex(0x00d5ff); }
-    else { n.mesh.scale.set(0.55,0.55,0.55); n.mesh.material.emissiveIntensity=0.1; n.halo.scale.set(0.55,0.55,0.55); n.halo.material.color.setHex(0x0f172a); }
+    if(n === obj){ n.mesh.scale.set(3,3,3); n.mesh.material.emissiveIntensity=2.0; n.halo.material.color.setHex(0xff0055); n.halo.scale.set(2.4,2.4,2.4); }
+    else if(dir){ n.mesh.scale.set(1.8,1.8,1.8); n.mesh.material.emissiveIntensity=1.2; n.halo.scale.set(1.6,1.6,1.6); n.halo.material.color.setHex(0x00d5ff); }
+    else { n.mesh.scale.set(0.55,0.55,0.55); n.mesh.material.emissiveIntensity=0.08; n.halo.scale.set(0.55,0.55,0.55); n.halo.material.color.setHex(0x0f172a); }
   });
 }
 
 function clearSel(){
   SEL = null;
   document.getElementById('rp').classList.remove('open');
-  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.45; ln.material.color.setHex(fd.baseCol); }));
-  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.7; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
+  FIBERS.forEach(fd => fd.lines.forEach(ln => { ln.material.opacity = 0.16; ln.material.color.setHex(fd.baseCol); }));
+  NODES.forEach(n => { n.mesh.scale.set(1,1,1); n.mesh.material.emissiveIntensity = 0.35; n.halo.scale.set(1,1,1); n.halo.material.color.setHex(n.color); });
 }
 
 function pulseSel(){ if(!SEL) return; new TWEEN.Tween(SEL.mesh.scale).to({x:4.5,y:4.5,z:4.5},130).yoyo(true).repeat(1).easing(TWEEN.Easing.Quadratic.Out).start(); }

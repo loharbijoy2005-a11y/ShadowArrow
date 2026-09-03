@@ -295,7 +295,7 @@ This project is licensed under the **MIT License**. See [`LICENSE`](./LICENSE) f
 
 <br/>
 
-[![Website](https://img.shields.io/badge/Live%20Site-shadowarrow.com-3b82f6?style=flat-square&logo=vercel)](https://shadowarrow.com)
+[![Website](https://img.shields.io/badge/Live%20Site-shadowarrow.in-3b82f6?style=flat-square&logo=vercel)](https://shadowarrow.in)
 [![Email](https://img.shields.io/badge/Support-support.shadowarrow%40gmail.com-ef4444?style=flat-square&logo=gmail&logoColor=white)](mailto:support.shadowarrow@gmail.com)
 
 <br/>
